@@ -27,7 +27,7 @@
 // 						return true;
 // 						exit;
 // 					} else {
-// 						errorpage('403');
+// 						error('403');
 // 						exit;
 // 					}
 // 				}
@@ -51,11 +51,11 @@
 // 					if (count($roleAccess) > 0) {
 // 						return true;
 // 					} else {
-// 						errorpage('403');
+// 						error('403');
 // 						exit;
 // 					}
 // 				} else {
-// 					errorpage('403');
+// 					error('403');
 // 					exit;
 // 				}
 // 			} else {

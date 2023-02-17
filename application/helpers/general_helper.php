@@ -271,10 +271,10 @@ if (!function_exists('isMaintenance')) {
 	{
 		if (filter_var(env('MAINTENANCE_MODE'), FILTER_VALIDATE_BOOLEAN)) {
 			if ($redirect) {
-				// if (currentUserRoleID() != 1) // superadmin always can login
-				// 	errorpage($path);
-				// else
-				// 	return true;
+				if (currentUserRoleID() != 1) // superadmin always can login
+					error($path);
+				else
+					return true;
 			}
 		} else {
 			return false;

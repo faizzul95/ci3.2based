@@ -50,7 +50,8 @@ class Migration_create_menu extends CI_Migration
 	{
 		$data = [];
 
-		$this->db->insert_batch($this->table_name, $data);
+		if (!empty($data))
+			$this->db->insert_batch($this->table_name, $data);
 
 		if (isAjax()) {
 			echo "<b> {$this->table_name} </b></span> seed";

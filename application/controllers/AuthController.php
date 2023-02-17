@@ -47,7 +47,7 @@ class AuthController extends CI_Controller
 				$username  = input('username');
 				$enteredPassword = input('password');
 
-				$validateRecaptcha = $this->recaptcha->is_valid();
+				$validateRecaptcha = recaptchav2();
 
 				// Check with recaptcha first
 				if ($validateRecaptcha['success']) {
@@ -127,7 +127,7 @@ class AuthController extends CI_Controller
 				);
 			}
 		} else {
-			errorpage('404');
+			error('404');
 		}
 
 		json($responseData);
@@ -159,7 +159,7 @@ class AuthController extends CI_Controller
 			}
 			json($responseData);
 		} else {
-			errorpage('404');
+			error('404');
 		}
 	}
 
@@ -191,7 +191,7 @@ class AuthController extends CI_Controller
 
 			json($responseData);
 		} else {
-			errorpage('404');
+			error('404');
 		}
 	}
 
@@ -312,7 +312,7 @@ class AuthController extends CI_Controller
 				$role  = input('role');
 				$email  = input('email');
 
-				$validateRecaptcha = $this->recaptcha->is_valid();
+				$validateRecaptcha = recaptchav2();
 
 				// Check with recaptcha first
 				if ($validateRecaptcha['success']) {
@@ -396,7 +396,7 @@ class AuthController extends CI_Controller
 
 			json($responseData);
 		} else {
-			errorpage('404');
+			error('404');
 		}
 	}
 

@@ -207,7 +207,7 @@ class MY_DB_mysqli_driver extends CI_DB_mysqli_driver
 					'url' => $this->CI->uri->ruri_string(),
 					'ip_address' => $this->CI->input->ip_address(),
 					'user_agent' => $this->CI->input->user_agent(),
-					'created_at' => date('Y-m-d H:i:s'),
+					'created_at' => timestamp(),
 				]
 			);
 		}

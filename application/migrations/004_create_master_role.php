@@ -52,13 +52,14 @@ class Migration_create_master_role extends CI_Migration
 			],
 			[
 				'role_name'		=> 'ADMINISTRATOR',
-				'role_code'		=> 'AD',
+				'role_code'		=> 'ADMIN',
 				'role_status'	=> '1',
 				'created_at'	=> timestamp(),
 			],
 		];
 
-		$this->db->insert_batch($this->table_name, $data);
+		if (!empty($data))
+			$this->db->insert_batch($this->table_name, $data);
 
 		if (isAjax()) {
 			echo "<b> {$this->table_name} </b></span> seed";

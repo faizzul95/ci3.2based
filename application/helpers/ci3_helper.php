@@ -21,7 +21,7 @@ if (!function_exists('view')) {
 		if (file_exists(APPPATH . 'views' . DIRECTORY_SEPARATOR . $fileName)) {
 			return ci()->load->view($fileName, $data);
 		} else {
-			errorpage('404');
+			error('404');
 		}
 	}
 }

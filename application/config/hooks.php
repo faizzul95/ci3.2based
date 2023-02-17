@@ -59,6 +59,13 @@ $hook['post_controller_constructor'][] = array(
 	'filepath' => 'hooks'
 );
 
+$hook['post_controller'][] = array(
+	'class' => 'Log_Query',
+	'function' => 'run',
+	'filename' => 'log_query.php',
+	'filepath' => 'hooks'
+);
+
 // // Security improvments when using SSL
 $hook['post_controller'][] = function () {
 	// Check if the base url starts with HTTPS

@@ -67,6 +67,19 @@ if (!function_exists('recaptchav2')) {
 	}
 }
 
+if (!function_exists('recaptchaDiv')) {
+	function recaptchaDiv($size = 'invisible', $callback = 'setResponse')
+	{
+		if (filter_var(env('RECAPTCHA_ENABLE'), FILTER_VALIDATE_BOOLEAN)) {
+			$sitekey = env('RECAPTCHA_KEY');
+			return '<div class="g-recaptcha" data-sitekey="' . $sitekey . '" data-size="' . $size . '" data-callback="' . $callback . '"></div>
+					<input type="hidden" id="captcha-response" name="g-recaptcha-response" class="form-control" />';
+		} else {
+			return NULL;
+		}
+	}
+}
+
 // IMPORT EXCEL PLUGIN
 
 if (!function_exists('readExcel')) {
@@ -182,7 +195,7 @@ if (!function_exists('render')) {
 			loadBladeTemplate($views, $cache, $fileName, $data);
 		} else {
 			log_message('error', $fileName . 'not found');
-			errorpage('404');
+			error('404');
 		}
 	}
 }
@@ -204,18 +217,6 @@ if (!function_exists('loadBladeTemplate')) {
 			log_message('error', $e->getMessage());
 			echo "<b> ERROR FOUND : </b> <br><br>" . $e->getMessage() . "<br><br><br>" . $e->getTraceAsString();
 		}
-	}
-}
-
-if (!function_exists('errorpage')) {
-	function errorpage($code = NULL)
-	{
-		if ($code == '404')
-			redirect('error/404', true);
-		else if ($code == '403')
-			redirect('error/403', true);
-		else
-			error($code, ['title' => '500', 'message' => '', 'image' => asset('custom/images/maintenance.png')]);
 	}
 }
 
