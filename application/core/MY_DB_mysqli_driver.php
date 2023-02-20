@@ -170,6 +170,9 @@ class MY_DB_mysqli_driver extends CI_DB_mysqli_driver
 		if (in_array($table, $this->CI->config->item('not_allowed_tables'))) return 1; // table tracking not allowed
 
 		if ($event == 'update') {
+			if (!empty($set))
+				if (array_key_exists("updated_at", $set)) unset($set['updated_at']); // remove updated_at if exist
+
 			$this->diff_on_update($previous_values, $set);
 			//data has not been update
 			if (empty($previous_values) && empty($set))

@@ -195,7 +195,7 @@ if (!function_exists('hasData')) {
 	function hasData($data = NULL)
 	{
 		if (isset($data)) {
-			if ($data != '' || $data != NULL)
+			if (($data != '' || $data != NULL) && !empty($data))
 				return true;
 			else
 				return false;
