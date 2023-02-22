@@ -130,3 +130,10 @@ if (!function_exists('isMultidimension')) {
 		}
 	}
 }
+
+if (!function_exists('removeArrByVal')) {
+	function removeArrByVal($array, $value)
+	{
+		return array_values(array_diff($array, array($value)));
+	}
+}
