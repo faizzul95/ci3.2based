@@ -348,6 +348,16 @@ function validateConditionalRules(inputOriValue, fieldName, conType, conValue, c
 	}
 }
 
+function validateCheckScript(str) {
+	const regex = /\<\s*script\s*\>/gi;
+
+	if (regex.test(str)) {
+		return true;
+	}
+
+	return false;
+}
+
 function validationMessage(type, fieldName, value = null, customMessage = null) {
 
 	let message = null;
@@ -490,7 +500,7 @@ function IsNumeric(input) {
 }
 
 function bytesToMbSize(bytes, roundTo = 2) {
-	var converted = bytes / (1024 * 1024);
+	const converted = bytes / (1024 * 1024);
 	return roundTo ? converted.toFixed(roundTo) : converted;
 }
 

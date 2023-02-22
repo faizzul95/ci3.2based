@@ -10,7 +10,7 @@ async function uploadApi(url, formID = null, idProgressBar = null, reloadFunctio
 
 		dataArr.append(csrf_token_name, Cookies.get(csrf_cookie_name)); // csrf
 
-		console.log('uploadApi Data : ', ...dataArr);
+		// console.log('uploadApi Data : ', ...dataArr);
 
 		var timeStarted = new Date().getTime();
 
@@ -24,47 +24,34 @@ async function uploadApi(url, formID = null, idProgressBar = null, reloadFunctio
 			onUploadProgress: function (progressEvent) {
 
 				if (idProgressBar != null) {
-					var percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+					const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
 
-					$('#' + idProgressBar).html('\
-                        <div class="col-12 mt-2 progress">\
-                            <div id="componentProgressBarCanthink" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>\
-                        </div>\
-                        <div class="col-12 mt-2 mb-4">\
-                            <div id="componentProgressBarStatusCanthink"></div>\
-                        </div>');
+					$('#' + idProgressBar).html(`
+						<div class="col-12 mt-2 progress">
+						<div id="componentProgressBarCanthink" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+						</div>
+						<div class="col-12 mt-2 mb-4">
+						<div id="componentProgressBarStatusCanthink"></div>
+						</div>
+					`);
 
 					$('#componentProgressBarCanthink').width(percentCompleted + '%');
 
-					var disSize = SizeToText(progressEvent.total);
-					var progress = progressEvent.loaded / progressEvent.total;
-					var timeSpent = new Date().getTime() - timeStarted;
-					var secondsRemaining = Math.round(((timeSpent / progress) - timeSpent) / 1000);
+					const disSize = SizeToText(progressEvent.total);
+					const progress = progressEvent.loaded / progressEvent.total;
+					const timeSpent = new Date().getTime() - timeStarted;
+					const secondsRemaining = Math.round(((timeSpent / progress) - timeSpent) / 1000);
 
-					// calculate seconds
-					var s = secondsRemaining % 60;
-					// add leading zero to seconds if needed
-					s = s < 10 ? "0" + s : s;
-
-					// calculate minutes
-					var m = Math.floor(secondsRemaining / 60) % 60;
-					// add leading zero to minutes if needed
-					m = m < 10 ? "0" + m : m;
-
-					// calculate hours
-					var h = Math.floor(secondsRemaining / 60 / 60);
-
-					var time;
-
-					if (h != 0) {
-						time = h + " hour " + m + " minute " + s + " second";
-					} else if (m != 0) {
-						time = m + " minute " + s + " second";
+					let time;
+					if (secondsRemaining >= 3600) {
+						time = `${Math.floor(secondsRemaining / 3600)} hour ${Math.floor((secondsRemaining % 3600) / 60)} minute`;
+					} else if (secondsRemaining >= 60) {
+						time = `${Math.floor(secondsRemaining / 60)} minute ${secondsRemaining % 60} second`;
 					} else {
-						time = s + " second(s)";
+						time = `${secondsRemaining} second(s)`;
 					}
 
-					$('#componentProgressBarStatusCanthink').html(SizeToText(progressEvent.loaded) + ' of ' + disSize + ' | ' + percentCompleted + '% uploading <br> estimated time remaining : ' + time);
+					$('#componentProgressBarStatusCanthink').html(`${SizeToText(progressEvent.loaded)} of ${disSize} | ${percentCompleted}% uploading <br> estimated time remaining: ${time}`);
 
 					if (percentCompleted == 100) {
 						$("#componentProgressBarCanthink").addClass("bg-success").removeClass("bg-info");
@@ -96,20 +83,14 @@ async function uploadApi(url, formID = null, idProgressBar = null, reloadFunctio
 			.catch(function (error) {
 
 				if (error.response) {
-
 					// Request made and server responded
-					// console.log(error.response.data);
-					// console.log(error.response.status);
-
 					if (isError(error.response.status)) {
 						noti(error.response.status, 'Something went wrong');
 					} else if (isUnauthorized(error.response.status)) {
 						noti(error.response.status, "Unauthorized: Access is denied");
 					}
-
 				} else if (error.request) {
 					// The request was made but no response was received
-					// console.log('request error : ', error.request);
 					noti(500, 'Something went wrong');
 				} else {
 					// Something happened in setting up the request that triggered an Error
@@ -988,7 +969,7 @@ const random = (min, max) => Math.floor(Math.random() * (max - min)) + min;
 
 function skeletonTable(hasFilter = null, buttonRefresh = true) {
 
-	let totalData = random(5, 20);
+	let totalData = 3;
 	let body = '';
 
 	for (let index = 0; index < totalData; index++) {
@@ -1014,10 +995,14 @@ function skeletonTable(hasFilter = null, buttonRefresh = true) {
 											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
 										</button>\
 										' + filters + '\
-										</div><br><br>' : null;
+										</div><br><br><br>' : '';
 
 	return buttonShow + '<div class="col-xl-12 mt-2">\
-				<table class="table table-bordered">\
+				<button type="button" class="btn btn-default btn-sm skeleton">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </button>\
+				<button type="button" class="btn btn-default btn-sm float-end skeleton mb-3">\
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+				</button>\
+				<table class="table">\
 					<tbody>' + body + '</tbody>\
 				</table>\
 			</div>';
