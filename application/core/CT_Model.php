@@ -9,12 +9,6 @@ class CT_Model extends MY_Model
 		parent::__construct();
 	}
 
-	// permission($slug) get permission list
-	public static function permission($slug = NULL)
-	{
-		return permission($slug);
-	}
-
 	// all() takes all data in a model. If no matching model exist, it returns null
 	public static function all($condition = NULL, $orderBy = NULL, $with = NULL)
 	{
