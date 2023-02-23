@@ -24,6 +24,7 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 	$name = isset($name) ? trim($name) : NULL;
 	$name = isset($name) ? ucfirst($name) : NULL;
 	$tableName = isset($tableName) ? trim($tableName) : NULL;
+	$column = NULL;
 
 	if ($type == 'controller') {
 
@@ -73,7 +74,7 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 
 					$allColumn = array_diff($allColumn, $removeFillable);
 
-					$fillable = "'" . implode("', '", $allColumn) . "'";
+					$fillable = "'" . implode("'," . PHP_EOL . " '", $allColumn) . "'";
 
 					foreach ($allColumn as $key => $columnName) {
 						$dataTableEdit .= '
@@ -82,15 +83,19 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 					});
 					';
 					}
+
+					$column = str_replace("'", "`", $fillable);
 				}
 			}
 		}
+
 
 		// // Load the stub file into a string
 		$stubModel = file_get_contents($modelStub);
 		$stubModel = str_replace('%CLASS_MODEL_NAME%', $name, $stubModel);
 		$stubModel = str_replace('%TABLE%', $table, $stubModel);
 		$stubModel = str_replace('%FILLABLE%', $fillable, $stubModel);
+		$stubModel = str_replace('%COLUMN%', $column, $stubModel);
 		$stubModel = str_replace('%PK%', $pk, $stubModel);
 		$stubModel = str_replace('%DATATABLE_EDIT%', $dataTableEdit, $stubModel);
 		$filename = APPPATH . 'models/' . $fileNameGenerate . '.php';
@@ -109,6 +114,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	$name = isset($name) ? trim($name) : NULL;
 	$name = isset($name) ? ucfirst($name) : NULL;
 	$tableName = isset($tableName) ? trim($tableName) : NULL;
+	$column = NULL;
 
 	$controllerStub = APPPATH . '\helpers\stubs\controller.stub';
 
@@ -155,7 +161,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 
 				$allColumn = array_diff($allColumn, $removeFillable);
 
-				$fillable = "'" . implode("', '", $allColumn) . "'";
+				$fillable = "'" . implode("'," . PHP_EOL . " '", $allColumn) . "'";
 
 				foreach ($allColumn as $key => $columnName) {
 					$dataTableEdit .= '
@@ -164,6 +170,8 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 					});
 					';
 				}
+
+				$column = str_replace("'", "`", $fillable);
 			}
 		}
 	}
@@ -173,6 +181,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	$stubModel = str_replace('%CLASS_MODEL_NAME%', $name, $stubModel);
 	$stubModel = str_replace('%TABLE%', $table, $stubModel);
 	$stubModel = str_replace('%FILLABLE%', $fillable, $stubModel);
+	$stubModel = str_replace('%COLUMN%', $column, $stubModel);
 	$stubModel = str_replace('%PK%', $pk, $stubModel);
 	$stubModel = str_replace('%DATATABLE_EDIT%', $dataTableEdit, $stubModel);
 

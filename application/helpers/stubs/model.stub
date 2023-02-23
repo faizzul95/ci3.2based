@@ -37,8 +37,8 @@ class %CLASS_MODEL_NAME%_model extends CT_Model
 	{
 		$serverside = serversideDT();
 		$serverside->query("SELECT 
-		%FILLABLE%,
-		%PK% 
+		%COLUMN%,
+		`%PK%`
 		FROM {$this->table} 
 		ORDER BY {$this->primary_key} {$this->order}");
 
