@@ -186,11 +186,12 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 
 Route::cli('clear/{type}', function ($type) {
 
-	$folderCache = APPPATH . '\cache\ci_session';
-	$folderViewCache = APPPATH . '\cache\blade_cache';
-	$folderLogs = APPPATH . '\logs';
+	$folderCache = APPPATH . 'cache\ci_session';
+	$folderViewCache = APPPATH . 'cache\blade_cache';
+	$folderLogs = APPPATH . 'logs';
 
-	if (in_array($type, ['cache', 'view', 'views', 'log', 'logs'])) {
+	if (in_array($type, ['all', 'cache', 'view', 'views', 'log', 'logs'])) {
+
 		if ($type == 'cache') {
 			if (is_dir($folderCache))
 				deleteFolder($folderCache);
@@ -199,7 +200,15 @@ Route::cli('clear/{type}', function ($type) {
 				deleteFolder($folderViewCache);
 		} else if (in_array($type, ['log', 'logs'])) {
 			if (is_dir($folderLogs))
-				clearFolder($folderLogs, ['index.php']);
+				clearFolder($folderLogs, ['index.html']);
+		} else if ($type == 'all') {
+			$folders = [];
+			array_push($folders, $folderCache, $folderViewCache, $folderLogs);
+			foreach ($folders as $key => $path) {
+				if (is_dir($path))
+					clearFolder($path, ['index.html']);
+			}
+			$type = 'Cache, views, logs';
 		}
 
 		$message = $type . ' folder clear successfully';
