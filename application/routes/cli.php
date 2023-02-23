@@ -97,10 +97,11 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 		file_put_contents($filename, $stubModel);
 	}
 
+	echo '';
 	if (in_array($type, ['controller', 'model']))
-		echo 'Create ' . $fileNameGenerate . ' successfully';
+		echo "Create $fileNameGenerate successfully\n\n";
 	else
-		echo "Error : The type only support for 'controller' or 'model' : Your enter " . $type;
+		echo "Error : The type only support for 'controller' or 'model', Your have enter : $type\n\n";
 });
 
 Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) {
@@ -180,5 +181,63 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	// // Write the stub file to the new model file
 	file_put_contents($filename, $stubModel);
 
-	echo 'Create controller & models ' . $name . ' successfully';
+	echo "Create controller & models $name successfully\n\n";
 });
+
+Route::cli('clear/{type}', function ($type) {
+
+	$folderCache = APPPATH . '\cache\ci_session';
+	$folderViewCache = APPPATH . '\cache\blade_cache';
+	$folderLogs = APPPATH . '\logs';
+
+	if (in_array($type, ['cache', 'view', 'views', 'log', 'logs'])) {
+		if ($type == 'cache') {
+			if (is_dir($folderCache))
+				deleteFolder($folderCache);
+		} else if (in_array($type, ['view', 'views'])) {
+			if (is_dir($folderViewCache))
+				deleteFolder($folderViewCache);
+		} else if (in_array($type, ['log', 'logs'])) {
+			if (is_dir($folderLogs))
+				clearFolder($folderLogs, ['index.php']);
+		}
+
+		$message = $type . ' folder clear successfully';
+	} else {
+		$message = "Error : The type only support for 'cache','view' or 'log' : Your enter " . $type;
+	}
+
+	echo $message . "\n\n";
+});
+
+function deleteFolder($folder)
+{
+	if (is_dir($folder)) {
+		$files = scandir($folder);
+		foreach ($files as $file) {
+			if ($file != '.' && $file != '..') {
+				$path = $folder . '/' . $file;
+				if (is_dir($path)) {
+					deleteFolder($path); // Recursively delete subdirectories
+				} else {
+					unlink($path); // Delete files
+				}
+			}
+		}
+		rmdir($folder); // Delete the main directory after its contents have been removed
+	}
+}
+
+function clearFolder($folder, $excludedItems = array())
+{
+	$files = glob($folder . '/*');
+	foreach ($files as $file) {
+		if (!in_array(basename($file), $excludedItems)) {
+			if (is_dir($file)) {
+				clearFolder($file, $excludedItems); // Delete subdirectories recursively
+			} else {
+				unlink($file); // Delete files
+			}
+		}
+	}
+}

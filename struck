@@ -1,6 +1,3 @@
 <?php
 
 require_once 'index.php';
-
-define('ENVIRONMENT', 'cli'); // change to cli
-define('CODEIGNITER_START', microtime(true));
