@@ -242,3 +242,30 @@ function compressImageonthego($source, $quality)
 	imagejpeg($image, "images/" . $newname . "." . $extension[1], $quality);
 	echo "<b>" . $newname . "." . $extension[1] . "</b>";
 }
+
+// Convert base64 string
+function convertBase64String($base64String)
+{
+	list($type, $base64String) = explode(';', $base64String);
+	list(, $base64String) = explode(',', $base64String);
+
+	// return base64_decode($base64String);
+
+	// Decode the base64-encoded data
+	$decoded_data = base64_decode($base64String);
+
+	// Check if the decoding was successful
+	if ($decoded_data !== false) {
+		// Validation successful
+		return $decoded_data;
+	} else {
+		// Validation failed
+		return NULL;
+	}
+}
+
+// convert from GB to Byte
+function convertGBToByte($gbValue)
+{
+	return $gbValue * pow(1024, 3);
+}

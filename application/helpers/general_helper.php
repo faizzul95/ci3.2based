@@ -119,9 +119,10 @@ if (!function_exists('baseURL')) {
 }
 
 if (!function_exists('asset')) {
-	function asset($param)
+	function asset($param, $public = TRUE)
 	{
-		return baseURL() . 'public/' . $param;
+		$isPublic = $public ? 'public/' : '';
+		return baseURL() . $isPublic . $param;
 	}
 }
 
@@ -195,7 +196,7 @@ if (!function_exists('hasData')) {
 	function hasData($data = NULL)
 	{
 		if (isset($data)) {
-			if (($data != '' || $data != NULL) && !empty($data))
+			if (($data !== '' || $data !== NULL) && !empty($data))
 				return true;
 			else
 				return false;
@@ -219,6 +220,10 @@ if (!function_exists('fileExist')) {
 if (!function_exists('json')) {
 	function json($data = NULL, $code = 200)
 	{
+		if (isArray($data) && array_key_exists("resCode", $data)) {
+			$code = $data['resCode'];
+		}
+
 		http_response_code($code);
 		header('Content-Type: application/json');
 		echo json_encode($data, JSON_PRETTY_PRINT);
@@ -384,5 +389,16 @@ if (!function_exists('genCode')) {
 		}
 
 		return $code;
+	}
+}
+
+if (!function_exists('defaultImage')) {
+	function defaultImage($type = 'user')
+	{
+		$list = [
+			'user' => 'upload/default/user.png',
+		];
+
+		return array_key_exists($type, $list) ? asset($list[$type]) : asset('upload/default/no-img.png');
 	}
 }

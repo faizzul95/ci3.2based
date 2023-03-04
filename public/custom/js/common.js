@@ -22,7 +22,6 @@ async function uploadApi(url, formID = null, idProgressBar = null, reloadFunctio
 				"X-CSRF-TOKEN": Cookies.get(csrf_cookie_name),
 			},
 			onUploadProgress: function (progressEvent) {
-
 				if (idProgressBar != null) {
 					const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
 
@@ -172,7 +171,7 @@ async function submitApi(url, dataObj, formID = null, reloadFunction = null, clo
 				})
 				.catch(error => {
 					const res = error.response;
-					// console.log('ERROR 1', res);
+					console.log('ERROR 1 Submit', res);
 					if (isError(res.status)) {
 						noti(res.status, res.data.message);
 					} else if (isUnauthorized(res.status)) {
@@ -183,7 +182,7 @@ async function submitApi(url, dataObj, formID = null, reloadFunction = null, clo
 				});
 		} catch (e) {
 			const res = e.response;
-			console.log('ERROR 2', res);
+			console.log('ERROR 2 Submit', res);
 			loadingBtn(submitIdBtn, false);
 
 			if (isUnauthorized(res.status)) {
@@ -244,23 +243,20 @@ async function loginApi(url, dataObj, formID = null) {
 				})
 				.catch(error => {
 					const res = error.response;
-					console.log('ERROR 1', res);
-					if (isError(res.status)) {
-						if (res.data.length < 5) {
-							for (var error in res.data) {
-								// noti(res.status, res.data[error]);
-								console.log('Error Submit', res.data[error]);
-							}
-						}
-					} else if (isUnauthorized(res.status)) {
-						noti(res.status, "Unauthorized: Access is denied");
+					console.log('ERROR 1 LOGIN');
+
+					if (isError(error.response.status)) {
+						noti(error.response.status, error.response.data.message);
+					} else if (isUnauthorized(error.response.status)) {
+						noti(error.response.status, "Unauthorized: Access is denied");
 					}
+
 					loadingBtn(submitIdBtn, false, submitBtnText);
 					throw error;
 				});
 		} catch (e) {
 			const res = e.response;
-			console.log('ERROR 2', res);
+			console.log('ERROR 2 LOGIN', res);
 			loadingBtn(submitIdBtn, false, submitBtnText);
 
 			if (isUnauthorized(res.status)) {
@@ -369,10 +365,10 @@ async function callApi(method = 'POST', url, dataObj = null, option = {}) {
 				return result;
 			})
 			.catch(error => {
-
+				console.log('ERROR 1 CALL API');
 				if (isset(error.response.status)) {
 					if (isError(error.response.status)) {
-						noti(error.response.status, 'Something went wrong');
+						noti(error.response.status, error.response.data.message);
 					} else if (isUnauthorized(error.response.status)) {
 						noti(error.response.status, "Unauthorized: Access is denied");
 					}
@@ -383,18 +379,20 @@ async function callApi(method = 'POST', url, dataObj = null, option = {}) {
 				throw error;
 			});
 	} catch (e) {
+		console.log('ERROR 2 CALL API');
 		const res = e.response;
 		if (isUnauthorized(res.status)) {
 			noti(res.status, "Unauthorized: Access is denied");
 		} else {
 			if (isError(res.status)) {
-				var error_count = 0;
-				for (var error in res.data.errors) {
-					if (error_count == 0) {
-						noti(500, res.data.errors[error][0]);
-					}
-					error_count++;
-				}
+				// var error_count = 0;
+				// for (var error in res.data.errors) {
+				// 	if (error_count == 0) {
+				// 		noti(500, res.data.errors[error][0]);
+				// 	}
+				// 	error_count++;
+				// }
+				noti(res.response.status, res.response.data.message);
 			} else {
 				noti(500, 'Something went wrong');
 			}
@@ -572,7 +570,7 @@ function hasData(variable) {
 		else if (isObject(variable))
 			return Object.keys(variable).length > 0 ? true : false;
 		else
-			return variable != '' && variable != null ? true : false;
+			return variable === '' || variable === null || variable === 'null' ? false : true;
 	}
 
 	return false;
@@ -911,6 +909,11 @@ function isNumeric(evt) {
 	}
 }
 
+function isDigit(str) {
+	var regex = /[0-9]|\./;
+	return regex.test(str);
+}
+
 function loading(id, display = false) {
 	if (display) {
 		$(id).block({
@@ -1052,4 +1055,27 @@ function skeletonTableCard(hasFilter = null, buttonRefresh = true) {
 					</div>\
 				</div>\
 			</div>';
+}
+
+function getImageDefault(imageName, path = 'public/upload/default/') {
+	return $('meta[name="base_url"]').attr('content') + path + imageName;;
+}
+
+function getImage(input) {
+	if (input.files && input.files[0]) {
+		var reader = new FileReader();
+		return reader.readAsDataURL(input.files[0]);
+	}
+
+	return false;
+}
+
+function base_url() {
+	// return window.location.protocol + "//" + window.location.host + "/";
+	return $('meta[name="base_url"]').attr('content');
+}
+
+function asset(path, isPublic = true) {
+	const publicFolder = isPublic ? '/public' : '';
+	return base_url() + publicFolder + path;
 }

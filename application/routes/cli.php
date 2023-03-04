@@ -12,6 +12,9 @@
 Luthier\Cli::maker();
 Luthier\Cli::migrations();
 
+Route::cli('JobController/listen', 'JobController@listen');
+Route::cli('JobController/work', 'JobController@work');
+
 Route::cli('jobs', 'JobController@work');
 
 Route::cli('jobs/listen', 'JobController@listen');
@@ -29,7 +32,7 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 	if ($type == 'controller') {
 
 		$fileNameGenerate = $name . 'Controller';
-		$controllerStub = APPPATH . '\helpers\stubs\controller.stub';
+		$controllerStub = APPPATH . '' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'controller.stub';
 
 		// // Load the stub file into a string
 		$stubController = file_get_contents($controllerStub);
@@ -39,13 +42,13 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 		$stubController = str_replace('%CLASS_CONTROLLER_NAME%', $fileNameGenerate, $stubController);
 		$stubController = str_replace('%CLASS_NAME%', $name, $stubController);
 		// // Generate the filename for the new controller
-		$filename = APPPATH . 'controllers/' . $fileNameGenerate . '.php';
+		$filename = APPPATH . 'controllers' . DIRECTORY_SEPARATOR . '' . $fileNameGenerate . '.php';
 		// // Write the stub file to the new controller file
 		file_put_contents($filename, $stubController);
 	} else if ($type == 'model') {
 
 		$fileNameGenerate = $name . '_model';
-		$modelStub = APPPATH . '\helpers\stubs\model.stub';
+		$modelStub = APPPATH . '' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'model.stub';
 		$table = '';
 		$fillable = '';
 		$pk = '';
@@ -89,7 +92,6 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 			}
 		}
 
-
 		// // Load the stub file into a string
 		$stubModel = file_get_contents($modelStub);
 		$stubModel = str_replace('%CLASS_MODEL_NAME%', $name, $stubModel);
@@ -98,7 +100,7 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 		$stubModel = str_replace('%COLUMN%', $column, $stubModel);
 		$stubModel = str_replace('%PK%', $pk, $stubModel);
 		$stubModel = str_replace('%DATATABLE_EDIT%', $dataTableEdit, $stubModel);
-		$filename = APPPATH . 'models/' . $fileNameGenerate . '.php';
+		$filename = APPPATH . 'models' . DIRECTORY_SEPARATOR . '' . $fileNameGenerate . '.php';
 		file_put_contents($filename, $stubModel);
 	}
 
@@ -116,7 +118,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	$tableName = isset($tableName) ? trim($tableName) : NULL;
 	$column = NULL;
 
-	$controllerStub = APPPATH . '\helpers\stubs\controller.stub';
+	$controllerStub = APPPATH . '' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'controller.stub';
 
 	// // Load the stub file into a string
 	$stubController = file_get_contents($controllerStub);
@@ -126,13 +128,13 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	$stubController = str_replace('%CLASS_CONTROLLER_NAME%', $name . 'Controller', $stubController);
 	$stubController = str_replace('%CLASS_NAME%', $name, $stubController);
 	// // Generate the filename for the new controller
-	$filename = APPPATH . 'controllers/' . $name . 'Controller.php';
+	$filename = APPPATH . 'controllers' . DIRECTORY_SEPARATOR . '' . $name . 'Controller.php';
 	// // Write the stub file to the new controller file
 	file_put_contents($filename, $stubController);
 
 	// ===================================================================
 
-	$modelStub = APPPATH . '\helpers\stubs\model.stub';
+	$modelStub = APPPATH . '' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'model.stub';
 	$table = '';
 	$fillable = '';
 	$pk = '';
@@ -186,7 +188,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	$stubModel = str_replace('%DATATABLE_EDIT%', $dataTableEdit, $stubModel);
 
 	// // Generate the filename for the new model
-	$filename = APPPATH . 'models/' . $name . '_model.php';
+	$filename = APPPATH . 'models' . DIRECTORY_SEPARATOR . '' . $name . '_model.php';
 	// // Write the stub file to the new model file
 	file_put_contents($filename, $stubModel);
 
@@ -195,8 +197,8 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 
 Route::cli('clear/{type}', function ($type) {
 
-	$folderCache = APPPATH . 'cache\ci_session';
-	$folderViewCache = APPPATH . 'cache\blade_cache';
+	$folderCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'ci_session';
+	$folderViewCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'blade_cache';
 	$folderLogs = APPPATH . 'logs';
 
 	if (in_array($type, ['all', 'cache', 'view', 'views', 'log', 'logs'])) {

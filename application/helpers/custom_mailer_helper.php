@@ -4,15 +4,15 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// use Mailgun\Mailgun;
+use Mailgun\Mailgun;
 
 function sentMail($recipientData = NULL, $subject = NULL, $dataBody = NULL, $attachment = NULL)
 {
 	if (in_array(env('MAIL_DRIVER'), ['mailer', 'mailgun'])) {
 		if (env('MAIL_DRIVER') == 'mailer') {
-			sentUsingMailer($recipientData, $subject, $dataBody, $attachment);
+			return sentUsingMailer($recipientData, $subject, $dataBody, $attachment);
 		} else if (env('MAIL_DRIVER') == 'mailgun') {
-			sentUsingMailGun($recipientData, $subject, $dataBody, $attachment);
+			return sentUsingMailGun($recipientData, $subject, $dataBody, $attachment);
 		}
 	} else {
 		log_message('debug', "Mailer Error: missing driver " . env('MAIL_DRIVER'));
@@ -23,57 +23,57 @@ function sentMail($recipientData = NULL, $subject = NULL, $dataBody = NULL, $att
 // Sent Using MailGun Email
 function sentUsingMailGun($recipientData = NULL, $subject = NULL, $dataBody = NULL, $attachment = NULL)
 {
-	// header("Access-Control-Allow-Origin: *");
+	header("Access-Control-Allow-Origin: *");
 
-	// $mgClient = Mailgun::create(env('MAIL_USERNAME'));
+	$mgClient = Mailgun::create(env('MAIL_USERNAME'));
 
-	// try {
-	// 	$cc = NULL;
-	// 	$bcc = NULL;
+	try {
+		$cc = NULL;
+		$bcc = NULL;
 
-	// 	// Add a CC recipient
-	// 	if (array_key_exists("recipient_cc", $recipientData) && hasData($recipientData['recipient_cc'])) {
-	// 		$cc = $recipientData['recipient_cc'];
-	// 	}
+		// Add a CC recipient
+		if (array_key_exists("recipient_cc", $recipientData) && hasData($recipientData['recipient_cc'])) {
+			$cc = $recipientData['recipient_cc'];
+		}
 
-	// 	// Add a BCC recipient
-	// 	if (array_key_exists("recipient_bcc", $recipientData) && hasData($recipientData['recipient_bcc'])) {
-	// 		$bcc = $recipientData['recipient_bcc'];
-	// 	}
+		// Add a BCC recipient
+		if (array_key_exists("recipient_bcc", $recipientData) && hasData($recipientData['recipient_bcc'])) {
+			$bcc = $recipientData['recipient_bcc'];
+		}
 
-	// 	if (isArray($recipientData['recipient_email'])) {
-	// 		$to = $recipientData['recipient_email'];
-	// 	} else {
-	// 		$to = $recipientData['recipient_name'] . ' <' . $recipientData['recipient_email'] . '>';
-	// 	}
+		if (isArray($recipientData['recipient_email'])) {
+			$to = $recipientData['recipient_email'];
+		} else {
+			$to = $recipientData['recipient_name'] . ' <' . $recipientData['recipient_email'] . '>';
+		}
 
-	// 	$result = $mgClient->messages()->send(env('APP_DOMAIN'), array(
-	// 		'from'    => env('MAIL_FROM_NAME') . '<' . env('MAIL_FROM_ADDRESS') . '>',
-	// 		'to'      => $to,
-	// 		'subject' => $subject,
-	// 		'html'    => $dataBody,
-	// 		'cc'      => $cc,
-	// 		'bcc'     => $bcc,
-	// 		// 'attachment' => array(
-	// 		//     array(
-	// 		//         'filePath' => 'test.txt',
-	// 		//         'filename' => 'test_file.txt'
-	// 		//     )
-	// 		// )
-	// 	));
+		$result = $mgClient->messages()->send(env('APP_DOMAIN'), array(
+			'from'    => env('MAIL_FROM_NAME') . '<' . env('MAIL_FROM_ADDRESS') . '>',
+			'to'      => $to,
+			'subject' => $subject,
+			'html'    => $dataBody,
+			'cc'      => $cc,
+			'bcc'     => $bcc,
+			// 'attachment' => array(
+			//     array(
+			//         'filePath' => 'test.txt',
+			//         'filename' => 'test_file.txt'
+			//     )
+			// )
+		));
 
-	// 	if ($result) {
-	// 		return ['success' => true, 'message' => 'Email sent successfully'];
-	// 	} else {
-	// 		return ['success' => false, 'message' => 'Email unable to sent'];
-	// 	}
+		if ($result) {
+			return ['success' => true, 'message' => 'Email sent successfully'];
+		} else {
+			return ['success' => false, 'message' => 'Email unable to sent'];
+		}
 
-	// 	$status = true;
-	// 	$status_sent = 1;
-	// } catch (Exception $e) {
-	// 	$status = false;
-	// 	$status_sent = 0;
-	// }
+		$status = true;
+		$status_sent = 1;
+	} catch (Exception $e) {
+		$status = false;
+		$status_sent = 0;
+	}
 }
 
 // Sent Using MailGun PHPMAILER / Default
@@ -146,14 +146,16 @@ function sentUsingMailer($recipientData = NULL, $subject = NULL, $dataBody = NUL
 		}
 
 		if ($mail->send()) {
-			return ['success' => true, 'message' => 'Email sent successfully'];
+			$response =  ['success' => true, 'message' => 'Email sent successfully'];
 		} else {
-			return ['success' => false, 'message' => 'Email unable to sent'];
+			$response =  ['success' => false, 'message' => 'Email unable to sent'];
 		}
 	} catch (Exception $e) {
 		log_message('debug', "Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
-		return ['success' => false, 'message' => "Message could not be sent. Mailer Error: {$mail->ErrorInfo}"];
+		$response = ['success' => false, 'message' => "Message could not be sent. Mailer Error: {$mail->ErrorInfo}"];
 	}
+
+	return $response;
 }
 
 function replaceTextWithData($string = NULL, $arrayOfStringToReplace = array())

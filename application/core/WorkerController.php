@@ -26,7 +26,7 @@ class WorkerController extends CI_Controller
 	 *
 	 * @var string
 	 */
-	public $logPath;
+	public $logPath = FCPATH . '' . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-worker.log';
 
 	/**
 	 * PHP CLI command for current environment
@@ -189,9 +189,9 @@ class WorkerController extends CI_Controller
 		// $route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$workerAction}";
 
 		if ($this->_isCI3()) {
-			$route = $this->router->directory . $this->router->class . "/{$workerAction}";
+			$route = $this->router->directory . $this->router->class . "" . DIRECTORY_SEPARATOR . "{$workerAction}";
 		} else {
-			$route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$workerAction}";
+			$route = $this->router->fetch_directory() . $this->router->fetch_class() . "" . DIRECTORY_SEPARATOR . "{$workerAction}";
 		}
 
 		$workerCmd = "{$this->phpCommand} " . FCPATH . "index.php {$route}";
@@ -221,6 +221,9 @@ class WorkerController extends CI_Controller
 				if (!$workingFlag) {
 					$workingFlag = true;
 					$startTime = microtime(true);
+
+					echo "Queue Listener - Job detect\n";
+					echo "Queue Listener - Start dispatch\n";
 					$this->_log("Queue Listener - Job detect");
 					$this->_log("Queue Listener - Start dispatch");
 
@@ -242,6 +245,7 @@ class WorkerController extends CI_Controller
 							$isAlive = $this->_isPidAlive($pid);
 							if (!$isAlive) {
 								$this->_log("Queue Listener - Worker health check: Missing #{$id} (PID: {$pid})");
+								echo "Queue Listener - Worker health check: Missing #{$id} (PID: {$pid})\n";
 								$r = $this->_workerCmd($workerCmd, $id);
 							}
 						}
@@ -267,6 +271,8 @@ class WorkerController extends CI_Controller
 				// Clear worker stack
 				$this->_pidStack = [];
 				$costSeconds = number_format(microtime(true) - $startTime, 2, '.', '');
+				echo "Queue Listener - Job empty\n";
+				echo "Queue Listener - Stop dispatch, total cost: {$costSeconds}s\n\n";
 				$this->_log("Queue Listener - Job empty");
 				$this->_log("Queue Listener - Stop dispatch, total cost: {$costSeconds}s");
 			}
@@ -315,6 +321,7 @@ class WorkerController extends CI_Controller
 
 		// Print worker close
 		$costSeconds = number_format(microtime(true) - $startTime, 2, '.', '');
+		echo "Queue Worker - Close #{$id} (PID: {$pid}) | cost: {$costSeconds}s\n\n";
 		$this->_print("Queue Worker - Close #{$id} (PID: {$pid}) | cost: {$costSeconds}s");
 
 		return;
@@ -344,13 +351,14 @@ class WorkerController extends CI_Controller
 		}
 
 		// Null so far
-		$logPath = '/dev/null';
+		// $logPath = '/dev/null';
+		$logPath = FCPATH . '' . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-worker.log';
 
 		// Action command builder
 		if ($this->_isCI3()) {
-			$route = $this->router->directory . $this->router->class . "/{$action}";
+			$route = $this->router->directory . $this->router->class . "" . DIRECTORY_SEPARATOR . "{$action}";
 		} else {
-			$route = $this->router->fetch_directory() . $this->router->fetch_class() . "/{$action}";
+			$route = $this->router->fetch_directory() . $this->router->fetch_class() . "" . DIRECTORY_SEPARATOR . "{$action}";
 		}
 
 		$cmd = "{$this->phpCommand} " . FCPATH . "index.php {$route}";
@@ -373,7 +381,7 @@ class WorkerController extends CI_Controller
 		$result = shell_exec($launchCmd);
 		$result = shell_exec($psCmd);
 		$psInfo = shell_exec($psInfoCmd);
-		echo "Success to launch process `{$action}`: {$route}.\nCalled command: {$launchCmd}\n------\n{$psInfo}";
+		echo "Success to launch process `{$action}`: {$route}.\nCalled command: {$launchCmd}\n------\n\n{$psInfo}\n\n";
 
 		return;
 	}
@@ -525,6 +533,7 @@ class WorkerController extends CI_Controller
 
 		// Log
 		$time = date("Y-m-d H:i:s");
+		echo "Queue Listener - Dispatch Worker #{$workerCount} (PID: {$pid})\n";
 		$this->_log("Queue Listener - Dispatch Worker #{$workerCount} (PID: {$pid})");
 
 		return true;

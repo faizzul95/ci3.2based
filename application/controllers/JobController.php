@@ -3,10 +3,11 @@
 class JobController extends WorkerController
 {
 	// Setting for that a listener could fork up to 10 workers
-	public $workerMaxNum = 8;
+	public $workerMaxNum = 10;
 
 	// Enable text log writen into specified file for listener and worker
-	public $logPath = 'logs/queue-worker.log';
+	// public $logPath = 'cache/queue-worker.log';
+	public $logPath = FCPATH . '' . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-worker.log';
 
 	// Initializer
 	protected function init()
@@ -37,5 +38,6 @@ class JobController extends WorkerController
 		// return `true` for job existing, which leads to dispatch worker(s).
 		// return `false` for job not found, which would keep detecting new job
 		// return $this->myjobs->exists();
+		$this->handleWork();
 	}
 }

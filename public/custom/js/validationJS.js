@@ -144,7 +144,7 @@ function validationJs(rules, message = null, customMessage = null, attrType = 'n
 						'type': elemInput[keyInput].files[0].type,
 					} : null;
 
-					validateUploadRules(conArr, fieldName, inputOriValue, customText, files);
+					validateUploadRules(conArr, fieldName, inputOriValue, customText, files, attrType);
 				} else {
 					for (let checkCon in conArr) {
 
@@ -223,7 +223,9 @@ function validationJs(rules, message = null, customMessage = null, attrType = 'n
 									if (typeof getElementByAttr(attrType, fieldNameReq)[0] !== 'undefined') {
 										let fieldValueReq = getElementByAttr(attrType, fieldNameReq)[0].value;
 										for (let conditionKey in reqIfCon) {
-											if (conditionKey != 0 && conditionKey != 1) {
+											if (fieldValueReq === 'null' || fieldValueReq === null || fieldValueReq == '') {
+												conditionMeet = true;
+											} else {
 												if (conditionMeet !== true)
 													conditionMeet = reqIfCon[conditionKey].toLowerCase() == fieldValueReq.toLowerCase() ? true : false;
 											}
@@ -259,7 +261,56 @@ function validationJs(rules, message = null, customMessage = null, attrType = 'n
 	return Object.keys(_validationJSresult).length > 0 ? false : true;
 }
 
-function validateUploadRules(rulesArr, fieldName, inputValue, customText, filesInfo = null) {
+function validateUploadRules(rulesArr, fieldName, inputValue, customText, filesInfo = null, attrType = 'name') {
+
+	for (let key in rulesArr) {
+		const newArr = rulesArr[key].split(":").map(element => {
+			return element.trim();
+		});
+
+		let count = Object.keys(newArr).length;
+
+		if (count > 1) {
+
+			let conType = newArr[0];
+			let conValue = newArr[1];
+
+			if (newArr.includes("required_if")) {
+				let conditionMeet = false;
+				const reqIfCon = conValue.split(",").map(element => {
+					return element.trim();
+				});
+
+				if (reqIfCon.length > 2) {
+					const fieldNameReq = reqIfCon[0];
+					const conditionReq = reqIfCon[1];
+
+					if (typeof getElementByAttr(attrType, fieldNameReq)[0] !== 'undefined') {
+						let fieldValueReq = getElementByAttr(attrType, fieldNameReq)[0].value;
+
+						for (let conditionKey in reqIfCon) {
+							if (conditionKey != 0 && conditionKey != 1) {
+								if (fieldValueReq === 'null' || fieldValueReq === null || fieldValueReq == '') {
+									conditionMeet = true;
+								} else {
+									if (conditionMeet !== true)
+										conditionMeet = reqIfCon[conditionKey].toLowerCase() == fieldValueReq.toLowerCase() ? true : false;
+								}
+							}
+						}
+					} else {
+						alert("input " + attrType + "='" + fieldNameReq + "' not found.");
+						console.log("input " + attrType + "='" + fieldNameReq + "' not found.");
+					}
+				}
+
+				if (conditionMeet) {
+					if (inputValue == null || inputValue == '')
+						_validationJSresult['required'] = validationMessage('required', fieldName, null, customText);
+				}
+			}
+		}
+	}
 
 	if (rulesArr.includes("required")) {
 		if (inputValue == null || inputValue == '')

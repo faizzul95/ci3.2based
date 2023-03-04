@@ -31,7 +31,8 @@ require __DIR__ . '/PAGES/Error.php';
 require __DIR__ . '/PAGES/Migration.php';
 
 Route::set('404_override', function () {
-	show_404();
+	// show_404();
+	view('errors/custom/error_404');
 });
 
 Route::set('translate_uri_dashes', FALSE);
