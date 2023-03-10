@@ -45,25 +45,16 @@ class myjobs
 				'message' => $message,
 			]);
 
+			$response = NULL;
+
 			// Check if job is email
 			if ($job['type'] == 'email') {
+				$response = $this->mailJob($data);
+			}
 
-				$recipientData = [
-					'recipient_name' => $data['name'],
-					'recipient_email' => $data['to'],
-					'recipient_cc' => $data['cc'],
-					'recipient_bcc' => $data['bcc'],
-				];
-
-				$sentEmail = sentMail($recipientData, $data['subject'], $data['body'], $data['attachment']);
-
-				if ($sentEmail['success']) {
-					$status = 3; // completed
-					$message = $sentEmail['message'];
-				} else {
-					$status = 4; // failed
-					$message = 'Failed to sent at ' . timestamp('d/m/Y h:i A') . ', ' . $sentEmail['message'];
-				}
+			if (!empty($response)) {
+				$status = $response['status'];
+				$message = $response['message'];
 			}
 		} else {
 			$status = 4; // failed
@@ -77,5 +68,23 @@ class myjobs
 			'attempt' => $attempt + 1,
 			'message' => $message,
 		]);
+	}
+
+	private function mailJob($data)
+	{
+		$recipientData = [
+			'recipient_name' => $data['name'],
+			'recipient_email' => $data['to'],
+			'recipient_cc' => $data['cc'],
+			'recipient_bcc' => $data['bcc'],
+		];
+
+		$sentEmail = sentMail($recipientData, $data['subject'], $data['body'], $data['attachment']);
+
+		if ($sentEmail['success']) {
+			return ['status' => 3, 'message' => $sentEmail['message']];
+		} else {
+			return ['status' => 4, 'message' => 'Failed to sent at ' . timestamp('d/m/Y h:i A') . ', ' . $sentEmail['message']];
+		}
 	}
 }

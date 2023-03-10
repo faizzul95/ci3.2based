@@ -30,6 +30,14 @@ require __DIR__ . '/PAGES/Auth.php';
 require __DIR__ . '/PAGES/Error.php';
 require __DIR__ . '/PAGES/Migration.php';
 
+// SYSTEM INFORMATION
+Route::get('/sysinfo', function () {
+	if (isLoginCheck() && currentUserRoleID() == 1)
+		phpinfo();
+	else
+		errorpage('404');
+});
+
 Route::set('404_override', function () {
 	// show_404();
 	view('errors/custom/error_404');

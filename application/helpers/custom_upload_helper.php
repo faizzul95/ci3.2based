@@ -120,9 +120,9 @@ function upload($files, $folder, $data = NULL, $index = false, $compress = false
 			$canCompress = ['jpg', 'png', 'jpeg', 'gif'];
 			if (in_array(pathinfo($saveName, PATHINFO_EXTENSION), $canCompress)) {
 				$compressfolder = $folder . '/' . $newName . "_compress." . $ext;
-				$compressImage = compress($path, $compressfolder, '30');
+				$compressImage = compress($path, $compressfolder, '45');
 				$thumbnailfolder = $folder . '/' . $newName . "_thumbnail." . $ext;
-				$thumbnailImage = compress($path, $thumbnailfolder, '5');
+				$thumbnailImage = compress($path, $thumbnailfolder, '15');
 				$file_compression = 3;
 			}
 		}
@@ -159,7 +159,7 @@ function upload($files, $folder, $data = NULL, $index = false, $compress = false
 	return [];
 }
 
-function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rename')
+function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rename', $compress = false)
 {
 	$ext = pathinfo($filesName, PATHINFO_EXTENSION);
 	$newName = md5($filesName) . date('dmYhis');
@@ -170,6 +170,18 @@ function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rena
 	if ($type($currentPath, $path)) {
 
 		$entity_type = $entity_file_type = $entity_id = $user_id = 0;
+		$file_compression = 1;
+
+		if ($compress) {
+			$canCompress = ['jpg', 'png', 'jpeg', 'gif'];
+			if (in_array(pathinfo($saveName, PATHINFO_EXTENSION), $canCompress)) {
+				$compressfolder = $folder . '/' . $newName . "_compress." . $ext;
+				$compressImage = compress($path, $compressfolder, '45');
+				$thumbnailfolder = $folder . '/' . $newName . "_thumbnail." . $ext;
+				$thumbnailImage = compress($path, $thumbnailfolder, '15');
+				$file_compression = 3;
+			}
+		}
 
 		if (!empty($data)) {
 			$user_id = (isset($data['user_id'])) ? $data['user_id'] : NULL;
@@ -193,7 +205,7 @@ function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rena
 			'files_mime' => $filesMime,
 			'files_extension' => $ext,
 			'files_size' => round($fileSize, 2),
-			'file_compression' => 1,
+			'file_compression' => $file_compression,
 			'files_path' => $path,
 			'file_path_is_url' => 0,
 			'entity_type' => $entity_type,
