@@ -121,8 +121,8 @@ if (!function_exists('baseURL')) {
 if (!function_exists('asset')) {
 	function asset($param, $public = TRUE)
 	{
-		$isPublic = $public ? 'public/' : '';
-		return baseURL() . $isPublic . $param;
+		$isPublic = $public ? 'public' : '';
+		return baseURL() . $isPublic . '/' . $param;
 	}
 }
 
