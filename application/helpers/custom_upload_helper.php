@@ -178,7 +178,7 @@ function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rena
 				$compressfolder = $folder . '/' . $newName . "_compress." . $ext;
 				$compressImage = compress($path, $compressfolder, '45');
 				$thumbnailfolder = $folder . '/' . $newName . "_thumbnail." . $ext;
-				$thumbnailImage = compress($path, $thumbnailfolder, '15');
+				$thumbnailImage = compress($path, $thumbnailfolder, '10');
 				$file_compression = 3;
 			}
 		}
@@ -205,9 +205,9 @@ function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rena
 			'files_mime' => $filesMime,
 			'files_extension' => $ext,
 			'files_size' => round($fileSize, 2),
-			'file_compression' => $file_compression,
+			'files_compression' => $file_compression,
 			'files_path' => $path,
-			'file_path_is_url' => 0,
+			'files_path_is_url' => 0,
 			'entity_type' => $entity_type,
 			'entity_file_type' => $entity_file_type,
 			'entity_id' => $entity_id,

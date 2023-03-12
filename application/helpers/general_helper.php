@@ -193,16 +193,20 @@ if (!function_exists('isError')) {
 }
 
 if (!function_exists('hasData')) {
-	function hasData($data = NULL)
+	function hasData($data = NULL, $arrKey = NULL)
 	{
 		if (isset($data)) {
-			if (($data !== '' || $data !== NULL) && !empty($data))
-				return true;
-			else
-				return false;
-		} else {
-			return false;
+			if (($data !== '' || $data !== NULL) && !empty($data)) {
+				if (!empty($arrKey) && array_key_exists($arrKey, $data))
+					return !empty($data[$arrKey]) ? true : false;
+				else if (empty($arrKey))
+					return true;
+				else
+					return false;
+			}
 		}
+
+		return false;
 	}
 }
 
@@ -400,5 +404,43 @@ if (!function_exists('defaultImage')) {
 		];
 
 		return array_key_exists($type, $list) ? asset($list[$type]) : asset('upload/default/no-img.png');
+	}
+}
+
+if (!function_exists('fileImage')) {
+	function fileImage($dataImage = NULL, $typeDefault = 'user')
+	{
+		if (hasData($dataImage)) {
+			$type = $dataImage['files_type'];
+			$path = $dataImage['files_path'];
+			$folder = $dataImage['files_folder'];
+			$compress = $dataImage['files_compression'];
+
+			// check if files type is image
+			if ($type == 'image') {
+				$filename_without_extension = pathinfo($path, PATHINFO_FILENAME);
+				$file_extension = pathinfo($path, PATHINFO_EXTENSION);
+
+				$compressPath = [
+					1 => $path,
+					2 => $folder . '/' . $filename_without_extension . '_compress.' . $file_extension,
+					3 => $folder . '/' . $filename_without_extension . '_thumbnail.' . $file_extension,
+				];
+
+				$imagePath = $compressPath[$compress];
+
+				// check if file is exist
+				if (fileExist($imagePath)) {
+					return asset($imagePath, false);
+				} else {
+					// return default image if not exist
+					return defaultImage($typeDefault);
+				}
+			} else {
+				return defaultImage($typeDefault);
+			}
+		} else {
+			return defaultImage($typeDefault);
+		}
 	}
 }

@@ -208,7 +208,7 @@ class AuthController extends CI_Controller
 				],
 				[
 					'relation' => 'avatar',
-					'fields' => 'file_compression,files_path,file_path_is_url,entity_file_type',
+					'fields' => 'files_compression,files_path,files_path_is_url,entity_file_type',
 					'where' => '`entity_file_type`=\'PROFILE_PHOTO\'',
 				],
 			]
@@ -254,7 +254,7 @@ class AuthController extends CI_Controller
 				],
 				[
 					'relation' => 'avatar',
-					'fields' => 'file_compression,files_path,file_path_is_url,entity_file_type',
+					'fields' => 'files_compression,files_path,files_path_is_url,entity_file_type',
 					'where' => '`entity_file_type`=\'PROFILE_PHOTO\'',
 				],
 			]

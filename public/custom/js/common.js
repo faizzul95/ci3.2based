@@ -1057,17 +1057,16 @@ function skeletonTableCard(hasFilter = null, buttonRefresh = true) {
 			</div>';
 }
 
-function getImageDefault(imageName, path = 'public/upload/default/') {
-	return $('meta[name="base_url"]').attr('content') + path + imageName;;
-}
-
-function getImage(input) {
-	if (input.files && input.files[0]) {
-		var reader = new FileReader();
-		return reader.readAsDataURL(input.files[0]);
+function array_key_exists(arrKey = null, dataObj = null) {
+	if (hasData(dataObj) && hasData(arrKey)) {
+		if (dataObj.hasOwnProperty(arrKey)) {
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return false;
 	}
-
-	return false;
 }
 
 function base_url() {
@@ -1077,5 +1076,10 @@ function base_url() {
 
 function asset(path, isPublic = true) {
 	const publicFolder = isPublic ? '/public' : '';
-	return base_url() + publicFolder + path;
+	return base_url() + publicFolder + '/' + path;
+}
+
+function getImageDefault(imageName, path = 'upload/default/') {
+	const pathFile = path + imageName;
+	return asset(pathFile);
 }
