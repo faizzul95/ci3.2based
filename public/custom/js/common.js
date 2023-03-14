@@ -1074,9 +1074,14 @@ function base_url() {
 	return $('meta[name="base_url"]').attr('content');
 }
 
+function redirect(url) {
+	const pathUrl = base_url() + url;
+	window.location.replace(pathUrl);
+}
+
 function asset(path, isPublic = true) {
-	const publicFolder = isPublic ? '/public' : '';
-	return base_url() + publicFolder + '/' + path;
+	const publicFolder = isPublic ? 'public/' : '';
+	return base_url() + publicFolder + path;
 }
 
 function getImageDefault(imageName, path = 'upload/default/') {

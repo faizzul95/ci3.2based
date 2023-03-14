@@ -26,6 +26,11 @@
 Route::set('default_controller', 'auth');
 Route::get('/', 'Auth@index');
 
+// CRON JOB (SERVICES)
+Route::group('/cron', function () {
+    Route::get('/backup/{upload?}', 'CronController@BackupDrive');
+});
+
 require __DIR__ . '/PAGES/Auth.php';
 require __DIR__ . '/PAGES/Error.php';
 require __DIR__ . '/PAGES/Migration.php';

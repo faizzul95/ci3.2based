@@ -12,6 +12,10 @@
 Luthier\Cli::maker();
 Luthier\Cli::migrations();
 
+// Backup Database to Google Drive
+Route::cli('cron/database/{upload?}', 'CronController@BackupDatabase');
+Route::cli('cron/system/{upload?}', 'CronController@BackupSystem');
+
 Route::cli('JobController/listen', 'JobController@listen');
 Route::cli('JobController/work', 'JobController@work');
 
@@ -197,7 +201,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 
 Route::cli('clear/{type}', function ($type) {
 
-	$folderCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'ci_session';
+	$folderCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'ci_sessions';
 	$folderViewCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'blade_cache';
 	$folderLogs = APPPATH . 'logs';
 

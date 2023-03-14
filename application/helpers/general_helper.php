@@ -110,19 +110,21 @@ if (!function_exists('decodeID')) {
 if (!function_exists('baseURL')) {
 	function baseURL()
 	{
-		$baseUrl = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
-		$baseUrl .= '://' . $_SERVER['HTTP_HOST'];
-		$baseUrl .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+		// $host = array_key_exists("HTTP_HOST", $_SERVER) ? $_SERVER['HTTP_HOST'] : '';
+		// $baseUrl = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
+		// $baseUrl .=  '://' . $host;
+		// $baseUrl .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+		// return $baseUrl;
 
-		return $baseUrl;
+		return base_url();
 	}
 }
 
 if (!function_exists('asset')) {
 	function asset($param, $public = TRUE)
 	{
-		$isPublic = $public ? 'public' : '';
-		return baseURL() . $isPublic . '/' . $param;
+		$isPublic = $public ? 'public/' : '';
+		return baseURL() . $isPublic . $param;
 	}
 }
 
