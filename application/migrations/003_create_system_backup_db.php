@@ -16,6 +16,7 @@ class Migration_create_system_backup_db extends CI_Migration
 		$this->dbforge->add_field([
 			'backup_id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'auto_increment' => TRUE],
 			'backup_name' => ['type' => 'VARCHAR', 'constraint' => '255', 'null' => TRUE, 'comment' => ''],
+			'backup_storage_type' => ['type' => 'VARCHAR', 'constraint' => '20', 'null' => TRUE, 'default' => 'local', 'comment' => ''],
 			'backup_location' => ['type' => 'VARCHAR', 'constraint' => '255', 'null' => TRUE, 'comment' => ''],
 			'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
 		]);

@@ -111,7 +111,6 @@ class GoogleDrive
 
 	public function uploadFile($backup_file)
 	{
-		// Create the backup zip file
 		if (!empty($this->getAccessToken())) {
 			if (file_exists($backup_file)) {
 
@@ -120,25 +119,32 @@ class GoogleDrive
 				$backup_folder_name = date('Y-m-d');
 				$folderID = $this->checkFolder($backup_folder_name);
 
-				// Upload the backup file to Google Drive
-				$file_metadata = new DriveFile(array(
-					'name' => basename($backup_file),
-					'parents' => [$folderID]
-				));
+				try {
 
-				$file = $this->service->files->create($file_metadata, array(
-					'data' => file_get_contents($backup_file),
-					'mimeType' => 'application/zip',
-					'uploadType' => 'multipart',
-					'fields' => 'id, webViewLink'
-				));
+					// Upload the backup file to Google Drive
+					$file_metadata = new DriveFile(array(
+						'name' => basename($backup_file),
+						'parents' => [$folderID]
+					));
 
-				// Delete the backup file from the server
-				unlink($backup_file);
+					$file = $this->service->files->create($file_metadata, array(
+						'data' => file_get_contents($backup_file),
+						'mimeType' => 'application/zip',
+						'uploadType' => 'multipart',
+						'fields' => 'id, webViewLink'
+					));
 
-				return $file->id;
+					// Delete the backup file from the server
+					unlink($backup_file);
+
+					$res = ['resCode' => 200, 'message' => NULL, 'data' => $file];
+				} catch (\Exception $e) {
+					$res = ['resCode' => 400, 'message' => $e->getMessage(), 'data' => NULL];
+				}
+
+				return $res;
 			} else {
-				return 'Failed to backup';
+				return ['resCode' => 400, 'message' => 'File to upload is does not exist', 'data' => NULL];
 			}
 		}
 	}

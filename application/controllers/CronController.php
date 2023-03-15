@@ -10,6 +10,8 @@ class CronController extends CI_Controller
 	public function __construct()
 	{
 		parent::__construct();
+		model('SystemQueueJob_model', 'queueM');
+		model('SystemBackupDB_model', 'databaseM');
 	}
 
 	public function index()
@@ -20,27 +22,48 @@ class CronController extends CI_Controller
 	public function BackupSystem($uploadDrive = NULL)
 	{
 		$backup = new BackupSystem();
-		$path = $backup->backup_folder();
+		$response = $backup->backup_folder();
 
-		if ($uploadDrive) {
-			$drive = $this->BackupDrive($path);
-			dd($drive);
+		if (isSuccess($response['resCode'])) {
+			if ($uploadDrive) {
+				$drive = $this->BackupDrive($response['path']);
+				if (isSuccess($drive['resCode'])) {
+					$response['data'] = [
+						'backup_storage_type' => 'google drive',
+						'backup_location' =>  $drive['data']['webViewLink']
+					];
+				}
+			}
 		}
 
-		dd($path);
+		dd($response);
 	}
 
 	public function BackupDatabase($uploadDrive = NULL)
 	{
 		$backup = new BackupSystem();
-		$path = $backup->backup_database();
+		$response = $backup->backup_database();
 
-		if ($uploadDrive) {
-			$drive = $this->BackupDrive($path);
-			dd($drive);
+		if (isSuccess($response['resCode'])) {
+
+			$res = [
+				'backup_name' => $response['filename'],
+				'backup_storage_type' => $response['storage'],
+				'backup_location' => $response['path'],
+			];
+
+			if ($uploadDrive) {
+				$drive = $this->BackupDrive($response['path']);
+				if (isSuccess($drive['resCode'])) {
+					$res['backup_storage_type'] = 'google drive';
+					$res['backup_location'] = $drive['data']['webViewLink'];
+				}
+			}
+
+			$response = $this->databaseM::save($res);
 		}
 
-		dd($path);
+		dd($response);
 	}
 
 	public function BackupDrive($path = NULL)
@@ -48,9 +71,11 @@ class CronController extends CI_Controller
 		if (!empty($path)) {
 			$drive = new GD();
 
-			$file_id = $drive->uploadFile($path);
-			$file_url = 'https://drive.google.com/file/d/' . $file_id . '/view'; // Get the URL of the uploaded file
-			return ['file_id' => $file_id, 'file_url' => $file_url];
+			if (file_exists($path)) {
+				return $drive->uploadFile($path);
+			} else {
+				dd('File upload does not exist!');
+			}
 		} else {
 			dd('Please specify the path to upload!');
 		}
