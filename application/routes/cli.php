@@ -215,13 +215,13 @@ Route::cli('clear/{type}', function ($type) {
 				deleteFolder($folderViewCache);
 		} else if (in_array($type, ['log', 'logs'])) {
 			if (is_dir($folderLogs))
-				clearFolder($folderLogs, ['index.html']);
+				deleteFolder($folderLogs);
 		} else if ($type == 'all') {
 			$folders = [];
 			array_push($folders, $folderCache, $folderViewCache, $folderLogs);
 			foreach ($folders as $key => $path) {
 				if (is_dir($path))
-					clearFolder($path, ['index.html']);
+					deleteFolder($path);
 			}
 			$type = 'Cache, views, logs';
 		}
@@ -233,35 +233,3 @@ Route::cli('clear/{type}', function ($type) {
 
 	echo $message . "\n\n";
 });
-
-function deleteFolder($folder)
-{
-	if (is_dir($folder)) {
-		$files = scandir($folder);
-		foreach ($files as $file) {
-			if ($file != '.' && $file != '..') {
-				$path = $folder . '/' . $file;
-				if (is_dir($path)) {
-					deleteFolder($path); // Recursively delete subdirectories
-				} else {
-					unlink($path); // Delete files
-				}
-			}
-		}
-		rmdir($folder); // Delete the main directory after its contents have been removed
-	}
-}
-
-function clearFolder($folder, $excludedItems = array())
-{
-	$files = glob($folder . '/*');
-	foreach ($files as $file) {
-		if (!in_array(basename($file), $excludedItems)) {
-			if (is_dir($file)) {
-				clearFolder($file, $excludedItems); // Delete subdirectories recursively
-			} else {
-				unlink($file); // Delete files
-			}
-		}
-	}
-}

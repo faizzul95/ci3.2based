@@ -446,3 +446,25 @@ if (!function_exists('fileImage')) {
 		}
 	}
 }
+
+if (!function_exists('deleteFolder')) {
+	function deleteFolder($folder, $excludedFiles = [])
+	{
+		$excFile = array_merge(['index.html'], $excludedFiles);
+
+		if (is_dir($folder)) {
+			$files = scandir($folder);
+			foreach ($files as $file) {
+				if ($file != '.' && $file != '..' && !in_array($file, $excFile)) {
+					$filePath = $folder . DIRECTORY_SEPARATOR . $file;
+					if (is_dir($filePath)) {
+						deleteFolder($filePath, $excFile);
+					} else {
+						unlink($filePath);
+					}
+				}
+			}
+			rmdir($folder);
+		}
+	}
+}
