@@ -464,7 +464,11 @@ if (!function_exists('deleteFolder')) {
 					}
 				}
 			}
-			rmdir($folder);
+
+			// check if folder is empty then remove
+			if (count(glob("$folder/*")) === 0) {
+				rmdir($folder);
+			}
 		}
 	}
 }
