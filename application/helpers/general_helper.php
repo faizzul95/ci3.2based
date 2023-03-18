@@ -450,7 +450,7 @@ if (!function_exists('fileImage')) {
 if (!function_exists('deleteFolder')) {
 	function deleteFolder($folder, $excludedFiles = [])
 	{
-		$excFile = array_merge(['index.html'], $excludedFiles);
+		$excFile = array_merge(['index.html', '.htaccess'], $excludedFiles);
 
 		if (is_dir($folder)) {
 			$files = scandir($folder);
