@@ -3,7 +3,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 use App\services\BackupSystem as BackupSystem;
-use App\services\GoogleDrive as GD;
+use App\services\google\GoogleDrive as GD;
 
 class CronController extends CI_Controller
 {

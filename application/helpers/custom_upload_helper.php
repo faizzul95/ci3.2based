@@ -101,7 +101,7 @@ function get_mime_type($filename)
 	}
 }
 
-function upload($files, $folder, $data = NULL, $index = false, $compress = false)
+function upload($files, $folder, $data = NULL, $index = false, $compress = false, $file_compression = 1)
 {
 	$fileTmpPath = ($index === false) ? $files['tmp_name'] : $files['tmp_name'][$index];
 	$fileName = ($index === false) ? $files['name'] : $files['name'][$index];
@@ -114,16 +114,31 @@ function upload($files, $folder, $data = NULL, $index = false, $compress = false
 	if (move_uploaded_file($fileTmpPath, $path)) {
 
 		$entity_type = $entity_file_type = $entity_id = $user_id = 0;
-		$file_compression = 1;
+		$fileSize = ($index === false) ? $files['size'] : $files['size'][$index];
 
+		// 1 = full size only, 2 = full size & compressed, 3 = full size, compressed & thumbnail	
 		if ($compress) {
 			$canCompress = ['jpg', 'png', 'jpeg', 'gif'];
 			if (in_array(pathinfo($saveName, PATHINFO_EXTENSION), $canCompress)) {
 				$compressfolder = $folder . '/' . $newName . "_compress." . $ext;
-				$compressImage = compress($path, $compressfolder, '45');
 				$thumbnailfolder = $folder . '/' . $newName . "_thumbnail." . $ext;
-				$thumbnailImage = compress($path, $thumbnailfolder, '15');
-				$file_compression = 3;
+
+				if ($file_compression === 2) {
+					$file_compression = 2;
+					$compressImage = compress($path, $compressfolder, '60');
+				} elseif ($file_compression === 3) {
+					$file_compression = 3;
+					$compressImage = compress($path, $compressfolder, '60');
+					$thumbnailImage = compress($path, $thumbnailfolder, '15');
+				}
+
+				// adjustment for _compress
+				if (file_exists($compressfolder))
+					$fileSize = $fileSize + filesize($compressfolder);
+
+				// adjustment for _thumbnail
+				if (file_exists($thumbnailfolder))
+					$fileSize = $fileSize + filesize($thumbnailfolder);
 			}
 		}
 
@@ -145,10 +160,10 @@ function upload($files, $folder, $data = NULL, $index = false, $compress = false
 			'files_type' => $fileType,
 			'files_mime' => $filesMime,
 			'files_extension' => $ext,
-			'files_size' => ($index === false) ? $files['size'] : $files['size'][$index],
-			'file_compression' => $file_compression,
+			'files_size' => $fileSize,
+			'files_compression' => $file_compression,
 			'files_path' => $path,
-			'file_path_is_url' => 0,
+			'files_path_is_url' => 0,
 			'entity_type' => $entity_type,
 			'entity_file_type' => $entity_file_type,
 			'entity_id' => $entity_id,
@@ -159,7 +174,7 @@ function upload($files, $folder, $data = NULL, $index = false, $compress = false
 	return [];
 }
 
-function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rename', $compress = false)
+function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rename', $compress = false, $file_compression = 1)
 {
 	$ext = pathinfo($filesName, PATHINFO_EXTENSION);
 	$newName = md5($filesName) . date('dmYhis');
@@ -170,16 +185,30 @@ function moveFile($filesName, $currentPath, $folder, $data = NULL, $type = 'rena
 	if ($type($currentPath, $path)) {
 
 		$entity_type = $entity_file_type = $entity_id = $user_id = 0;
-		$file_compression = 1;
 
+		// 1 = full size only, 2 = full size & compressed, 3 = full size, compressed & thumbnail	
 		if ($compress) {
 			$canCompress = ['jpg', 'png', 'jpeg', 'gif'];
 			if (in_array(pathinfo($saveName, PATHINFO_EXTENSION), $canCompress)) {
 				$compressfolder = $folder . '/' . $newName . "_compress." . $ext;
-				$compressImage = compress($path, $compressfolder, '45');
 				$thumbnailfolder = $folder . '/' . $newName . "_thumbnail." . $ext;
-				$thumbnailImage = compress($path, $thumbnailfolder, '10');
-				$file_compression = 3;
+
+				if ($file_compression === 2) {
+					$file_compression = 2;
+					$compressImage = compress($path, $compressfolder, '60');
+				} elseif ($file_compression === 3) {
+					$file_compression = 3;
+					$compressImage = compress($path, $compressfolder, '60');
+					$thumbnailImage = compress($path, $thumbnailfolder, '15');
+				}
+
+				// adjustment for _compress
+				if (file_exists($compressfolder))
+					$fileSize = $fileSize + filesize($compressfolder);
+
+				// adjustment for _thumbnail
+				if (file_exists($thumbnailfolder))
+					$fileSize = $fileSize + filesize($thumbnailfolder);
 			}
 		}
 
