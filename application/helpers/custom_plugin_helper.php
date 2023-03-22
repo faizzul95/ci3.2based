@@ -2,6 +2,7 @@
 
 use eftec\bladeone\BladeOne; // reff : https://github.com/EFTEC/BladeOne
 use voku\helper\AntiXSS; // reff : https://github.com/voku/anti-xss
+use voku\helper\HtmlMin; // reff : https://github.com/voku/HtmlMin
 
 use Ozdemir\Datatables\Datatables;
 use Ozdemir\Datatables\DB\CodeigniterAdapter;
@@ -212,7 +213,8 @@ if (!function_exists('loadBladeTemplate')) {
 			$blade = new BladeOne($views, $cache, BladeOne::MODE_AUTO);
 			// $blade->setAuth(currentUserID(), currentUserRoleID(), permission());
 			$blade->setBaseUrl(baseURL() . 'public/'); // with or without trail slash
-			echo $blade->run($fileName, $data);
+			// echo $blade->run($fileName, $data);
+			echo minifyHtml($blade->run($fileName, $data));
 		} catch (Exception $e) {
 			log_message('error', $e->getMessage());
 			echo "<b> ERROR FOUND : </b> <br><br>" . $e->getMessage() . "<br><br><br>" . $e->getTraceAsString();
@@ -227,5 +229,37 @@ if (!function_exists('uuid')) {
 	{
 		$uuid = Uuid::uuid4();
 		return $uuid->toString();
+	}
+}
+
+if (!function_exists('minifyHtml')) {
+	function minifyHtml($htmlTag)
+	{
+		$htmlMin = new HtmlMin();
+
+		$htmlMin->doOptimizeViaHtmlDomParser(true);               // optimize html via "HtmlDomParser()"
+		$htmlMin->doRemoveComments();                     			// remove default HTML comments (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doSumUpWhitespace();                    			// sum-up extra whitespace from the Dom (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doRemoveWhitespaceAroundTags();         			// remove whitespace around tags (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doOptimizeAttributes();                 		// optimize html attributes (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doRemoveHttpPrefixFromAttributes();         // remove optional "http:"-prefix from attributes (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveHttpsPrefixFromAttributes();        // remove optional "https:"-prefix from attributes (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doKeepHttpAndHttpsPrefixOnExternalAttributes(); // keep "http:"- and "https:"-prefix for all external links 
+		$htmlMin->doMakeSameDomainsLinksRelative(['example.com']); // make some links relative, by removing the domain from attributes
+		$htmlMin->doRemoveDefaultAttributes();                // remove defaults (depends on "doOptimizeAttributes(true)" | disabled by default)
+		$htmlMin->doRemoveDeprecatedAnchorName();             // remove deprecated anchor-jump (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveDeprecatedScriptCharsetAttribute(); // remove deprecated charset-attribute - the browser will use the charset from the HTTP-Header, anyway (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveDeprecatedTypeFromScriptTag();      // remove deprecated script-mime-types (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveDeprecatedTypeFromStylesheetLink(); // remove "type=text/css" for css links (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveDeprecatedTypeFromStyleAndLinkTag(); // remove "type=text/css" from all links and styles
+		$htmlMin->doRemoveDefaultMediaTypeFromStyleAndLinkTag(); // remove "media="all" from all links and styles
+		$htmlMin->doRemoveEmptyAttributes();                  // remove some empty attributes (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveValueFromEmptyInput();              // remove 'value=""' from empty <input> (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doSortCssClassNames();                      // sort css-class-names, for better gzip results (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doSortHtmlAttributes();                     // sort html-attributes, for better gzip results (depends on "doOptimizeAttributes(true)")
+		$htmlMin->doRemoveSpacesBetweenTags();                // remove more (aggressive) spaces in the dom (disabled by default)
+		$htmlMin->doRemoveOmittedHtmlTags();
+
+		return $htmlMin->minify($htmlTag);
 	}
 }
