@@ -96,7 +96,7 @@ $currentEnv = env('ENVIRONMENT', 'development');
 $currentDB = env($currentEnv . '.db', '');
 
 $db['default'] = array(
-	'dsn'	=> '',
+	'dsn'	=> env($currentEnv . '.dsn', ''),
 	'hostname' => env($currentEnv . '.hostname', 'localhost'),
 	'username' => env($currentEnv . '.username', 'root'),
 	'password' => env($currentEnv . '.password', ''),

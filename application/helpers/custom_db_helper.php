@@ -35,6 +35,9 @@ if (!function_exists('insert')) {
 
 			try {
 				$ci = get_instance();
+				$isAuditEnable = $ci->config->item('audit_enable'); // get config audit trail
+				$isTrackInsertEnable = $ci->config->item('track_insert'); // get config track insert
+
 				$resultInsert = $ci->db->insert($table, $filterData);
 				$resCode = ($resultInsert['status']) ? 201 : 400;
 
@@ -42,7 +45,7 @@ if (!function_exists('insert')) {
 					"action" => 'insert',
 					"resCode" => $resCode,
 					"message" =>  message($resCode, 'insert'),
-					"id" => $resultInsert['lastID'],
+					"id" => $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $ci->db->insert_id(),
 					"data" => $filterData
 				], $resCode);
 			} catch (Exception $e) {
@@ -62,6 +65,9 @@ if (!function_exists('insert')) {
 
 			try {
 				$ci = get_instance();
+				$isAuditEnable = $ci->config->item('audit_enable'); // get config audit trail
+				$isTrackInsertEnable = $ci->config->item('track_insert'); // get config track insert
+
 				$resultInsert = $ci->db->insert($table, $filterData);
 				$resCode = ($resultInsert['status']) ? 201 : 400;
 
@@ -69,7 +75,7 @@ if (!function_exists('insert')) {
 					"action" => 'insert',
 					"resCode" => $resCode,
 					"message" =>  message($resCode, 'insert'),
-					"id" => $resultInsert['lastID'],
+					"id" => $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $ci->db->insert_id(),
 					"data" => $filterData
 				], $resCode);
 			} catch (Exception $e) {
