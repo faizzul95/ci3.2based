@@ -76,7 +76,7 @@ function sentUsingMailGun($recipientData = NULL, $subject = NULL, $dataBody = NU
 	}
 }
 
-// Sent Using MailGun PHPMAILER / Default
+// Sent Using PHPMAILER / Default
 function sentUsingMailer($recipientData = NULL, $subject = NULL, $dataBody = NULL, $attachment = NULL)
 {
 	// Create an instance; passing `true` enables exceptions
