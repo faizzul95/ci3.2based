@@ -28,7 +28,7 @@ Route::get('/', 'Auth@index');
 
 // CRON JOB (SERVICES)
 Route::group('/cron', function () {
-    Route::get('/backup/{upload?}', 'CronController@BackupDrive');
+	Route::get('/backup/{upload?}', 'CronController@BackupDrive');
 });
 
 require __DIR__ . '/PAGES/Auth.php';
@@ -40,7 +40,7 @@ Route::get('/sysinfo', function () {
 	if (isLoginCheck() && currentUserRoleID() == 1)
 		phpinfo();
 	else
-		errorpage('404');
+		error('404', ['title' => '404', 'message' => '', 'image' => asset('custom/images/nodata/404.png')]);
 });
 
 Route::set('404_override', function () {

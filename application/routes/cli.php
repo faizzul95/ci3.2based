@@ -31,7 +31,7 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 	$name = isset($name) ? trim($name) : NULL;
 	$name = isset($name) ? ucfirst($name) : NULL;
 	$tableName = isset($tableName) ? trim($tableName) : NULL;
-	$column = NULL;
+	$column = '';
 
 	if ($type == 'controller') {
 

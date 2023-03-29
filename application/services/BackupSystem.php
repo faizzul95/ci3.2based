@@ -41,7 +41,6 @@ class BackupSystem
 		$path = realpath($app_path . '/../') . DIRECTORY_SEPARATOR;
 
 		$exclude = array(
-			'#bck',
 			'blade_cache',
 			'ci_sessions',
 			'template',

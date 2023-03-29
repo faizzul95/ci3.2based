@@ -51,6 +51,9 @@ if (!function_exists('error')) {
 	function error($code = NULL, $data = NULL)
 	{
 		// ci()->load->view('errors/custom/error_' . $code, $data);
+		if (empty($data))
+			$data = ['title' => $code, 'message' => '', 'image' => asset('custom/images/nodata/404.png')];
+
 		ci()->load->view('errors/custom/error_general', $data);
 	}
 }
