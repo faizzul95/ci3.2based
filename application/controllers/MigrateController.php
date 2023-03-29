@@ -39,7 +39,7 @@ class MigrateController extends CI_Controller
 
         <script src="' . asset('custom/js/jquery.min.js') . '"></script>
         <script src="' . asset('custom/js/axios.min.js') . '"></script>
-        <script src="' . asset('custom/js/common.js') . '"></script>
+        <script src="' . asset('custom/js/helper.js') . '"></script>
         <script src="' . asset('custom/js/toastr.min.js') . '"></script>';
 
 			echo '<div class="container mt-5">
