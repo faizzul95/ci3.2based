@@ -32,4 +32,7 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 vendor
 composer.lock
 package-json.lock
+package-lock.json
 application/credentials.json
+
+node_modules

@@ -1,9 +1,11 @@
 Instruction: -
 
 1) Download this project.
-2) Rename project to "ci3.2based".
-3) Run command "composer update" (make sure to install composer!).
-4) Configure the .env files for database & environment.
+2) Rename project to any name.
+3) Open application/config/config.php. Change line 28 to match with your project name (important!).
+4) Run command "composer update" using CMD/Terminal (make sure to install composer!).
+5) Run command "npm update" using CMD/Terminal (make sure to install Node.js!).
+6) Configure the .env files for database & environment.
 
 ======================================================================
 
@@ -55,6 +57,9 @@ Features ready: -
 	2) Backup database (MySQL tested)
 	3) Upload file backup to google drive (need to configure)
 
+- MODULE BUNDLER
+	1) Concat, uglify JavaScript using Grunt JS (read more <a href="https://gruntjs.com/" target="_blank">Grunt Website</a>)
+
 ======================================================================
 
 This Ci3Based also includes stub files for creating controllers & models. Please change according to the suitability of the project
@@ -91,7 +96,7 @@ Example :
 
 ======================================================================
 
-Command (Terminal):-
+Command (Terminal / Command Prompt):-
 
 <ol type="A">
 	<li> Cache </li> 
@@ -113,6 +118,13 @@ Command (Terminal):-
 			<li> php struck jobs (temporary run until jobs completed) </li>
 			<li> php struck jobs work (temporary run until jobs completed) </li>
 			<li> php struck jobs launch (permanent until services kill) - use in linux environment </li>
+		</ol> 
+	<br>
+	<br>
+	<li> Module Bundler </li> 
+		<ol type="1">
+			<li> grunt </li>
+			<li> grunt watch (keep detecting changes) </li>
 		</ol> 
 	<br>
 </ol>
