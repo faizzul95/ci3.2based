@@ -120,7 +120,6 @@ Command (Terminal / Command Prompt):-
 			<li> php struck jobs launch (permanent until services kill) - use in linux environment </li>
 		</ol> 
 	<br>
-	<br>
 	<li> Module Bundler </li> 
 		<ol type="1">
 			<li> grunt </li>
