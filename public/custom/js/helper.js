@@ -232,7 +232,8 @@ const base_url = () => {
 }
 
 const urls = (path) => {
-	return new URL(path, base_url());
+	const newPath = new URL(path, base_url());
+	return newPath.href;
 }
 
 const redirect = (url) => {
