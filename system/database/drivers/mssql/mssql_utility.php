@@ -36,6 +36,9 @@
  * @since	Version 1.3.0
  * @filesource
  */
+
+#[\AllowDynamicProperties]
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**

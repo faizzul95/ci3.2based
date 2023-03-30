@@ -50,6 +50,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @author		Reactor Engineers
  * @link
  */
+
+#[\AllowDynamicProperties]
+
 class CI_Migration {
 
 	/**
