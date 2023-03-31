@@ -83,6 +83,7 @@ NOTES :
 
 var _validationJSErrorMessage = []; // set default
 var _validationJSresult = [];
+var isInteger = false;
 
 var traverseDOM = function (node, fn) {
 	fn(node);
