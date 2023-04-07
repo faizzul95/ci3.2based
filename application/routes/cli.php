@@ -264,16 +264,28 @@ Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 		$typeFiles = [];
 
 		foreach ($copyFiles as $folder => $filesName) {
-			$pathSrc = $pathSrcFolder . $folder . DIRECTORY_SEPARATOR . $filesName;
 
-			echo $pathSrc . "\n\n";
+			$pathSrc = $pathSrcFolder . $folder . DIRECTORY_SEPARATOR . $filesName;
 
 			if (is_file($pathSrc)) {
 				$pathTarget = APPPATH . $folder . DIRECTORY_SEPARATOR . $filesName;
 				if ($folder == 'migrations') {
-					$newFilename = str_replace('xxx', '001', $pathTarget);
+
+					// Get all files from folder
+					$files = scandir(APPPATH . $folder);
+
+					// Remove . and .. from files list
+					$files = array_diff($files, array('.', '..'));
+
+					// Count total number of files in folder
+					$totalFiles = count($files);
+
+					$genNo = genRunningNo($totalFiles, NULL, NULL, NULL, 3);
+
+					$newFilename = str_replace('xxx', $genNo['code'], $pathTarget);
+
 					copy($pathSrc, $pathTarget);
-					rename($pathTarget, $folder . DIRECTORY_SEPARATOR . $newFilename);
+					rename($pathTarget, $newFilename);
 				} else {
 					copy($pathSrc, $pathTarget);
 				}
