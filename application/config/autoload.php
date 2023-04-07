@@ -60,12 +60,12 @@ $autoload['packages'] = array();
 */
 $autoload['libraries'] = array(
 	'env',
-	'email',
 	'session',
 	'database',
-	'lib_log',
-	'Recaptcha',
-	'Crud_Logs'
+	'email',
+	// 'Recaptcha',
+	// 'lib_log',
+	// 'Crud_Logs'
 );
 
 /*
@@ -130,7 +130,7 @@ $autoload['helper'] = array(
 |
 */
 $autoload['config'] = array(
-	'recaptcha',
+	// 'recaptcha',
 	// 'log',
 );
 

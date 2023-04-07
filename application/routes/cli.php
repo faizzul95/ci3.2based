@@ -233,3 +233,58 @@ Route::cli('clear/{type}', function ($type) {
 
 	echo $message . "\n\n";
 });
+
+
+Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
+
+	$name = isset($name) ? trim($name) : NULL;
+	$name = isset($name) ? ucfirst($name) : NULL;
+
+	if (in_array($type, ['cron', 'migrate', 'job'])) {
+
+		$pathSrcFolder = APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR;
+
+		$pathFiles = [
+			'cron' => [
+				'controllers' => 'CronController.php',
+				'migrations' => 'xxx_create_system_backup_db.php',
+				'models' => 'SystemBackupDB_model.php',
+			],
+			'migrate' => [
+				'controllers' => 'MigrateController.php',
+			],
+			'job' => [
+				'controllers' => 'JobController.php',
+				'migrations' => 'xxx_create_system_queue_job.php',
+				'models' => 'SystemQueueJob_model.php',
+			]
+		];
+
+		$copyFiles = $pathFiles[$type];
+		$typeFiles = [];
+
+		foreach ($copyFiles as $folder => $filesName) {
+			$pathSrc = $pathSrcFolder . $folder . DIRECTORY_SEPARATOR . $filesName;
+
+			echo $pathSrc . "\n\n";
+
+			if (is_file($pathSrc)) {
+				$pathTarget = APPPATH . $folder . DIRECTORY_SEPARATOR . $filesName;
+				if ($folder == 'migrations') {
+					$newFilename = str_replace('xxx', '001', $pathTarget);
+					copy($pathSrc, $pathTarget);
+					rename($pathTarget, $folder . DIRECTORY_SEPARATOR . $newFilename);
+				} else {
+					copy($pathSrc, $pathTarget);
+				}
+				array_push($typeFiles, $folder);
+			}
+		};
+
+		$message = "Files " . implode(", ", $typeFiles) . " have been copy successfully!";
+	} else {
+		$message = "Error : The type only support for 'cron','migrate' or 'job' : Your enter " . $type;
+	}
+
+	echo $message . "\n\n";
+});

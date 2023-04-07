@@ -20,7 +20,7 @@ if (!function_exists('isLoginCheck')) {
 	}
 }
 
-// CUSTOM FUNCTION (CHANGE ACCORDING YOUR SESSION)
+// CUSTOM FUNCTION (CHANGE ACCORDING YOUR SYSTEM SESSION)
 
 if (!function_exists('currentUserID')) {
 	function currentUserID()
