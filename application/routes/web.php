@@ -23,8 +23,8 @@
 // })->name('homepage');
 
 // GENERAL
-Route::set('default_controller', 'auth');
-Route::get('/', 'Auth@index');
+Route::set('default_controller', 'welcome');
+Route::get('/', 'welcome@index');
 
 // CRON JOB (SERVICES)
 Route::group('/cron', function () {

@@ -60,9 +60,9 @@ $autoload['packages'] = array();
 */
 $autoload['libraries'] = array(
 	'env',
-	'session',
-	'database',
-	'email',
+	// 'session',
+	// 'database',
+	// 'email',
 	// 'Recaptcha',
 	// 'lib_log',
 	// 'Crud_Logs'
