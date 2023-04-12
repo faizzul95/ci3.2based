@@ -593,7 +593,7 @@ class MY_Model extends CI_Model
 	public function whereJsonContains($field = NULL, $value = NULL)
 	{
 		if (is_array($value) && !empty($value)) {
-			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, FALSE,  FALSE, TRUE);
+			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, FALSE, FALSE, TRUE);
 		} else {
 			$this->where($field, $value);
 		}
@@ -611,7 +611,7 @@ class MY_Model extends CI_Model
 	public function orWhereJsonContains($field = NULL, $value = NULL)
 	{
 		if (is_array($value) && !empty($value)) {
-			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, TRUE,  FALSE, TRUE);
+			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, TRUE, FALSE, TRUE);
 		} else {
 			$this->where($field, NULL, $value, TRUE);
 		}
