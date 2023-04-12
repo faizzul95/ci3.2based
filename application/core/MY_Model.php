@@ -584,6 +584,42 @@ class MY_Model extends CI_Model
 	}
 
 	/**
+	 * public function whereJsonContains($field = NULL, $value = NULL)
+	 * Sets a where method for the $this object
+	 * @param null $field - can receive a field name
+	 * @param null $value - a value if it received an array
+	 * @return $this
+	 */
+	public function whereJsonContains($field = NULL, $value = NULL)
+	{
+		if (is_array($value) && !empty($value)) {
+			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, FALSE,  FALSE, TRUE);
+		} else {
+			$this->where($field, $value);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * public function orWhereJsonContains($field = NULL, $value = NULL)
+	 * Sets a where method for the $this object
+	 * @param null $field - can receive a field name
+	 * @param null $value - a value if it received an array
+	 * @return $this
+	 */
+	public function orWhereJsonContains($field = NULL, $value = NULL)
+	{
+		if (is_array($value) && !empty($value)) {
+			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, TRUE,  FALSE, TRUE);
+		} else {
+			$this->where($field, NULL, $value, TRUE);
+		}
+
+		return $this;
+	}
+
+	/**
 	 * public function limit($limit, $offset = 0)
 	 * Sets a rows limit to the query
 	 * @param $limit
