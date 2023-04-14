@@ -7,12 +7,13 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-babel');
+	grunt.loadNpmTasks('grunt-file-rev');
 
 	grunt.initConfig({
 		watch: {
 			scripts: {
 				files: ['public/custom/**/*.js'],
-				tasks: ['concat', 'uglify', 'babel', 'clean:build'],
+				tasks: ['concat', 'uglify', 'babel', 'clean:build', 'rev'],
 				options: {
 					spawn: true
 				}
@@ -24,6 +25,17 @@ module.exports = function (grunt) {
 			// 		spawn: false
 			// 	}
 			// }
+		},
+		rev: {
+			options: {
+				algorithm: 'sha512',
+				length: 8
+			},
+			assets: {
+				files: {
+					src: ['public/dist/custom.min.js', 'public/dist/custom.css']
+				}
+			}
 		},
 		cssmin: {
 			options: {
@@ -73,10 +85,15 @@ module.exports = function (grunt) {
 			}
 		},
 		clean: {
-			build: ['public/dist/custom.js', 'public/dist/custom-uglify.min.js']
+			build: [
+				'public/dist/custom.js',
+				'public/dist/custom-uglify.min.js',
+				'public/dist/*.custom.min.js',
+				'public/dist/*.custom.css',
+			]
 		},
 	});
 
 	// Register the tasks
-	grunt.registerTask('default', ['concat', 'uglify', 'babel', 'clean:build']);
+	grunt.registerTask('default', ['concat', 'uglify', 'babel', 'clean:build', 'rev']);
 };

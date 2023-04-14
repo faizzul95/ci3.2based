@@ -128,6 +128,34 @@ if (!function_exists('asset')) {
 	}
 }
 
+if (!function_exists('mix')) {
+	function mix($path = NULL, $public = TRUE)
+	{
+		$isPublic = $public ? 'public/' : '';
+
+		$extension = pathinfo($path, PATHINFO_EXTENSION);
+		$directory = $isPublic . dirname($path);
+		$files = scandir($directory);
+		$last_updated_file = '';
+		$last_updated_timestamp = 0;
+
+		foreach ($files as $file) {
+			if ($file !== "." && $file !== "..") {
+				$file_path = $directory . "/" . $file;
+				if (is_file($file_path) && pathinfo($file_path, PATHINFO_EXTENSION) === $extension) {
+					$timestamp = filemtime($file_path);
+					if ($timestamp > $last_updated_timestamp) {
+						$last_updated_file = $file;
+						$last_updated_timestamp = $timestamp;
+					}
+				}
+			}
+		}
+
+		return asset(dirname($path) . '/' . $last_updated_file, $public);
+	}
+}
+
 if (!function_exists('redirect')) {
 	function redirect($path, $permanent = false)
 	{
@@ -315,50 +343,6 @@ if (!function_exists('genRunningNo')) {
 	}
 }
 
-// PAGE ERROR (NODATA) HELPER
-
-if (!function_exists('nodata')) {
-	function nodata($showText = true, $filesName = '5.png')
-	{
-		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
-          <center>
-            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-3' width='38%'>
-            <h4 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
-             <strong> NO INFORMATION FOUND </strong>
-            </h4>";
-		if ($showText) {
-			echo "<h6 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;font-size: 13px;'> 
-                Here are some action suggestions for you to try :- 
-            </h6>";
-		}
-		echo "</center>";
-		if ($showText) {
-			echo "<div class='row d-flex justify-content-center w-100'>
-            <div class='col-lg m-1 text-left' style='max-width: 350px !important;letter-spacing :1px; font-family: Quicksand, sans-serif !important;font-size: 12px;'>
-              1. Try the registrar function (if any).<br>
-              2. Change your word or search selection.<br>
-              3. Contact the system support immediately.<br>
-            </div>
-          </div>";
-		}
-		echo "</div>";
-	}
-}
-
-if (!function_exists('nodataAccess')) {
-	function nodataAccess($filesName = '403.png')
-	{
-		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
-          <center>
-            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-2' width='30%'>
-            <h3 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
-             <strong> NO ACCESS TO THIS INFORMATION </strong>
-            </h3>";
-		echo "</center>";
-		echo "</div>";
-	}
-}
-
 if (!function_exists('genCode')) {
 	function genCode($name, $codeList = array(), $codeType = 'S', $codeLength = 4, $numLength = 4, $counter = 1)
 	{
@@ -470,5 +454,49 @@ if (!function_exists('deleteFolder')) {
 				rmdir($folder);
 			}
 		}
+	}
+}
+
+// PAGE ERROR (NODATA) HELPER
+
+if (!function_exists('nodata')) {
+	function nodata($showText = true, $filesName = '5.png')
+	{
+		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
+          <center>
+            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-3' width='38%'>
+            <h4 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
+             <strong> NO INFORMATION FOUND </strong>
+            </h4>";
+		if ($showText) {
+			echo "<h6 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;font-size: 13px;'> 
+                Here are some action suggestions for you to try :- 
+            </h6>";
+		}
+		echo "</center>";
+		if ($showText) {
+			echo "<div class='row d-flex justify-content-center w-100'>
+            <div class='col-lg m-1 text-left' style='max-width: 350px !important;letter-spacing :1px; font-family: Quicksand, sans-serif !important;font-size: 12px;'>
+              1. Try the registrar function (if any).<br>
+              2. Change your word or search selection.<br>
+              3. Contact the system support immediately.<br>
+            </div>
+          </div>";
+		}
+		echo "</div>";
+	}
+}
+
+if (!function_exists('nodataAccess')) {
+	function nodataAccess($filesName = '403.png')
+	{
+		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
+          <center>
+            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-2' width='30%'>
+            <h3 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
+             <strong> NO ACCESS TO THIS INFORMATION </strong>
+            </h3>";
+		echo "</center>";
+		echo "</div>";
 	}
 }
