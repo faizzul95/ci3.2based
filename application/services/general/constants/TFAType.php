@@ -1,6 +1,6 @@
 <?php
 
-namespace App\helpers\constants;
+namespace App\services\general\constants;
 
 final class TFAType
 {

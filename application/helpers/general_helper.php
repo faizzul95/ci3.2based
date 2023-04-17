@@ -1,7 +1,5 @@
 <?php
 
-use Luthier\Debug;
-
 if (!defined('BASEPATH')) {
 	exit('No direct script access allowed');
 }
@@ -295,13 +293,6 @@ if (!function_exists('Logs')) {
 	function Logs($type = 'view', $message = NULL, $model_name = NULL, $function_name = NULL)
 	{
 		Crud_Logs::$type($message, $model_name, $function_name);
-	}
-}
-
-if (!function_exists('logDebug')) {
-	function logDebug($logMessage = NULL, $logType = 'info', $type = 'log')
-	{
-		Debug::$type($logMessage, $logType);
 	}
 }
 

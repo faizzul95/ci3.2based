@@ -14,10 +14,20 @@ use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 // use Dompdf\Dompdf;
 // use Dompdf\Options;
 
+use Luthier\Debug;
 use Ramsey\Uuid\Uuid;
 
 if (!defined('BASEPATH')) {
 	exit('No direct script access allowed');
+}
+
+// ROUTING PLUGIN
+
+if (!function_exists('logDebug')) {
+	function logDebug($logMessage = NULL, $logType = 'info', $type = 'log')
+	{
+		Debug::$type($logMessage, $logType);
+	}
 }
 
 // SECURITY PLUGIN 
