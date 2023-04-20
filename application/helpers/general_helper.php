@@ -51,6 +51,22 @@ if (!function_exists('timeDiff')) {
 	}
 }
 
+if (!function_exists('extendDate')) {
+	function extendDate($dateFrom = 'Y-m-d H:i:s', $totalToAdd = '1 minutes', $format = 'Y-m-d H:i:s')
+	{
+		date_default_timezone_set('Asia/Kuala_Lumpur');
+		return date($format, strtotime($dateFrom . ' +' . $totalToAdd));
+	}
+}
+
+if (!function_exists('reduceDate')) {
+	function reduceDate($dateFrom = 'Y-m-d H:i:s', $totalToAdd = '1 minutes', $format = 'Y-m-d H:i:s')
+	{
+		date_default_timezone_set('Asia/Kuala_Lumpur');
+		return date($format, strtotime($dateFrom . ' -' . $totalToAdd));
+	}
+}
+
 // CURRENCY & MONEY HELPERS SECTION
 
 if (!function_exists('currency_format')) {
@@ -489,5 +505,37 @@ if (!function_exists('nodataAccess')) {
             </h3>";
 		echo "</center>";
 		echo "</div>";
+	}
+}
+
+if (!function_exists('app')) {
+	function app($namespace)
+	{
+		return new class($namespace)
+		{
+			private $namespace;
+
+			public function __construct($namespace)
+			{
+				$this->namespace = $namespace;
+			}
+
+			public function __call($method, $args)
+			{
+				$class = $this->namespace;
+				$obj = new $class();
+
+				try {
+					if (method_exists($obj, $method)) {
+						return call_user_func_array(array($obj, $method), $args);
+					} else {
+						throw new Exception("Method $method does not exist");
+					}
+				} catch (Exception $e) {
+					// handle the error
+					return $e->getMessage();
+				}
+			}
+		};
 	}
 }

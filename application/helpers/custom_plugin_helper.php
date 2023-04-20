@@ -3,6 +3,7 @@
 use eftec\bladeone\BladeOne; // reff : https://github.com/EFTEC/BladeOne
 use voku\helper\AntiXSS; // reff : https://github.com/voku/anti-xss
 use voku\helper\HtmlMin; // reff : https://github.com/voku/HtmlMin
+use GO\Scheduler; // reff : https://github.com/peppeocchi/php-cron-scheduler
 
 use Ozdemir\Datatables\Datatables;
 use Ozdemir\Datatables\DB\CodeigniterAdapter;
@@ -271,5 +272,12 @@ if (!function_exists('minifyHtml')) {
 		$htmlMin->doRemoveOmittedHtmlTags();
 
 		return $htmlMin->minify($htmlTag);
+	}
+}
+
+if (!function_exists('cronScheduler')) {
+	function cronScheduler()
+	{
+		return new Scheduler(); // Create a new scheduler
 	}
 }

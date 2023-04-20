@@ -29,6 +29,7 @@ Features ready: -
 	6) System logger (Log error system in database & files)
 	7) Audit Trail (Log data insert, update, delete in database)
 	8) CRUD Log (Log data insert, update, delete in files)
+	9) Cron Scheduler - (Credit to <a href="https://github.com/peppeocchi/php-cron-scheduler" target="_blank">Peppeocchi</a>)
 
 - HELPER
 	<ol type="A">
@@ -118,6 +119,11 @@ Command (Terminal / Command Prompt):-
 			<li> php struck jobs (temporary run until jobs completed) </li>
 			<li> php struck jobs work (temporary run until jobs completed) </li>
 			<li> php struck jobs launch (permanent until services kill) - use in linux environment </li>
+		</ol> 
+	<br>
+		<li> Cron Scheduler (Laravel Task Scheduling) </li> 
+		<ol type="1">
+			<li> php struck schedule </li>
 		</ol> 
 	<br>
 	<li> Module Bundler </li> 

@@ -26,6 +26,16 @@ Route::cli('jobs/launch', 'JobController@launch');
 Route::cli('jobs/work', 'JobController@work');
 Route::cli('jobs/single', 'JobController@single');
 
+Route::cli('jobs/list', function () {
+	$isLinux = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? false : true;
+
+	if (!$isLinux) {
+		die("Error environment: Queue Listener requires Linux OS");
+	}
+
+	echo shell_exec('ps aux|grep php');
+});
+
 Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NULL, $tableName = NULL) {
 
 	$name = isset($name) ? trim($name) : NULL;
@@ -234,7 +244,6 @@ Route::cli('clear/{type}', function ($type) {
 	echo $message . "\n\n";
 });
 
-
 Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 
 	$name = isset($name) ? trim($name) : NULL;
@@ -299,4 +308,9 @@ Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 	}
 
 	echo $message . "\n\n";
+});
+
+// schedule
+Route::cli('schedule/{type?}', function ($work = NULL) {
+	return app('App\services\general\processor\CronProcessor')->execute($work);
 });
