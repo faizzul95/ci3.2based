@@ -15,7 +15,7 @@ class BackupDatabase
      *
      * @return int
      */
-    public function handle($scheduler)
+    public function handle($scheduler): void
     {
         $scheduler->call(function () {
             log_message('info', $this->description . ' is running');
@@ -28,7 +28,5 @@ class BackupDatabase
             ->then(function () {
                 log_message('error', 'completed at : ' . timestamp());
             })->everyMinute();
-
-        return 0;
     }
 }
