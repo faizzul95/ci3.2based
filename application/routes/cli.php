@@ -311,6 +311,11 @@ Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 });
 
 // schedule
-Route::cli('schedule/{type?}', function ($work = NULL) {
-	return app('App\services\general\processor\CronProcessor')->execute($work);
+Route::cli('schedule', function () {
+	app('App\services\general\processor\TaskScheduleProcessor')->handler();
+	echo "Task Scheduler is running . . \n\n";
+});
+
+Route::cli('schedule/list', function () {
+	dd(cronScheduler()->getExecutedJobs());
 });
