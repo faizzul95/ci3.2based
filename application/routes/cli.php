@@ -312,8 +312,23 @@ Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 
 // schedule
 Route::cli('schedule:run', function () {
-	app('App\services\general\processor\TaskScheduleProcessor')->handler();
-	echo "Task Scheduler is running . . \n\n";
+	$CI = &get_instance();
+	$CI->load->config('scheduler');
+	$allNamespace = $CI->config->item('commands');
+
+	if (hasData($allNamespace)) {
+		$scheduler = cronScheduler();
+
+		$scheduler->clearJobs(); // clear previous jobs
+		foreach ($allNamespace as $namspaces) {
+			app($namspaces)->handle($scheduler);
+		}
+		// Reset the scheduler after a previous run
+		$scheduler->resetRun()->run(); // now we can run it again
+		echo "Task Scheduling is running . . \n\n";
+	} else {
+		echo "No task/command to execute\n\n";
+	}
 });
 
 Route::cli('schedule:list', function () {
