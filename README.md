@@ -104,9 +104,10 @@ Command (Terminal / Command Prompt):-
 		<ol type="1">
 			<li> php struck clear view (remove blade cache)  </li>
 			<li> php struck clear cache (remove ci session cache)  </li>
+                        <li> php struck clear all (remove ci session cache, blade cache & logs file)  </li>
 		</ol> 
 	<br>
-	<li> Backup (use as a cron jobs) </li> 
+	<li> Backup (use as a ordinary cron jobs) </li> 
 		<ol type="1">
 			<li> php struck cron database (backup the database in folder project) </li>
 			<li> php struck cron system (backup system folder in folder project) </li>
@@ -123,7 +124,8 @@ Command (Terminal / Command Prompt):-
 	<br>
 		<li> Cron Scheduler (Laravel Task Scheduling) </li> 
 		<ol type="1">
-			<li> php struck schedule </li>
+			<li> php struck schedule:run </li>
+                        <li> php struck schedule:list </li>
 		</ol> 
 	<br>
 	<li> Module Bundler </li> 
