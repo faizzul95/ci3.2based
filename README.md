@@ -19,6 +19,7 @@ Features ready: -
 	5) Custom Front-end Validation in JS (Data integrity)
 	6) Custom Route & Middleware (Protect URL & Page) - Thanks <a href="https://github.com/ingeniasoftware/luthier-ci" target="_blank"> Luthier CI </a> for amazing library
 	7) CSRF Token & Cookie (Built in CI3)
+	8) Rate Limiting Trait (API Request limitter using Middleware)
 
 - SYSTEM
 	1) Custom Model (Credit to <a href="https://github.com/avenirer/CodeIgniter-MY_Model" target="_blank"> Avenirer </a> for library) & DB Query. 
