@@ -239,6 +239,12 @@ if (isset($_POST['fileName'])) {
 							'content-type': 'application/x-www-form-urlencoded',
 							"X-CSRF-TOKEN": Cookies.get(csrf_cookie_name),
 						},
+						"error": function(xhr, error, exception) {
+							if (exception) {
+								if (isError(xhr.status))
+									noti(xhr.status, exception);
+							}
+						}
 					},
 					"language": {
 						"searchPlaceholder": 'Search...',
@@ -297,6 +303,12 @@ if (isset($_POST['fileName'])) {
 							'content-type': 'application/x-www-form-urlencoded',
 							"X-CSRF-TOKEN": Cookies.get(csrf_cookie_name),
 						},
+						"error": function(xhr, error, exception) {
+							if (exception) {
+								if (isError(xhr.status))
+									noti(xhr.status, exception);
+							}
+						}
 					},
 					"language": {
 						"searchPlaceholder": 'Search...',
