@@ -651,7 +651,7 @@ const submitApi = async (url, dataObj, formID = null, reloadFunction = null, clo
 
 const deleteApi = async (id, url, reloadFunction = null) => {
 	if (id != '') {
-		url = urls(url+'/'+id);
+		url = urls(url + '/' + id);
 		try {
 			return axios({
 					method: 'DELETE',
@@ -828,7 +828,7 @@ const isSuccess = (res) => {
 }
 
 const isError = (res) => {
-	const errorStatus = [400, 404, 500, 422];
+	const errorStatus = [400, 404, 422, 429, 500];
 	const status = typeof res === 'number' ? res : res.status;
 	return errorStatus.includes(status);
 }

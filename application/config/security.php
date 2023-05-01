@@ -20,19 +20,28 @@ $config['throttle_enable'] = TRUE;
 | Define all Rate Limitting configuration
 */
 $config['throttle_settings'] = [
-	'request' => 850, // set maximum requests per minute
-	'expired' => 60, // set expiration time in seconds
-	'reminder' => 5, //set maximum reminder before block
-	'block' => 86400 // set block time in seconds (86400 second = 24 hours)
+	'request' => 120, // set maximum api requests (according to expired below : request per expired)
+	'expired' => 60, // set expiration time for cache file store in seconds
+	'block' => 45 // set blocked time duration in seconds (60 second = 1 minute)
 ];
 
 /*
 |--------------------------------------------------------------------------
-| Throttle Exclusions
+| Throttle URL Exclusions
 |--------------------------------------------------------------------------
 |
-| Define all route to exclude for rate limitting
+| Define all route to exclude for rate limiting
 */
 $config['throttle_exclude_url'] = [
-	// 'auth/logout', sample
+	// 'auth/sign-in',
+	'auth/logout',
 ];
+
+/*
+|--------------------------------------------------------------------------
+| Throttle IP Exclusions
+|--------------------------------------------------------------------------
+|
+| Define all route to exclude for rate limiting
+*/
+$config['throttle_exclude_ips'] = [];
