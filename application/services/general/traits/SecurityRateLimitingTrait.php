@@ -94,18 +94,21 @@ trait SecurityRateLimitingTrait
 
 				$lastTimestamp = isset($dataRequest->timestamp) ? $dataRequest->timestamp : NULL;
 				$requestCount = isset($dataRequest->requestCount) ? (int) ($dataRequest->requestCount + 1) : 1;
+				$timestamp = time(); // set timestamp
 
 				// check if last timestamp has expired
 				if ($lastTimestamp) {
 					if (time() > ($lastTimestamp + $this->cacheDuration)) {
 						@unlink($this->cacheFile);
 						$requestCount = 1; // reset count
+					} else {
+						$timestamp = $lastTimestamp; // use last data
 					}
 				}
 
 				// Increment the request count
 				@file_put_contents($cacheFile, json_encode([
-					'timestamp' => time(),
+					'timestamp' => $timestamp,
 					'time_request' => timestamp(),
 					'requestCount' => $requestCount
 				]));
