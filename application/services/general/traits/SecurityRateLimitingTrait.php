@@ -14,7 +14,7 @@ trait SecurityRateLimitingTrait
 	/**
 	 * The maximum number of requests allowed per second.
 	 */
-	protected $requestLimit = 15;
+	protected $requestLimit = 120;
 
 	/**
 	 * The maximum cache of requests store before re-generate.
@@ -114,13 +114,16 @@ trait SecurityRateLimitingTrait
 				if ($requestCount > $this->requestLimit) {
 					$this->blockIP();
 					json(['resCode' => 429, 'message' => 'Too Many Requests']);
+					die;
 				}
 			} else {
 				$this->blockIP();
 				json(['resCode' => 429, 'message' => 'IP addresses do not match, IP has been blocked']);
+				die;
 			}
 		} else {
 			json(['resCode' => 429, 'message' => 'Too Many Requests']);
+			die;
 		}
 	}
 

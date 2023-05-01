@@ -20,7 +20,7 @@ $config['throttle_enable'] = TRUE;
 | Define all Rate Limitting configuration
 */
 $config['throttle_settings'] = [
-	'request' => 120, // set maximum api requests (according to expired below : request per expired)
+	'request' => 200, // set maximum api requests (according to expired below : request per expired)
 	'expired' => 60, // set expiration time for cache file store in seconds
 	'block' => 45 // set blocked time duration in seconds (60 second = 1 minute)
 ];
