@@ -14,6 +14,7 @@ const HTTP_NOT_FOUND = 404;
 const HTTP_METHOD_NOT_ALLOWED = 405;
 const HTTP_NOT_ACCEPTABLE = 406;
 const HTTP_UNPROCESSABLE_ENTITY = 422;
+const HTTP_LIMIT_REQUEST = 429;
 const HTTP_INTERNAL_ERROR = 500;
 
 function response($data, $response_code = HTTP_OK)

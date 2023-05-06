@@ -14,15 +14,27 @@ $config['throttle_enable'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
+| Throttle Override Settings
+|--------------------------------------------------------------------------
+|
+| Set TRUE to use override the throttle settings below or set FALSE to use default
+|
+*/
+$config['throttle_override'] = FALSE;
+
+/*
+|--------------------------------------------------------------------------
 | Throttle Configuration
 |--------------------------------------------------------------------------
 |
 | Define all Rate Limitting configuration
 */
 $config['throttle_settings'] = [
-	'request' => 200, // set maximum api requests (according to expired below : request per expired)
-	'expired' => 60, // set expiration time for cache file store in seconds
-	'block' => 45 // set blocked time duration in seconds (60 second = 1 minute)
+	'request' => 60, // set default limit request for client
+	'interval' => 60, // set the interval before request count will be reset in seconds (eg : 5 minute = 300)
+	'warning' => 20, // set maximum message "Too many requests" before temporary blocked the IP
+	'blocked' => 15, // set maximum "Temporary blocked" count before permanently block IP (Maximum is 15)
+	'limit_increase' => 15, // set the increase request (will extend then default) per temporary blocked. Formula : request + (limit_increase x blocked)
 ];
 
 /*
@@ -34,7 +46,7 @@ $config['throttle_settings'] = [
 */
 $config['throttle_exclude_url'] = [
 	// 'auth/sign-in',
-	'auth/logout',
+	// 'auth/logout',
 ];
 
 /*
@@ -42,6 +54,9 @@ $config['throttle_exclude_url'] = [
 | Throttle IP Exclusions
 |--------------------------------------------------------------------------
 |
-| Define all route to exclude for rate limiting
+| Define all IP to exclude for rate limiting
 */
-$config['throttle_exclude_ips'] = [];
+$config['throttle_exclude_ips'] = [
+	// '127.0.0.1',
+	// '::1'
+];

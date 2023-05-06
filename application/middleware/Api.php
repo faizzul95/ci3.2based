@@ -2,11 +2,11 @@
 
 # application/middleware/Api.php
 
-use App\services\general\traits\SecurityRateLimitingTrait;
+use App\middleware\core\traits\ThrottleTrait;
 
 class Api implements Luthier\MiddlewareInterface
 {
-	use SecurityRateLimitingTrait;
+	use ThrottleTrait;
 
 	public function run($args)
 	{
@@ -14,7 +14,7 @@ class Api implements Luthier\MiddlewareInterface
 			if (!isAjax())
 				return response(['code' => 422, 'message' => 'API is only accessible via AJAX REQUEST!'], HTTP_UNPROCESSABLE_ENTITY);
 			else
-				$this->isRateLimited();
+				$this->throttle();
 		} else {
 			return response(['code' => 500, 'message' => 'System under maintenance'], HTTP_INTERNAL_ERROR);
 		}
