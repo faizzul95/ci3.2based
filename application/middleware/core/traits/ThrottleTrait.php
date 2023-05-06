@@ -335,6 +335,7 @@ trait ThrottleTrait
 	private function resetRequestCount(string $ip, array $throttleData): array
 	{
 		$throttleData['requests'] = 0;
+		$throttleData['warnings_count'] = 0;
 		$throttleData['reset_request_interval'] = time() + $this->limitInterval; // set new interval
 		$this->saveThrottleData($ip, $throttleData);
 
