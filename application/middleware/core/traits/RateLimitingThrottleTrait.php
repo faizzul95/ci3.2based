@@ -124,9 +124,12 @@ trait RateLimitingThrottleTrait
 		}
 
 		$filePath = $this->throttleBlackListDir . $filename;
-		$data = json_decode(@file_get_contents($filePath), true);
-		if ($data !== null) {
-			return $data;
+
+		if (file_exists($filePath)) {
+			$data = json_decode(@file_get_contents($filePath), true);
+			if ($data !== null) {
+				return $data;
+			}
 		}
 
 		return [];
