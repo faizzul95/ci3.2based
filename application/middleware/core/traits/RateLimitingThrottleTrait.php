@@ -4,12 +4,17 @@ namespace App\middleware\core\traits;
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-trait ThrottleTrait
+trait RateLimitingThrottleTrait
 {
 	/**
 	 * Path to the directory where throttle files are stored.
 	 */
-	private $throttleDir = APPPATH . 'cache/throttle/';
+	private $throttleDir = APPPATH . 'cache/throttle/rate/';
+
+	/**
+	 * Path to the directory where throttle files for blacklist ip are stored.
+	 */
+	private $throttleBlackListDir = APPPATH . 'cache/throttle/blacklist/';
 
 	/**
 	 * The cache file extension to use for storing request counts and blocked IPs.
@@ -45,21 +50,21 @@ trait ThrottleTrait
 	 * Time in seconds to increase the temporary blocked time after each attempt.
 	 */
 	private $blockedTimeIncrease = [
-		1 => 30, // 30 seconds for 1st temporary blocked
-		2 => 30, // 30 seconds for 2nd temporary blocked
-		3 => 45, // 45 seconds for 3rd temporary blocked
-		4 => 60, // 1 minute for 4th temporary blocked
-		5 => 120, // 2 minute for 5th temporary blocked
-		6 => 180, // 3 minute for 6th temporary blocked
-		7 => 300, // 5 minute for 7rd temporary blocked
-		8 => 600, // 10 minute for 8rd temporary blocked
-		9 => 900, // 15 minute for 9th temporary blocked
-		10 => 1800, // 30 minute for 10th temporary blocked
-		11 => 3600, // 1 hour for 11th temporary blocked
-		12 => 86400, // 1 day for 12th temporary blocked
-		13 => 604800, // 1 week for 13th temporary blocked
-		14 => 2592000, // 1 month for 14th temporary blocked
-		15 => 31536000, // 1 year for 15th temporary blocked
+		30, // 30 seconds for 1st temporary blocked
+		30, // 30 seconds for 2nd temporary blocked
+		45, // 45 seconds for 3rd temporary blocked
+		60, // 1 minute for 4th temporary blocked
+		120, // 2 minute for 5th temporary blocked
+		180, // 3 minute for 6th temporary blocked
+		300, // 5 minute for 7rd temporary blocked
+		600, // 10 minute for 8rd temporary blocked
+		900, // 15 minute for 9th temporary blocked
+		1800, // 30 minute for 10th temporary blocked
+		3600, // 1 hour for 11th temporary blocked
+		86400, // 1 day for 12th temporary blocked
+		604800, // 1 week for 13th temporary blocked
+		2592000, // 1 month for 14th temporary blocked
+		31536000, // 1 year for 15th temporary blocked
 	];
 
 	/**
@@ -105,6 +110,26 @@ trait ThrottleTrait
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * Get the data black listed array data
+	 */
+	private function getBlackListData(): array
+	{
+		$filename = 'blacklist' . $this->cacheFileExtension;
+
+		if (!is_dir($this->throttleBlackListDir)) {
+			mkdir($this->throttleBlackListDir, 0755, true);
+		}
+
+		$filePath = $this->throttleBlackListDir . $filename;
+		$data = json_decode(@file_get_contents($filePath), true);
+		if ($data !== null) {
+			return $data;
+		}
+
+		return [];
 	}
 
 	/**
@@ -178,8 +203,6 @@ trait ThrottleTrait
 			'temp_blocked_timestamp' => NULL,
 			'temp_blocked_until_time' => NULL,
 			'is_temp_block' => false,
-			'is_perm_block' => false,
-			'perm_blocked_timestamp' => NULL,
 			'reset_request_interval' => time() + $this->limitInterval,
 			'last_update' => time(),
 		];
@@ -242,9 +265,15 @@ trait ThrottleTrait
 	/**
 	 * Check if the given IP address is permanet blocked.
 	 */
-	private function isPermanentBlocked(array $throttleData): bool
+	private function isPermanentBlocked(string $ip): bool
 	{
-		return $throttleData['is_perm_block'];
+		$blackListIP = $this->getBlackListData();
+
+		if (array_key_exists($ip, $blackListIP)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -261,27 +290,39 @@ trait ThrottleTrait
 	private function blockIpTemporary(string $ip, array $throttleData): void
 	{
 		$blockedCount = $this->getCurrentBlockedCount($throttleData);
-		$newBlockedCount = $blockedCount + 1;
+
+		$countSettingIncrease = count($this->blockedTimeIncrease);
+
+		// get increase time for temporary blocked, default is 30 seconds
+		$increaseTime = $blockedCount > $countSettingIncrease ? 30 : $this->blockedTimeIncrease[$blockedCount];
 
 		$throttleData['is_temp_block'] = true;
-		$throttleData['is_perm_block'] = false;
-		$throttleData['temp_blocked_received_count'] = $newBlockedCount;
+		$throttleData['temp_blocked_received_count'] = $blockedCount + 1;
 		$throttleData['temp_blocked_timestamp'] = timestamp();
-		$throttleData['temp_blocked_until_time'] = time() + $this->blockedTimeIncrease[$newBlockedCount];
+		$throttleData['temp_blocked_until_time'] = time() + $increaseTime;
 		$this->saveThrottleData($ip, $throttleData);
 	}
 
 	/**
 	 * Block the given IP address permanent.
 	 */
-	private function blockIpPermanent(string $ip, array $throttleData): void
+	private function blockIpPermanent(string $ip): void
 	{
-		$throttleData['is_temp_block'] = false;
-		$throttleData['temp_blocked_until_time'] = NULL;
-		$throttleData['temp_blocked_timestamp'] = NULL;
-		$throttleData['is_perm_block'] = true;
-		$throttleData['perm_blocked_timestamp'] = timestamp();
-		$this->saveThrottleData($ip, $throttleData);
+		$filename = 'blacklist' . $this->cacheFileExtension;
+
+		if (!is_dir($this->throttleBlackListDir)) {
+			mkdir($this->throttleBlackListDir, 0755, true);
+		}
+
+		$filePath = $this->throttleBlackListDir . $filename;
+
+		$data[$ip]['time_unix'] = time();
+		$data[$ip]['timestamp'] = timestamp();
+		$data[$ip]['reason'] = 'abuse rate limiting';
+		$data[$ip]['logs'] = $this->loadThrottleData($ip);
+
+		@file_put_contents($filePath, json_encode($data));
+		@unlink($this->throttleDir . $this->getThrottleFileName($ip)); // remove cache
 	}
 
 	/**
@@ -292,10 +333,8 @@ trait ThrottleTrait
 		$throttleData['requests'] = 0;
 		$throttleData['warnings_count'] = 0;
 		$throttleData['last_warning_timestamp'] = NULL;
-		$throttleData['is_perm_block'] = false;
 		$throttleData['is_temp_block'] = false;
 		$throttleData['temp_blocked_until_time'] = NULL;
-		$throttleData['perm_blocked_timestamp'] = NULL;
 		$this->saveThrottleData($ip, $throttleData);
 
 		// return new data with new request interval
@@ -411,13 +450,14 @@ trait ThrottleTrait
 	/**
 	 * Function to check rate limiting
 	 */
-	public function throttle()
+	public function isRateLimiting()
 	{
 		$CI = &get_instance();
 		$CI->load->config('security');
+		$enableThrottleData = $CI->config->item('throttle_enable');
 
 		// check if throttle is not enabled
-		if (!filter_var($CI->config->item('throttle_enable'), FILTER_VALIDATE_BOOLEAN)) {
+		if (!filter_var($enableThrottleData['rate_limiting'], FILTER_VALIDATE_BOOLEAN)) {
 			return;
 		} else {
 
@@ -425,15 +465,18 @@ trait ThrottleTrait
 			$this->urlWhitelist = array_merge($this->urlWhitelist, $CI->config->item('throttle_exclude_url'));
 			$this->ipWhitelist = array_merge($this->ipWhitelist, $CI->config->item('throttle_exclude_ips'));
 
-			if (filter_var($CI->config->item('throttle_override'), FILTER_VALIDATE_BOOLEAN)) {
+			$overrideData = $CI->config->item('throttle_override');
+			if (filter_var($overrideData['rate_config_override'], FILTER_VALIDATE_BOOLEAN)) {
 				// load settings
 				$settings = $CI->config->item('throttle_settings');
 				if ($settings) {
-					$this->defaultLimit = $settings['request'];
-					$this->limitInterval = $settings['interval'];
-					$this->limitIncrease = $settings['limit_increase'];
-					$this->maxWarningRequests = $settings['warning'];
-					$this->maxTemporaryBlocked = $settings['blocked'];
+					$this->throttleDir = APPPATH . 'cache/throttle/' . $settings['rate_custom']['directory'] . '/';
+					$this->defaultLimit = $settings['rate_custom']['request'];
+					$this->limitInterval = $settings['rate_custom']['interval'];
+					$this->limitIncrease = $settings['rate_custom']['limit_increase'];
+					$this->maxWarningRequests = $settings['rate_custom']['warning'];
+					$this->maxTemporaryBlocked = $settings['rate_custom']['blocked'];
+					$this->blockedTimeIncrease = $settings['rate_custom']['blocked_temporary_time'];
 				}
 			}
 
@@ -441,19 +484,19 @@ trait ThrottleTrait
 			$ip = $this->getClientIp();
 			$url = rtrim(segment(1) . '/' . segment(2), '/');
 
-			// get throttle data using ip
-			$throttleData = $this->loadThrottleData($ip);
-
 			// check if ip/url is in whitelist
 			if ($this->isWhitelisted($ip, $url)) {
 				return;
 			} else {
 
 				// check if ip is currently in permanent blocked
-				if ($this->isPermanentBlocked($throttleData)) {
+				if ($this->isPermanentBlocked($ip)) {
 					return response(['code' => 403, 'message' => 'You are permanently blocked'], HTTP_UNAUTHORIZED);
 					exit;
 				}
+
+				// get throttle data using ip
+				$throttleData = $this->loadThrottleData($ip);
 
 				// reset inactivity in certain period times.
 				$throttleData = $this->resetInactivityIP($ip, $throttleData);
@@ -462,7 +505,7 @@ trait ThrottleTrait
 				if ($this->isTempBlocked($throttleData)) {
 					// check if temporary blocked has reached, then block the ip permanently
 					if ($this->isMaxTemporaryBlockedReached($throttleData)) {
-						$this->blockIpPermanent($ip, $throttleData);
+						$this->blockIpPermanent($ip);
 						log_message('error', "IP {$ip} is permanently blocked");
 						return response(['code' => 403, 'message' => 'You are permanently blocked, Please contact support to further information'], HTTP_UNAUTHORIZED);
 						exit;
