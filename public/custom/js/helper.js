@@ -531,11 +531,11 @@ const uploadApi = async (url, formID = null, idProgressBar = null, reloadFunctio
 					}
 				} else if (error.request) {
 					// The request was made but no response was received
-					noti(500, 'Something went wrong');
+					noti(400, 'Something went wrong');
 				} else {
 					// Something happened in setting up the request that triggered an Error
 					log(error.message, 'ERROR Upload Api');
-					noti(500, 'Something went wrong');
+					noti(400, 'Something went wrong');
 				}
 
 				// throw err;
@@ -610,15 +610,20 @@ const submitApi = async (url, dataObj, formID = null, reloadFunction = null, clo
 
 				})
 				.catch(error => {
-					const res = error.response;
-					log(res, 'ERROR 1 Submit');
-					if (isError(res.status)) {
-						noti(res.status, res.data.message);
-					} else if (isUnauthorized(res.status)) {
-						noti(res.status, "Unauthorized: Access is denied");
+
+					log('ERROR SubmitApi 1');
+					let textMessage = isset(error.response.data.message) ? error.response.data.message : error.response.statusText;
+
+					if (isError(error.response.status)) {
+						noti(error.response.status, textMessage);
+					} else if (isUnauthorized(error.response.status)) {
+						noti(error.response.status, "Unauthorized: Access is denied");
+					} else {
+						log(error, 'Response Submit Api 1');
 					}
-					loadingBtn(submitIdBtn, false);
-					throw error;
+
+					return error.response;
+
 				});
 		} catch (e) {
 			const res = e.response;
@@ -671,16 +676,20 @@ const deleteApi = async (id, url, reloadFunction = null) => {
 					return result;
 				})
 				.catch(error => {
-					if (isset(error.response.status)) {
-						if (isError(error.response.status)) {
-							noti(error.response.status);
-						} else if (isUnauthorized(error.response.status)) {
-							noti(error.response.status, "Unauthorized: Access is denied");
-						}
+
+					log('ERROR DeleteApi 1');
+					let textMessage = isset(error.response.data.message) ? error.response.data.message : error.response.statusText;
+
+					if (isError(error.response.status)) {
+						noti(error.response.status, textMessage);
+					} else if (isUnauthorized(error.response.status)) {
+						noti(error.response.status, "Unauthorized: Access is denied");
 					} else {
 						log(error, 'Response Delete Api 1');
 					}
-					throw error;
+
+					return error.response;
+
 				});
 		} catch (e) {
 			const res = e.response;
@@ -735,17 +744,17 @@ const callApi = async (method = 'POST', url, dataObj = null, option = {}) => {
 			})
 			.catch(error => {
 				log('ERROR CallApi 1');
-				if (isset(error.response.status)) {
-					if (isError(error.response.status)) {
-						noti(error.response.status, error.response.data.message);
-					} else if (isUnauthorized(error.response.status)) {
-						noti(error.response.status, "Unauthorized: Access is denied");
-					}
+				let textMessage = isset(error.response.data.message) ? error.response.data.message : error.response.statusText;
+
+				if (isError(error.response.status)) {
+					noti(error.response.status, textMessage);
+				} else if (isUnauthorized(error.response.status)) {
+					noti(error.response.status, "Unauthorized: Access is denied");
 				} else {
 					log(error, 'ERROR CallApi 1');
 				}
 
-				throw error;
+				return error.response;
 			});
 	} catch (e) {
 		log('ERROR CallApi 2');
@@ -770,7 +779,7 @@ const callApi = async (method = 'POST', url, dataObj = null, option = {}) => {
 	}
 }
 
-const noti = (code = 200, text = 'Something went wrong') => {
+const noti = (code = 400, text = 'Something went wrong') => {
 
 	const apiStatus = {
 		200: 'OK',
@@ -797,8 +806,8 @@ const noti = (code = 200, text = 'Something went wrong') => {
 	var textResponse = apiStatus[code];
 
 	var messageText = isSuccess(resCode) ? ucfirst(text) + ' successfully' : isUnauthorized(resCode) ? 'Unauthorized: Access is denied' : isError(resCode) ? text : 'Something went wrong';
-	var type = (isSuccess(code)) ? 'success' : 'error';
-	var title = (isSuccess(code)) ? 'Great!' : 'Ops!';
+	var type = isSuccess(code) ? 'success' : 'error';
+	var title = isSuccess(code) ? 'Great!' : 'Ops!';
 
 	toastr.options = {
 		"debug": false,
