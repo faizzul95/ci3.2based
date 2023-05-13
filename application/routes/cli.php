@@ -215,7 +215,7 @@ Route::cli('clear/{type}', function ($type) {
 	$folderViewCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'blade_cache';
 	$folderLogs = APPPATH . 'logs';
 
-	if (in_array($type, ['all', 'cache', 'view', 'views', 'log', 'logs'])) {
+	if (in_array($type, ['all', 'cache', 'view', 'views', 'log', 'logs', 'optimize'])) {
 
 		if ($type == 'cache') {
 			if (is_dir($folderCache))
@@ -234,6 +234,14 @@ Route::cli('clear/{type}', function ($type) {
 					deleteFolder($path);
 			}
 			$type = 'Cache, views, logs';
+		} else if ($type == 'optimize') {
+			$folders = [];
+			array_push($folders, $folderViewCache, $folderLogs);
+			foreach ($folders as $key => $path) {
+				if (is_dir($path))
+					deleteFolder($path);
+			}
+			$type = 'views cache & logs';
 		}
 
 		$message = $type . ' folder clear successfully';
@@ -310,6 +318,10 @@ Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 	echo $message . "\n\n";
 });
 
+Route::cli('optimize', function () {
+	echo shell_exec('php struck clear optimize');
+});
+
 // schedule
 Route::cli('schedule:run', function () {
 	$CI = &get_instance();
@@ -323,9 +335,10 @@ Route::cli('schedule:run', function () {
 		foreach ($allNamespace as $namspaces) {
 			app($namspaces)->handle($scheduler);
 		}
+
+		echo "Task Scheduling is running . . \n\n";
 		// Reset the scheduler after a previous run
 		$scheduler->resetRun()->run(); // now we can run it again
-		echo "Task Scheduling is running . . \n\n";
 	} else {
 		echo "No task/command to execute\n\n";
 	}
@@ -333,4 +346,41 @@ Route::cli('schedule:run', function () {
 
 Route::cli('schedule:list', function () {
 	dd(cronScheduler()->getExecutedJobs());
+});
+
+Route::cli('schedule:fail', function () {
+	$scheduler = cronScheduler();
+
+	// get all failed jobs and select first
+	$failedJob = $scheduler->getFailedJobs()[0];
+
+	// exception that occurred during job
+	$exception = $failedJob->getException();
+
+	// job that failed
+	$job = $failedJob->getJob();
+
+	dd($failedJob, $exception, $job);
+});
+
+Route::cli('schedule:work', function () {
+	$scheduler = cronScheduler();
+
+	$CI = &get_instance();
+	$CI->load->config('scheduler');
+	$allNamespace = $CI->config->item('commands');
+
+	if (hasData($allNamespace)) {
+		$scheduler = cronScheduler();
+
+		$scheduler->clearJobs(); // clear previous jobs
+		foreach ($allNamespace as $namspaces) {
+			app($namspaces)->handle($scheduler);
+		}
+
+		echo "Task Scheduling is running . . \n\n";
+		$scheduler->work();
+	} else {
+		echo "No task/command to execute\n\n";
+	}
 });
