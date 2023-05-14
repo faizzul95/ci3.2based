@@ -1,6 +1,6 @@
 <?php
 
-namespace App\services\general\traits;
+namespace App\middleware\core\traits;
 
 trait SecurityHeadersTrait
 {
@@ -28,7 +28,7 @@ trait SecurityHeadersTrait
 		$this->output->set_header('Referrer-Policy: strict-origin-when-cross-origin');
 
 		// This will set the Permissions-Policy header to only allow access to geolocation, microphone, and camera if explicitly granted by the user.
-
+		
 		// Note :
 		// a) The self keyword ensures that the permission is only granted if the request is from the same origin as the page. 
 		// b) The https://* value allows access only when the page is served over HTTPS.
@@ -60,7 +60,7 @@ trait SecurityHeadersTrait
 		// 24) usb
 		// 25) vertical-scroll
 		// 26) xr-spatial-tracking
-
+		
 		$this->output->set_header("Permissions-Policy: geolocation=(self;https://*), microphone=(self;https://*), camera=(self;https://*), fullscreen=(self;), sync-xhr=(self;), usb=(self;)");
 	}
 }
