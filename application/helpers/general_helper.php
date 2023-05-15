@@ -312,29 +312,6 @@ if (!function_exists('Logs')) {
 	}
 }
 
-if (!function_exists('isMaintenance')) {
-	function isMaintenance($redirect = true, $path = 'maintenance')
-	{
-		if (filter_var(env('MAINTENANCE_MODE'), FILTER_VALIDATE_BOOLEAN)) {
-			if ($redirect) {
-				if (currentUserRoleID() != 1) // superadmin always can login
-					error($path);
-				else
-					return true;
-			}
-		} else {
-			return false;
-		}
-	}
-}
-
-if (!function_exists('checkMaintenance')) {
-	function checkMaintenance()
-	{
-		return filter_var(env('MAINTENANCE_MODE'), FILTER_VALIDATE_BOOLEAN);
-	}
-}
-
 if (!function_exists('genRunningNo')) {
 	function genRunningNo($currentNo, $prefix = NULL, $suffix = NULL, $separator = NULL, $leadingZero = 5)
 	{

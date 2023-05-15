@@ -384,3 +384,21 @@ Route::cli('schedule:work', function () {
 		echo "No task/command to execute\n\n";
 	}
 });
+
+Route::cli('maintenance/{type}', function ($type = 'on') {
+	if (in_array($type, ['on', 'off'])) {
+		$filename = 'maintenance.flag';
+
+		if ($type == 'on') {
+			if (!file_exists($filename)) {
+				fopen($filename, 'w');
+			};
+			print "[" . timestamp('d/m/Y h:i A') . "]: System is currently offline!\n\n";
+		} else if ($type == 'off') {
+			if (file_exists($filename)) {
+				unlink($filename);
+			}
+			print "[" . timestamp('d/m/Y h:i A') . "]: System is back online!\n\n";
+		}
+	}
+});

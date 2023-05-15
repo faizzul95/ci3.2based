@@ -837,7 +837,7 @@ const isSuccess = (res) => {
 }
 
 const isError = (res) => {
-	const errorStatus = [400, 404, 422, 429, 500];
+	const errorStatus = [400, 404, 422, 429, 500, 503];
 	const status = typeof res === 'number' ? res : res.status;
 	return errorStatus.includes(status);
 }

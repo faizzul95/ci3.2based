@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<title>Site Maintenance | <?= env('APP_NAME'); ?> </title>
+<title> 503 | Site Maintenance </title>
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -94,7 +94,7 @@
             </g>
         </g>
     </svg> -->
-		<img src="public/custom/images/maintenance.png" width="80%">
+		<img src="<?= filesImageError('custom/images/maintenance.png') ?>" width="80%">
 		<h1>We&rsquo;ll be back soon!</h1>
 		<div>
 			<p>Sorry for the inconvenience. We&rsquo;re performing some maintenance at the moment. If you need to you can always follow us on <a href="javascript:void(0)">Facebook</a> for updates, otherwise we&rsquo;ll be back up shortly!</p>
@@ -102,3 +102,16 @@
 		</div>
 	</article>
 </body>
+
+<?php
+function filesImageError($param, $public = TRUE)
+{
+	$host = array_key_exists("HTTP_HOST", $_SERVER) ? $_SERVER['HTTP_HOST'] : '';
+	$baseUrl = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
+	$baseUrl .=  '://' . $host;
+	$baseUrl .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+
+	$isPublic = $public ? 'public/' : '';
+	return $baseUrl . $isPublic . $param;
+}
+?>
