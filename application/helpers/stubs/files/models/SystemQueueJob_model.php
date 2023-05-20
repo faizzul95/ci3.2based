@@ -43,13 +43,4 @@ class SystemQueueJob_model extends CT_Model
 	{
 		return $this->db->where_in('status', [1, 2, 4])->where('attempt <', 10)->get($this->table)->row_array();
 	}
-
-	public function updateQueueJob($data = NULL)
-	{
-		return $this->db->where('queue_id', $data['queue_id'])->update($this->table, [
-			'status' => $data['status'],
-			'attempt' => $data['attempt'],
-			'message' => $data['message']
-		]);
-	}
 }

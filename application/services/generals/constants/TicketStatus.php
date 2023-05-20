@@ -1,6 +1,6 @@
 <?php
 
-namespace App\services\general\constants;
+namespace App\services\generals\constants;
 
 final class TicketStatus
 {

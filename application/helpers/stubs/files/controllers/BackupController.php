@@ -2,14 +2,20 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-use App\services\BackupSystem as BackupSystem;
-use App\services\google\GoogleDrive as GD;
+use App\services\generals\helpers\BackupSystem as BackupSystem;
+use App\services\generals\helpers\google\GoogleDrive as GD;
 
-class CronController extends CI_Controller
+use App\middleware\core\traits\SecurityHeadersTrait;
+
+class BackupController extends CI_Controller
 {
+	use SecurityHeadersTrait;
+
 	public function __construct()
 	{
 		parent::__construct();
+		$this->set_security_headers();
+
 		model('SystemQueueJob_model', 'queueM');
 		model('SystemBackupDB_model', 'databaseM');
 	}
@@ -26,7 +32,7 @@ class CronController extends CI_Controller
 
 		if (isSuccess($response['resCode'])) {
 			if ($uploadDrive) {
-				$drive = $this->BackupDrive($response['path']);
+				$drive = $this->BackupDrive($response['path'], 'system');
 				if (isSuccess($drive['resCode'])) {
 					$response['data'] = [
 						'backup_storage_type' => 'google drive',
@@ -53,7 +59,7 @@ class CronController extends CI_Controller
 			];
 
 			if ($uploadDrive) {
-				$drive = $this->BackupDrive($response['path']);
+				$drive = $this->BackupDrive($response['path'], 'database');
 				if (isSuccess($drive['resCode'])) {
 					$res['backup_storage_type'] = 'google drive';
 					$res['backup_location'] = $drive['data']['webViewLink'];
@@ -66,10 +72,10 @@ class CronController extends CI_Controller
 		dd($response);
 	}
 
-	public function BackupDrive($path = NULL)
+	public function BackupDrive($path = NULL, $folderType = NULL)
 	{
 		if (!empty($path)) {
-			$drive = new GD();
+			$drive = new GD($folderType);
 
 			if (file_exists($path)) {
 				return $drive->uploadFile($path);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\services\google;
+namespace App\services\generals\helpers\google;
 
 defined('BASEPATH') or exit('No direct script access allowed');
 

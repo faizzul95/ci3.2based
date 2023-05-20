@@ -1,31 +1,34 @@
 <?php
 
+use App\services\generals\traits\QueueTrait;
+
 class JobController extends WorkerController
 {
+	use QueueTrait;
+
 	// Setting for that a listener could fork up to 10 workers
 	public $workerMaxNum = 10;
 
 	// Enable text log writen into specified file for listener and worker
-	// public $logPath = 'cache/queue-worker.log';
-	public $logPath = FCPATH . '' . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-worker.log';
+	public $logPath = APPPATH . 'logs' . DIRECTORY_SEPARATOR . 'queue-worker.log';
 
 	// Initializer
 	protected function init()
 	{
-		library('myjobs');
+		// library('myjobs');
 	}
 
 	// Worker
 	protected function handleWork()
 	{
-		$job = $this->myjobs->getJob();
+		$job = $this->getQueue();
 
 		// return `false` for job not found, which would close the worker itself.
 		if (!$job)
 			return false;
 
 		// Your own method to process a job
-		$this->myjobs->processJob($job);
+		$this->processQueue($job);
 
 		// return `true` for job existing, which would keep handling.
 		return true;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\services;
+namespace App\services\generals\helpers;
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
