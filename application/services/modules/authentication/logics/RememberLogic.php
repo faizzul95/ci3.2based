@@ -2,7 +2,7 @@
 
 namespace App\services\modules\authentication\logics;
 
-use App\services\general\constants\LoginType;
+use App\services\generals\constants\LoginType;
 use App\services\modules\authentication\processors\UserSessionProcessor;
 
 class RememberLogic
@@ -21,10 +21,7 @@ class RememberLogic
             $dataUser = ci()->userM::find($token, 'remember_token');
 
             if ($dataUser) {
-                $response = app(new UserSessionProcessor)->execute($dataUser['id'], LoginType::TOKEN, true);
-
-                if (isSuccess($response['resCode']))
-                    redirect($response['redirectUrl'], true);
+                return app(new UserSessionProcessor)->execute($dataUser['id'], LoginType::TOKEN, true);
             }
         }
     }

@@ -1821,6 +1821,73 @@ class MY_Model extends CI_Model
 		], $resCode);
 	}
 
+	public function scopeWithQuery($query, $filter)
+	{
+		foreach ($filter as $key => $with) {
+			if (is_int($key)) {
+				$withStatement = "with_" . $with;
+				$query->$withStatement();
+			} else {
+				$withStatement = "with_" . $key;
+
+				$conditionWhere = NULL;
+				$conditionField = NULL;
+				$conditionwWith = NULL;
+
+				if (isArray($with)) {
+					if (hasData($with, 'fields')) {
+						$conditionField = 'fields:' . $with['fields'];
+					}
+
+					if (hasData($with, 'condition')) {
+						$conditionWhere = 'where:' . $with['condition'];
+					}
+
+					if (hasData($with, 'with')) {
+						$conditionwWith = $with['with'];
+					}
+				} else {
+					$conditionField = 'fields:' . $with;
+				}
+
+				// check if has condition where (required to has fields)
+				if (hasData($conditionField) && hasData($conditionWhere)) {
+					// check if has with condition
+					if (hasData($conditionwWith)) {
+						$query->$withStatement($conditionField,  $conditionWhere, ['with' => $conditionwWith]);
+					}
+					// if doesnt has with condition, only fields and where condition
+					else {
+						$query->$withStatement($conditionField,  $conditionWhere);
+					}
+				}
+				// check if has "with" and alse has "fields" but no where
+				else if (hasData($conditionwWith) && hasData($conditionField)) {
+					$query->$withStatement([$conditionField, 'with' => $conditionwWith]);
+				}
+				// check if has "with" but not has "fields" & "where" condition
+				else if (hasData($conditionwWith) && !hasData($conditionField)) {
+					$query->$withStatement(['with' => $conditionwWith]);
+				}
+				// if not have any where condition & with condition
+				else {
+					$query->$withStatement($conditionField);
+				}
+			}
+		}
+
+		return $query;
+	}
+
+	public function scopeConditionQuery($query, $filter)
+	{
+		foreach ($filter as $columnName => $value) {
+			$query->where($columnName, $value);
+		}
+
+		return $query;
+	}
+
 	/*
     public function add_creator($data)
     {

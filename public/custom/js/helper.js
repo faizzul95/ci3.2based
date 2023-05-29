@@ -930,7 +930,7 @@ const nodataAccess = (filesName = '403.png') => {
             </div>";
 }
 
-const skeletonTable = (hasFilter = null, buttonRefresh = true) => {
+const skeletonTable = (hasButton = true, hasFilter = null, buttonRefresh = true) => {
 
 	let totalData = 3;
 	let body = '';
@@ -952,10 +952,15 @@ const skeletonTable = (hasFilter = null, buttonRefresh = true) => {
 		}
 	}
 
+	let buttonAdd = '';
+	if (isTrue(hasButton)) {
+		buttonAdd = '<button type="button" class="btn btn-default btn-sm float-end skeleton">  &nbsp;&nbsp;&nbsp; </button>';
+	}
+
 	let buttonShow = buttonRefresh ? '<div class="col-xl-12 mb-4">\
-										<button type="button" class="btn btn-default btn-sm float-end skeleton">  &nbsp;&nbsp;&nbsp; </button>\
+										' + buttonAdd + '\
 										<button type="button" class="btn btn-default btn-sm float-end me-2 skeleton">\
-											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
 										</button>\
 										' + filters + '\
 										</div><br><br><br>' : '';

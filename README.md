@@ -7,6 +7,11 @@ Instruction: -
 5) Run command "npm update" using CMD/Terminal (make sure to install Node.js!).
 6) Configure the .env files for database & environment.
 
+Instruction to use grunt.js (install using terminal/CMD): -
+1) npm ls -g grunt-cli  (To check if grunt already install or not)
+2) npm install -g grunt-cli
+3) npm install grunt grunt-contrib-concat grunt-contrib-uglify grunt-contrib-clean grunt-contrib-cssmin grunt-babel @babel/core @babel/preset-env --save-dev
+
 ======================================================================
 
 Features ready: -
@@ -24,13 +29,13 @@ Features ready: -
 - SYSTEM
 	1) Custom Model (Credit to <a href="https://github.com/avenirer/CodeIgniter-MY_Model" target="_blank"> Avenirer </a> for library) & DB Query. 
 	2) Job Queue (Worker) - Running in background (Thanks to <a href="https://github.com/yidas/codeigniter-queue-worker" target="_blank"> Yidas </a> for Queue Worker library)
-	3) Maintenance Mode (With custom page)
-	4) Blade Templating Engine (Increase security & caching) - (Credit to team <a href="https://github.com/EFTEC/BladeOne" target="_blank">BladeOne</a>)
-	5) SSL Force redirect (production mode)
-	6) System logger (Log error system in database & files)
-	7) Audit Trail (Log data insert, update, delete in database)
-	8) CRUD Log (Log data insert, update, delete in files)
-	9) Cron Scheduler - (Credit to <a href="https://github.com/peppeocchi/php-cron-scheduler" target="_blank">Peppeocchi</a>)
+	3) Cron Scheduler - (Credit to <a href="https://github.com/peppeocchi/php-cron-scheduler" target="_blank">Peppeocchi</a>)
+	4) Maintenance Mode (With custom page)
+	5) Blade Templating Engine (Increase security & caching) - (Credit to team <a href="https://github.com/EFTEC/BladeOne" target="_blank">BladeOne</a>)
+	6) SSL Force redirect (production mode)
+	7) System logger (Log error system in database & files)
+	8) Audit Trail (Log data insert, update, delete in database)
+	9) CRUD Log (Log data insert, update, delete in files)
 
 - HELPER
 	<ol type="A">
@@ -120,8 +125,8 @@ Command (Terminal / Command Prompt):-
 	<li> Jobs (Queue Worker) </li> 
 		<ol type="1">
 			<li> php struck jobs (temporary run until jobs completed) </li>
-			<li> php struck jobs work (temporary run until jobs completed) </li>
-			<li> php struck jobs launch (permanent until services kill) - use in linux environment </li>
+			<li> php struck jobs:work (temporary run until jobs completed, need to re-run for next jobs) </li>
+			<li> php struck jobs:listen (permanent running until services kill) - use in linux environment </li>
 		</ol> 
 	<br>
 		<li> Cron Scheduler (Laravel Task Scheduling) </li> 

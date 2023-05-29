@@ -7,6 +7,7 @@ use App\services\modules\authentication\logics\LoginLogic;
 use App\services\modules\authentication\logics\SocialliteLogic;
 use App\services\modules\authentication\logics\ForgotPasswordLogic;
 use App\services\modules\authentication\logics\TwoFactorAuthenticateLogic;
+use App\services\modules\core\users\logics\UsersProfileSwitchLogic;
 
 class AuthenticateController extends CI_Controller
 {
@@ -46,7 +47,19 @@ class AuthenticateController extends CI_Controller
 	{
 		// check if token has data
 		if (hasData($token)) {
-			app(new ForgotPasswordLogic)->form(input('token'));
+			$response = app(new ForgotPasswordLogic)->form(input('token'));
+
+			// check if token is valid, render page to reset
+			if (isSuccess($response)) {
+				render('auth/reset',  [
+					'title' => 'Reset Password',
+					'currentSidebar' => 'auth',
+					'currentSubSidebar' => 'reset',
+					'data' => $response['data']
+				]);
+			} else {
+				json($response);
+			}
 		} else {
 			redirect('', true);
 		}
@@ -58,6 +71,14 @@ class AuthenticateController extends CI_Controller
 			'username'  =>  input('username'),
 			'code'  => input('code_2fa'),
 			'rememberme'  => input('remember') ? true : false
+		]));
+	}
+
+	public function switchProfileUser()
+	{
+		json(app(new UsersProfileSwitchLogic)->execute([
+			'profile_id'  =>  input('profile_id'),
+			'user_id'  => input('user_id')
 		]));
 	}
 

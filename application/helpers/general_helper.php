@@ -484,6 +484,34 @@ if (!function_exists('truncateText')) {
 	}
 }
 
+if (!function_exists('mix')) {
+	function mix($path = NULL, $public = TRUE)
+	{
+		$isPublic = $public ? 'public/' : '';
+
+		$extension = pathinfo($path, PATHINFO_EXTENSION);
+		$directory = $isPublic . dirname($path);
+		$files = scandir($directory);
+		$last_updated_file = '';
+		$last_updated_timestamp = 0;
+
+		foreach ($files as $file) {
+			if ($file !== "." && $file !== "..") {
+				$file_path = $directory . "/" . $file;
+				if (is_file($file_path) && pathinfo($file_path, PATHINFO_EXTENSION) === $extension) {
+					$timestamp = filemtime($file_path);
+					if ($timestamp > $last_updated_timestamp) {
+						$last_updated_file = $file;
+						$last_updated_timestamp = $timestamp;
+					}
+				}
+			}
+		}
+
+		return asset(dirname($path) . '/' . $last_updated_file, $public);
+	}
+}
+
 if (!function_exists('app')) {
 	function app($namespace)
 	{

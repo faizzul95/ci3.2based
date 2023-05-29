@@ -18,12 +18,12 @@ Route::cli('cron/system/{upload?}', 'BackupController@BackupSystem');
 
 Route::cli('jobs', 'JobController@work');
 
-Route::cli('jobs/listen', 'JobController@listen');
-Route::cli('jobs/launch', 'JobController@launch');
-Route::cli('jobs/work', 'JobController@work');
-Route::cli('jobs/single', 'JobController@single');
+Route::cli('jobs:listen', 'JobController@listen'); // only macbook & linux
+Route::cli('jobs:work', 'JobController@work'); // for windows & linux environment
+Route::cli('jobs:launch', 'JobController@launch');
+Route::cli('jobs:single', 'JobController@single');
 
-Route::cli('jobs/list', function () {
+Route::cli('jobs:list', function () {
 	$isLinux = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? false : true;
 
 	if (!$isLinux) {

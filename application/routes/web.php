@@ -24,6 +24,7 @@
 
 // GENERAL
 Route::set('default_controller', 'AuthenticateController');
+// Route::get('/', 'AuthenticateController@index');
 
 // Open login page
 Route::get('/', function () {
@@ -32,7 +33,11 @@ Route::get('/', function () {
 		redirect('dashboard', true);
 	} else {
 
-		app('App\services\modules\authentication\logics\RememberLogic')->execute();
+		$remember = app('App\services\modules\authentication\logics\RememberLogic')->execute();
+
+		if (hasData($remember, 'resCode') && isSuccess($remember['resCode'])) {
+			redirect($remember['redirectUrl'], true);
+		}
 
 		// if not redirect to page login
 		render('auth/login',  [

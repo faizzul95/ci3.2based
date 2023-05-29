@@ -168,13 +168,18 @@ if (isset($_POST['fileName'])) {
 
 		if (typeTable == 'client') {
 
+			let columnAction = [];
+
 			return tableID.DataTable({
 				// "pagingType": "full_numbers",
 				'paging': true,
 				'ordering': true,
 				'info': true,
-				'lengthChange': true,
-				'responsive': false,
+				'responsive': true,
+				'iDisplayLength': 10,
+				'bLengthChange': true,
+				'searching': true,
+				'autoWidth': false,
 				'language': {
 					"searchPlaceholder": 'Search...',
 					"sSearch": '',
@@ -196,6 +201,7 @@ if (isset($_POST['fileName'])) {
 					// "infoPostFix": "",
 					// "thousands": ",",
 				},
+				'columnDefs': [...filterColumn, ...columnAction],
 			});
 
 		} else {

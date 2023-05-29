@@ -21,11 +21,11 @@ final class GeneralStatus
 	];
 
 	public const BADGE = [
-		self::ACTIVE => '<span class="badge bg-label-success"> Active </span>',
-		self::INACTIVE => '<span class="badge bg-label-warning"> Inactive </span>',
-		self::SUSPENDED => '<span class="badge bg-label-dark"> Suspended </span>',
-		self::DELETED => '<span class="badge bg-label-danger"> Deleted </span>',
-		self::UNVERIFIED => '<span class="badge bg-label-primary"> Unverified </span>',
-		self::ENDED => '<span class="badge bg-label-danger"> Ended </span>',
+		self::ACTIVE => '<span class="badge badge-label bg-success"> Active </span>',
+		self::INACTIVE => '<span class="badge badge-label bg-warning"> Inactive </span>',
+		self::SUSPENDED => '<span class="badge badge-label bg-dark"> Suspended </span>',
+		self::DELETED => '<span class="badge badge-label bg-danger"> Deleted </span>',
+		self::UNVERIFIED => '<span class="badge badge-label bg-primary"> Unverified </span>',
+		self::ENDED => '<span class="badge badge-label bg-danger"> Ended </span>',
 	];
 }

@@ -36,7 +36,7 @@ class UserSessionProcessor
 				],
 				[
 					'relation' => 'avatar',
-					'fields' => 'files_compression,files_path,files_path_is_url,entity_file_type',
+					'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
 					'where' => '`entity_file_type`=\'PROFILE_PHOTO\'',
 				],
 				[
@@ -61,22 +61,24 @@ class UserSessionProcessor
 
 			$profileID = $dataUserProfile['id'];
 			$roleID = $dataUserProfile['roles']['id'];
+			$roleGroupID = $dataUserProfile['roles']['role_group'];
 			$profileName = $dataUserProfile['roles']['role_name'];
 
 			// default session data
 			$defaultSession = [
-				'userID'              => encodeID($userID),
-				'userFullName'      => purify($userFullName),
-				'userNickName'      => purify($userNickName),
-				'userStaffNo'          => encodeID($userStaffNo),
-				'userEmail'          => purify($userEmail),
-				'userAvatar'          => purify($userAvatar),
-				'userProfileHeader' => purify($userProfileHeader),
-				'profileID'          => encodeID($profileID),
-				'profileName'         => purify($profileName),
-				'roleID'             => encodeID($roleID),
-				'companyID'         => encodeID($companyID),
-				'isLoggedInSession' => TRUE
+				'userID'              	=> encodeID($userID),
+				'userFullName'      	=> purify($userFullName),
+				'userNickName'      	=> purify($userNickName),
+				'userStaffNo'          	=> encodeID($userStaffNo),
+				'userEmail'          	=> purify($userEmail),
+				'userAvatar'          	=> purify($userAvatar),
+				'userProfileHeader' 	=> purify($userProfileHeader),
+				'profileID'          	=> encodeID($profileID),
+				'profileName'         	=> purify($profileName),
+				'roleID'             	=> encodeID($roleID),
+				'roleGroupID'           => encodeID($roleGroupID),
+				'companyID'         	=> encodeID($companyID),
+				'isLoggedInSession' 	=> TRUE
 			];
 
 			$dataCompany = ci()->companyM
@@ -122,15 +124,16 @@ class UserSessionProcessor
 			$os = ci()->agent->platform();
 			$iplogin = ci()->input->ip_address();
 
-			// if template email is exist and active && login type is not using token
-			if (hasData($template) && $loginType != LoginType::TOKEN) {
+			if (hasData($loginType)) {
+				// if template email is exist and active && login type is not using token
+				if (hasData($template) && $loginType != LoginType::TOKEN) {
 
-				$bodyMessage = replaceTextWithData($template['email_body'], [
-					'name' => purify($userFullName),
-					'email' => purify($userEmail),
-					'browsers' => $browsers,
-					'os' => $os,
-					'details' => '<table border="1" cellpadding="1" cellspacing="1" width="100%">
+					$bodyMessage = replaceTextWithData($template['email_body'], [
+						'name' => purify($userFullName),
+						'email' => purify($userEmail),
+						'browsers' => $browsers,
+						'os' => $os,
+						'details' => '<table border="1" cellpadding="1" cellspacing="1" width="100%">
 								<tr>
 									<td style="width:30%">&nbsp; Username </td>
 									<td style="width:70%">&nbsp; ' . purify($dataUser['username']) . ' </td>
@@ -156,39 +159,40 @@ class UserSessionProcessor
 									<td style="width:70%">&nbsp; ' . timestamp('h:i A') . ' </td>
 								</tr>
 							  </table>',
-					'url' => baseURL()
-				]);
+						'url' => baseURL()
+					]);
 
-				// Testing Using trait (use phpmailer)
-				// $this->testSentEmail($dataUser, $bodyMessage, $template);
+					// Testing Using trait (use phpmailer)
+					// $this->testSentEmail($dataUser, $bodyMessage, $template);
 
-				// if ($sentMail['success']) {
-				// add to queue
-				$this->addQueue([
-					'payload' => json_encode([
-						'name' => $userFullName,
-						'to' => $userEmail,
-						'cc' => $template['email_cc'],
-						'bcc' => $template['email_bcc'],
-						'subject' => $template['email_subject'],
-						'body' => $bodyMessage,
-						'attachment' => NULL,
-					]),
-					'company_id' => $companyID,
+					// if ($sentMail['success']) {
+					// add to queue
+					$this->addQueue([
+						'payload' => json_encode([
+							'name' => $userFullName,
+							'to' => $userEmail,
+							'cc' => $template['email_cc'],
+							'bcc' => $template['email_bcc'],
+							'subject' => $template['email_subject'],
+							'body' => $bodyMessage,
+							'attachment' => NULL,
+						]),
+						'company_id' => $companyID,
+					]);
+					// }
+				}
+
+				// Add to login history
+				ci()->authHistoryM::save([
+					'ip_address' => $iplogin,
+					'user_id' => $userID,
+					'time' => timestamp(),
+					'operating_system' => $os,
+					'browsers' => $browsers,
+					'user_agent' => ci()->input->user_agent(),
+					'login_type' => $loginType,
 				]);
-				// }
 			}
-
-			// Add to login history
-			ci()->authHistoryM::save([
-				'ip_address' => $iplogin,
-				'user_id' => $userID,
-				'time' => timestamp(),
-				'operating_system' => $os,
-				'browsers' => $browsers,
-				'user_agent' => ci()->input->user_agent(),
-				'login_type' => $loginType,
-			]);
 
 			// set remember token
 			if ($remember) {

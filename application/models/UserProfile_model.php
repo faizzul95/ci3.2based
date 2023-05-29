@@ -14,6 +14,7 @@ class UserProfile_model extends CT_Model
 		'user_id',
 		'roles_id',
 		'is_main',
+		'company_id',
 		'department_id',
 		'profile_status'
 	];
@@ -26,6 +27,7 @@ class UserProfile_model extends CT_Model
 
 	// relationship ONE TO ONE
 	public $has_one = [
+		'company' => ['Company_model', 'id', 'company_id'],
 		'roles' => ['CompanyProfileRoles_model', 'id', 'roles_id'],
 		'department' => ['CompanyDepartment_model', 'id', 'department_id'],
 		'avatar' => ['EntityFiles_model', 'entity_id', 'id'],

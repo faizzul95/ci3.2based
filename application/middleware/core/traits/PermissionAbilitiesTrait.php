@@ -8,14 +8,24 @@ trait PermissionAbilitiesTrait
 {
 	public function hasPermissionAction()
 	{
-		// $permissionHeader = ci()->input->get_request_header('x-permission', TRUE);
-		$permission = true; // default permission is true
+		$permissionHeader = ci()->input->get_request_header('x-permission', TRUE);
 
 		// Access specific Axios header values
-		if (isset($_SERVER['HTTP_X_PERMISSION']) && hasData($_SERVER['HTTP_X_PERMISSION'])) {
-			// $permission = json_decode($_SERVER['HTTP_X_PERMISSION'], true);
-			// $permission = $_SERVER['HTTP_X_PERMISSION'];
-			// dd($permission, $_SERVER['HTTP_X_PERMISSION']);
+		if (hasData($permissionHeader)) {
+
+			// initialize table
+			model('MODEL_NAME', 'model_alias');
+
+			$dataProfiles = ci()->model_alias::find(currentUserProfileID());
+			$permissionArray = ''; // create own logic
+
+			if (hasData($permissionArray))
+				$permission = in_array($permissionHeader, $permissionArray) ? true : false;
+			else
+				$permission = false; // set false
+
+		} else {
+			$permission = true; // set true if no header x-permission to validate
 		}
 
 		return $permission;

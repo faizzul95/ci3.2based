@@ -2,7 +2,13 @@
 
 Route::group('/auth', function () {
 
+	Route::get('/', function () {
+		redirect('', true);
+	});
+
 	Route::get('/logout', 'AuthenticateController@logout');
+	Route::post('/switch-profile', 'AuthenticateController@switchProfileUser', ['middleware' => ['Api']]);
+
 	Route::post('/verify-user', 'AuthenticateController@verify2FA', ['middleware' => ['Api']]);
 	Route::post('/sign-in', 'AuthenticateController@authorize', ['middleware' => ['Api']]);
 	Route::post('/socialite', 'AuthenticateController@socialite', ['middleware' => ['Api']]);

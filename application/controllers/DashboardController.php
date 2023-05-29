@@ -2,8 +2,6 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-use App\services\general\constants\MasterGroupRoles;
-
 class DashboardController extends Controller
 {
 	public function __construct()
@@ -25,7 +23,7 @@ class DashboardController extends Controller
 			'title' => 'Dashboard',
 			'currentSidebar' => 'Dashboard',
 			'currentSubSidebar' => NULL,
-			'permission' => permission(['dashboard-view'])
+			'permission' => ''
 		]);
 	}
 }

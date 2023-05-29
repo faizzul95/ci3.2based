@@ -27,9 +27,52 @@
 
  	<div id="scrollbar">
  		<div class="container-fluid">
+
  			<div id="two-column-menu"></div>
- 			<ul class="navbar-nav" id="navbar-nav">
+ 			<ul class="navbar-nav mt-4" id="navbar-nav">
  				<?php menuList(); ?>
+
+ 				<?php
+					// hasAccess();
+					// $menuActive = segment(1);
+					// $submenuActive = segment(2);
+					// $currentMenuUrl = uri_string();
+
+					// foreach (getMenu() as $menu) {
+					// 	$activeMenu = ($currentMenuUrl == $menu['menu_url']) ? 'active' : '';
+
+					// 	if (empty($menu['submenu'])) {
+					// 		echo '<li class="nav-item">
+					//                     <a class="nav-link menu-link ' . $activeMenu . '" href="' . url($menu['menu_url']) . '">
+					//                         ' . $menu['menu_icon'] . ' <span data-key="t-' . purify($menu['menu_title']) . '">' . purify($menu['menu_title']) . '</span>
+					//                     </a>
+					//                 </li>';
+					// 	} else {
+					// 		$showSubMenu = ($menuActive == $menu['menu_url']) ? 'show' : '';
+					// 		echo '<li class="nav-item">
+					//                 <a class="nav-link menu-link ' . $activeMenu . '" href="#sidebar' . $menu['menu_id'] . '" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarDashboards">
+					//                 ' . $menu['menu_icon'] . ' <span data-key="t-' . purify($menu['menu_title']) . '">' . purify($menu['menu_title']) . '</span>
+					//                 </a>
+
+					//                 <div class="collapse menu-dropdown mega-dropdown-menu ' . $showSubMenu . '" id="sidebar' . $menu['menu_id'] . '">
+					//                     <ul class="nav nav-sm flex-column">';
+
+					// 		foreach ($menu['submenu'] as $submenu) {
+					// 			$activeSubMenu = ($currentMenuUrl == $submenu['menu_url']) ? 'active' : '';
+
+					// 			echo ' <li class="nav-item">
+					//                         <a href="' . url($submenu['menu_url']) . '" class="nav-link ' . $activeSubMenu . '" data-key="t-' . purify($submenu['menu_title']) . '"> ' . purify($submenu['menu_title']) . ' </a>
+					//                     </li>';
+					// 		}
+
+					// 		echo '      </ul>
+					//                 </div>
+					//             </li>';
+					// 	}
+					// }
+
+					?>
+
  			</ul>
  		</div>
  		<!-- Sidebar -->

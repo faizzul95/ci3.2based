@@ -100,21 +100,16 @@ class ForgotPasswordLogic
         // query data reset by token
         $dataReset = ci()->resetM::find($request, 'reset_token');
 
+        // set default response
+        $responseData = GeneralErrorMessage::LIST['AUTH']['TOKEN_RESET'];
+
         // check if data reset is exist
         if (hasData($dataReset)) {
             // check if token is expired
-            if ($dataReset['reset_token_expired'] > timestamp()) {
-                render('auth/reset',  [
-                    'title' => 'Reset Password',
-                    'currentSidebar' => 'auth',
-                    'currentSubSidebar' => 'reset',
-                    'data' => $dataReset
-                ]);
-            } else {
-                json(GeneralErrorMessage::LIST['AUTH']['TOKEN_RESET']);
-            }
-        } else {
-            json(GeneralErrorMessage::LIST['AUTH']['TOKEN_RESET']);
+            if ($dataReset['reset_token_expired'] > timestamp())
+                $responseData = ['resCode' => 200, 'message' => "", 'data' => $dataReset];
         }
+
+        return $responseData;
     }
 }
