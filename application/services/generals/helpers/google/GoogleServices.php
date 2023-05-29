@@ -46,7 +46,13 @@ class GoogleServices
 			$code = $this->CI->input->get('code');
 			if (!empty($code)) {
 				$this->client->fetchAccessTokenWithAuthCode($code);
-				$this->saveAccessToken($this->client->getAccessToken());
+
+				// get access token
+				$accessToken = $this->client->getAccessToken();
+
+				// save to file
+				$this->saveAccessToken($accessToken);
+
 				header('Location: ' . filter_var($this->CI->config->item('redirect_uri'), FILTER_SANITIZE_URL), TRUE, 301);
 				exit;
 			}
