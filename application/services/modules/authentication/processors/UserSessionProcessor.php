@@ -7,6 +7,9 @@ use App\services\generals\constants\GeneralStatus;
 use App\services\generals\constants\GeneralErrorMessage;
 use App\services\generals\traits\QueueTrait;
 
+use App\services\modules\core\users\processors\UsersSearchProcessors;
+use App\services\modules\core\companies\processors\CompaniesSearchProcessors;
+
 class UserSessionProcessor
 {
 	use QueueTrait;
@@ -23,29 +26,54 @@ class UserSessionProcessor
 
 	public function execute($userID, $loginType, $remember = false, $profileID = NULL)
 	{
-		$whereCondition = hasData($profileID) ? 'where:`id`=' . $profileID : 'where:`is_main`=1';
-		$dataUser = ci()->userM->with_main_profile('fields:id,user_id,roles_id,is_main,department_id,profile_status', $whereCondition, [
+		// $whereCondition = hasData($profileID) ? 'where:`id`=' . $profileID : 'where:`is_main`=1';
+		// $dataUser = ci()->userM->with_main_profile('fields:id,user_id,roles_id,is_main,department_id,profile_status', $whereCondition, [
+		// 	'with' => [
+		// 		[
+		// 			'relation' => 'roles',
+		// 			'fields' => 'role_name,role_code,role_group,abilities_json'
+		// 		],
+		// 		[
+		// 			'relation' => 'department',
+		// 			'fields' => 'department_name,department_code'
+		// 		],
+		// 		[
+		// 			'relation' => 'avatar',
+		// 			'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+		// 			'where' => '`entity_file_type`=\'PROFILE_PHOTO\'',
+		// 		],
+		// 		[
+		// 			'relation' => 'profileHeader',
+		// 			'fields' => 'files_compression,files_path,files_path_is_url,entity_file_type',
+		// 			'where' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
+		// 		],
+		// 	]
+		// ])->where('id', $userID)->get();
+
+		$dataUser = app(new UsersSearchProcessors)->execute([
+			'fields' => 'id,name,user_preferred_name,user_staff_no,user_nric_visa,email,user_contact_no,user_gender,user_dob,username,password,user_marital_status,user_status,company_id',
+			'conditions' => [
+				'id' => $userID,
+			],
 			'with' => [
-				[
-					'relation' => 'roles',
-					'fields' => 'role_name,role_code,role_group,abilities_json'
-				],
-				[
-					'relation' => 'department',
-					'fields' => 'department_name,department_code'
-				],
-				[
-					'relation' => 'avatar',
-					'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
-					'where' => '`entity_file_type`=\'PROFILE_PHOTO\'',
-				],
-				[
-					'relation' => 'profileHeader',
-					'fields' => 'files_compression,files_path,files_path_is_url,entity_file_type',
-					'where' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
-				],
+				'main_profile' => [
+					'fields' => 'id,user_id,roles_id,is_main,department_id,profile_status',
+					'conditions' => hasData($profileID) ? '`id`=' . $profileID : '`is_main`=1',
+					'with' => [
+						'roles' => ['fields' => 'role_name,role_code,role_group,abilities_json'],
+						'department' => ['fields' => 'department_name,department_code'],
+						'avatar' => [
+							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+							'conditions' => '`entity_file_type`=\'PROFILE_PHOTO\'',
+						],
+						'profileHeader' => [
+							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+							'conditions' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
+						]
+					]
+				]
 			]
-		])->where('id', $userID)->get();
+		], 'get');
 
 		$userFullName = $dataUser['name'];
 		$userNickName = $dataUser['user_preferred_name'];
@@ -81,21 +109,53 @@ class UserSessionProcessor
 				'isLoggedInSession' 	=> TRUE
 			];
 
-			$dataCompany = ci()->companyM
-				->with_active_subcription('fields:id,package_id,company_id,subscription_status|order_inside:subscription_order_no asc', [
-					'with' => [
-						[
-							'relation' => 'package',
-							'fields' => 'package_name,package_code,package_module_plan,package_status'
+			// $dataCompany = ci()->companyM
+			// 	->fields('id,company_name,company_nickname,company_no,company_tel_no,company_email,company_status')
+			// 	->with_active_subcription('fields:id,package_id,company_id,subscription_status|order_inside:subscription_order_no asc', [
+			// 		'with' => [
+			// 			[
+			// 				'relation' => 'package',
+			// 				'fields' => 'package_name,package_code,package_module_plan,package_status'
+			// 			]
+			// 		]
+			// 	])
+			// 	->with_logo_company('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_LOGO_PHOTO\'')
+			// 	->with_qr_code('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_QR_CODE\'')
+			// 	->with_company_header('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_HEADER_PHOTO\'')
+			// 	->with_address('fields:id,address_1,address_2,city_name,state_name,postcode,country_name', 'where:`entity_address_type`=\'COMPANY_ADDRESS\'')
+			// 	->where('id', $companyID)
+			// 	->get();
+
+			$dataCompany = app(new CompaniesSearchProcessors)->execute([
+				'fields' => 'id,company_name,company_nickname,company_no,company_tel_no,company_email,company_status',
+				'conditions' => [
+					'id' => $companyID,
+				],
+				'with' => [
+					'active_subcription' => [
+						'fields' => 'id,package_id,company_id,subscription_status|order_inside:subscription_order_no asc',
+						'with' => [
+							'package' => ['fields' => 'package_name,package_code,package_module_plan,package_status']
 						]
-					]
-				])
-				->with_logo_company('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_LOGO_PHOTO\'')
-				->with_qr_code('fields:files_compression,files_path,files_path_is_url,entity_file_type', 'where:`entity_file_type`=\'COMPANY_HEADER_PHOTO\'')
-				->with_company_header('fields:files_compression,files_path,files_path_is_url,entity_file_type', 'where:`entity_file_type`=\'COMPANY_QR_CODE\'')
-				->with_address('fields:id,address_1,address_2,city_name,state_name,postcode,country_name', 'where:`entity_address_type`=\'COMPANY_ADDRESS\'')
-				->where('id', $companyID)
-				->get();
+					],
+					'logo_company' => [
+						'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
+						'conditions' => '`entity_file_type`=\'COMPANY_LOGO_PHOTO\''
+					],
+					'qr_code' => [
+						'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
+						'conditions' => '`entity_file_type`=\'COMPANY_QR_CODE\''
+					],
+					'company_header' => [
+						'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
+						'conditions' => '`entity_file_type`=\'COMPANY_HEADER_PHOTO\''
+					],
+					'address' => [
+						'fields' => 'id,address_1,address_2,city_name,state_name,postcode,country_name',
+						'conditions' => '`entity_address_type`=\'COMPANY_ADDRESS\''
+					],
+				]
+			], 'get');
 
 			$logoPath = hasData($dataCompany, 'logo_company') ? fileImage($dataCompany['logo_company'], 'company_logo') : NULL;
 

@@ -1,4 +1,6 @@
-<?php defined('BASEPATH') or exit('No direct script access allowed');
+<?php
+
+defined('BASEPATH') or exit('No direct script access allowed');
 
 // reff : https://github.com/avenirer/CodeIgniter-MY_Model
 
@@ -1823,55 +1825,58 @@ class MY_Model extends CI_Model
 
 	public function scopeWithQuery($query, $filter)
 	{
-		foreach ($filter as $key => $with) {
-			if (is_int($key)) {
-				$withStatement = "with_" . $with;
-				$query->$withStatement();
-			} else {
-				$withStatement = "with_" . $key;
-
-				$conditionWhere = NULL;
-				$conditionField = NULL;
-				$conditionwWith = NULL;
-
-				if (isArray($with)) {
-					if (hasData($with, 'fields')) {
-						$conditionField = 'fields:' . $with['fields'];
-					}
-
-					if (hasData($with, 'condition')) {
-						$conditionWhere = 'where:' . $with['condition'];
-					}
-
-					if (hasData($with, 'with')) {
-						$conditionwWith = $with['with'];
-					}
+		if (hasData($filter)) {
+			foreach ($filter as $key => $with) {
+				if (is_int($key)) {
+					$withStatement = "with_" . $with;
+					$query->$withStatement();
 				} else {
-					$conditionField = 'fields:' . $with;
-				}
+					$withStatement = "with_" . $key;
 
-				// check if has condition where (required to has fields)
-				if (hasData($conditionField) && hasData($conditionWhere)) {
-					// check if has with condition
-					if (hasData($conditionwWith)) {
-						$query->$withStatement($conditionField,  $conditionWhere, ['with' => $conditionwWith]);
+					$conditionWhere = NULL;
+					$conditionField = NULL;
+					$conditionwWith = NULL;
+
+					if (isArray($with)) {
+						if (hasData($with, 'fields')) {
+							$conditionField = 'fields:' . $with['fields'];
+						}
+
+						if (hasData($with, 'conditions')) {
+							$conditionWhere = 'where:' . $with['conditions'];
+						}
+
+						if (hasData($with, 'with')) {
+							$conditionwWith = $this->scopeWithSubQuery($with['with']);
+						}
+					} else {
+						$conditionField = 'fields:' . $with;
 					}
-					// if doesnt has with condition, only fields and where condition
+
+					// check if has condition where (required to has fields)
+					if (hasData($conditionField) && hasData($conditionWhere)) {
+						// check if has with condition
+						if (hasData($conditionwWith)) {
+							$query->$withStatement($conditionField,  $conditionWhere, ['with' => $conditionwWith]);
+						}
+						// if doesnt has with condition, only fields and where condition
+						else {
+							$query->$withStatement($conditionField,  $conditionWhere);
+						}
+					}
+					// check if has "with" and alse has "fields" but no where
+					else if (hasData($conditionwWith) && hasData($conditionField)) {
+						// $query->$withStatement([$conditionField, 'with' => $conditionwWith]);
+						$query->$withStatement($conditionField, ['with' => $conditionwWith]);
+					}
+					// check if has "with" but not has "fields" & "where" condition
+					else if (hasData($conditionwWith) && !hasData($conditionField)) {
+						$query->$withStatement(['with' => $conditionwWith]);
+					}
+					// if not have any where condition & with condition
 					else {
-						$query->$withStatement($conditionField,  $conditionWhere);
+						$query->$withStatement($conditionField);
 					}
-				}
-				// check if has "with" and alse has "fields" but no where
-				else if (hasData($conditionwWith) && hasData($conditionField)) {
-					$query->$withStatement([$conditionField, 'with' => $conditionwWith]);
-				}
-				// check if has "with" but not has "fields" & "where" condition
-				else if (hasData($conditionwWith) && !hasData($conditionField)) {
-					$query->$withStatement(['with' => $conditionwWith]);
-				}
-				// if not have any where condition & with condition
-				else {
-					$query->$withStatement($conditionField);
 				}
 			}
 		}
@@ -1882,10 +1887,53 @@ class MY_Model extends CI_Model
 	public function scopeConditionQuery($query, $filter)
 	{
 		foreach ($filter as $columnName => $value) {
-			$query->where($columnName, $value);
+			if (is_array($value)) {
+				$operator = strtoupper($value[0]);
+				$values = is_array($value[1]) ? $value[1] : [$value[1]];
+				$notCondition = false;
+
+				if (in_array($operator, ['NOT IN', 'NOTIN', 'WHERE NOT IN'])) {
+					$notCondition = true;
+					$operator = 'NOT IN';
+				}
+
+				$query->where($columnName, $values, NULL, false, $notCondition);
+			} else {
+				$query->where($columnName, $value);
+			}
 		}
 
 		return $query;
+	}
+
+	public function scopeWithSubQuery($withData)
+	{
+		$result = [];
+
+		if (hasData($withData)) {
+			foreach ($withData as $key => $withCon) {
+				$_temp = []; // reset
+
+				if (is_int($key)) {
+					array_push($result, ['relation' => $withCon]);
+				} else {
+
+					$_temp['relation'] = $key;
+
+					if (hasData($withCon, 'fields')) {
+						$_temp['fields'] = $withCon['fields'];
+					}
+
+					if (hasData($withCon, 'where')) {
+						$_temp['where'] = $withCon['where'];
+					}
+
+					array_push($result, $_temp);
+				}
+			}
+		}
+
+		return $result;
 	}
 
 	/*

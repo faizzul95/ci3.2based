@@ -27,7 +27,7 @@ if (!function_exists('view')) {
 }
 
 if (!function_exists('model')) {
-	function model($modelName, $assignName)
+	function model($modelName, $assignName = NULL)
 	{
 		return ci()->load->model($modelName, $assignName);
 	}
