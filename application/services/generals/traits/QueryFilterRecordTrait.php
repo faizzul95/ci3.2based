@@ -4,7 +4,7 @@ namespace App\services\generals\traits;
 
 trait QueryFilterRecordTrait
 {
-	public function newQuery($modelName, $filter)
+	public function newQuery($modelName, $filter = NULL)
 	{
 		model($modelName);
 
