@@ -103,6 +103,16 @@ trait RateLimitingThrottleTrait
 	private $spoofProtection = true;
 
 	/**
+	 * Rate type is a variable use to check. if session is exist it will use session rate session name 
+	 */
+	private $rateType = ['ip', 'session'];
+
+	/**
+	 * Session name use to evaluate in rate type "session"
+	 */
+	private $rateSessionName = 'userID';
+
+	/**
 	 * Get the client IP address.
 	 */
 	private function getClientIp(): string
@@ -122,14 +132,34 @@ trait RateLimitingThrottleTrait
 	 */
 	private function getThrottleFileName(string $ip): string
 	{
-		// Replace dots with underscores to create a valid file name
-		$filename = 'throttle_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $ip) . $this->cacheFileExtension;
+		$sessionVariableName = $this->rateSessionName;
+		$sessionValue = function_exists($sessionVariableName) ? $sessionVariableName() : getSession($sessionVariableName);
 
-		if (!is_dir($this->throttleDir)) {
-			mkdir($this->throttleDir, 0755, true);
+		$folderThrottle = NULL;
+		$filename = '';
+
+		if (hasData($this->rateType)) {
+			if (in_array('ip', $this->rateType)) {
+				$filename = 'throttle_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $ip) . $this->cacheFileExtension;
+				$folderThrottle = 'ip';
+			}
+
+			if (in_array('session', $this->rateType) && hasData($sessionValue)) {
+				if (!is_bool($sessionValue)) {
+					$filename = 'throttle_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $sessionValue) . $this->cacheFileExtension;
+					$folderThrottle = 'session';
+				}
+			}
+		} else {
+			$filename = 'throttle_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $ip) . $this->cacheFileExtension;
+			$folderThrottle = 'ip';
 		}
 
-		return $filename;
+		if (hasData($folderThrottle) && !is_dir($this->throttleDir . $folderThrottle)) {
+			mkdir($this->throttleDir . $folderThrottle, 0755, true);
+		}
+
+		return hasData($folderThrottle) ? $folderThrottle . '/' . $filename : $filename;
 	}
 
 	/**
@@ -204,7 +234,8 @@ trait RateLimitingThrottleTrait
 	{
 		$fileName = $this->getThrottleFileName($ip);
 		$filePath = $this->throttleDir . $fileName;
-		if (file_exists($filePath)) {
+
+		if (hasData($fileName) && file_exists($filePath)) {
 			$data = json_decode(@file_get_contents($filePath), true);
 			if ($data !== null) {
 				return $data;
@@ -240,7 +271,8 @@ trait RateLimitingThrottleTrait
 		$filePath = $this->throttleDir . $fileName;
 		$data['last_update'] = time();
 
-		@file_put_contents($filePath, json_encode($data));
+		if (hasData($fileName))
+			@file_put_contents($filePath, json_encode($data));
 	}
 
 	/**
@@ -505,6 +537,8 @@ trait RateLimitingThrottleTrait
 					$this->maxWarningRequests = $settings['rate_custom']['warning'];
 					$this->maxTemporaryBlocked = $settings['rate_custom']['blocked'];
 					$this->blockedTimeIncrease = $settings['rate_custom']['blocked_temporary_time'];
+					$this->rateType = $settings['rate_custom']['rate_type'];
+					$this->rateSessionName = $settings['rate_custom']['rate_session_name'];
 				}
 			}
 

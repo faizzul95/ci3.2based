@@ -83,6 +83,8 @@ $config['throttle_settings'] = [
 			31536000, // 1 year
 		], // set increase limit time each time, default is 30 seconds
 		'limit_increase' => 5, // set the increase request (will extend the default) per temporary blocked. Formula : request + (limit_increase x blocked)
+		'rate_type' => ['ip', 'session'], // set either rate using 'ip' OR 'session' OR both. Default : ip & session, If empty or NULL will be use ip address
+		'rate_session_name' => 'userID' // set session name or specific function without bracket "()" that return specific current session name to be evaluated. Default : userID. Please don't return boolean OR NULL/empty value!
 	],
 
 	'connection_custom' => [
