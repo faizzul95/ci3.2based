@@ -6,7 +6,7 @@ class EmailReminderLogic
 {
 	public function execute()
 	{
-		$queryDataUser = app('App\services\modules\core\users\processors\UsersSearchProcessors')->execute(
+		$queryDataUser = app('App\services\modules\core\users\processors\UserSearchProcessors')->execute(
 			['conditions' => ['user_status' => 1]]
 		);
 

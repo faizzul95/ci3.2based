@@ -28,4 +28,42 @@ final class GeneralStatus
 		self::UNVERIFIED => '<span class="badge badge-label bg-primary"> Unverified </span>',
 		self::ENDED => '<span class="badge badge-label bg-danger"> Ended </span>',
 	];
+
+	//  QUEUE STATUS
+
+	public const QUEUE_PENDING = 1;
+	public const QUEUE_RUNNING = 2;
+	public const QUEUE_COMPLETE = 3;
+	public const QUEUE_FAIL = 4;
+
+	public const QUEUE = [
+		self::QUEUE_PENDING => [
+			'name' => 'Pending',
+			'badge' => '<span class="badge badge-label bg-warning"> Pending </span>',
+		],
+		self::QUEUE_RUNNING => [
+			'name' => 'Running',
+			'badge' => '<span class="badge badge-label bg-info"> Running </span>',
+		],
+		self::QUEUE_COMPLETE => [
+			'name' => 'Completed',
+			'badge' => '<span class="badge badge-label bg-success"> Completed </span>',
+		],
+		self::QUEUE_FAIL => [
+			'name' => 'Failed',
+			'badge' => '<span class="badge badge-label bg-danger"> Failed </span>',
+		],
+	];
+
+	// MODULE STATUS
+
+	public const ALL_STATUS = 'ALL';
+	public const USER_STATUS = 'USER';
+	public const QUEUE_STATUS = 'QUEUE';
+
+	public const MODULE = [
+		self::ALL_STATUS => [self::ACTIVE, self::INACTIVE, self::SUSPENDED, self::DELETED, self::UNVERIFIED, self::ENDED],
+		self::USER_STATUS => [self::ACTIVE, self::INACTIVE, self::SUSPENDED, self::DELETED, self::UNVERIFIED],
+		self::QUEUE_STATUS => [self::QUEUE_PENDING, self::QUEUE_RUNNING, self::QUEUE_COMPLETE, self::QUEUE_FAIL],
+	];
 }

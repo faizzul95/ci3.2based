@@ -67,4 +67,28 @@ final class MasterModule
 			'isSuperadmin' => true,
 		],
 	];
+
+	public const FREE = [
+		self::GENERAL => [
+			'name' => 'General',
+			'desc' => NULL,
+			'code' => 'gen',
+			'icon' => NULL,
+			'permission' => [['slug' => 'gen-module-enable', 'title' => 'ENABLE FREE MODULE', 'remark' => '']],
+			'status' => [self::DEVELOPMENT, self::PRODUCTION],
+			'submodule' => [
+				[
+					'name' => 'Dashboard',
+					'desc' => NULL,
+					'icon' => '<i class="ri-dashboard-3-line"></i>',
+					'permission' => [
+						['slug' => 'gen-dashboard-view', 'title' => 'VIEW HOMEPAGE/DAHSBOARD', 'remark' => '']
+					],
+					'route' => 'dashboard',
+					'status' => [self::DEVELOPMENT, self::PRODUCTION]
+				],
+			],
+			'isSuperadmin' => false,
+		],
+	];
 }

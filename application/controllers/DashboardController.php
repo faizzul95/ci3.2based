@@ -11,8 +11,6 @@ class DashboardController extends Controller
 
 	public function index()
 	{
-		// dd(getAllSession(), currentUserRoleID());
-
 		// if (currentUserRoleID() == 1) {
 		$file = 'superadmin';
 		// } else if (currentUserRoleID() == 2) {

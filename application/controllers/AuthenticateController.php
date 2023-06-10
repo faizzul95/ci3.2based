@@ -67,7 +67,7 @@ class AuthenticateController extends CI_Controller
 
 	public function verify2FA()
 	{
-		json(app(new TwoFactorAuthenticateLogic)->execute([
+		json(app(new TwoFactorAuthenticateLogic)->logic([
 			'username'  =>  input('username'),
 			'code'  => input('code_2fa'),
 			'rememberme'  => input('remember') ? true : false
@@ -76,7 +76,7 @@ class AuthenticateController extends CI_Controller
 
 	public function switchProfileUser()
 	{
-		json(app(new UsersProfileSwitchLogic)->execute([
+		json(app(new UsersProfileSwitchLogic)->logic([
 			'profile_id'  =>  input('profile_id'),
 			'user_id'  => input('user_id')
 		]));

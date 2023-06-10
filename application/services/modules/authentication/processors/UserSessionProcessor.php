@@ -7,7 +7,7 @@ use App\services\generals\constants\GeneralStatus;
 use App\services\generals\constants\GeneralErrorMessage;
 use App\services\generals\traits\QueueTrait;
 
-use App\services\modules\core\users\processors\UsersSearchProcessors;
+use App\services\modules\core\users\processors\UserSearchProcessors;
 use App\services\modules\core\companies\processors\CompaniesSearchProcessors;
 
 class UserSessionProcessor
@@ -24,7 +24,7 @@ class UserSessionProcessor
 		library('user_agent');
 	}
 
-	public function execute($userID, $loginType, $remember = false, $profileID = NULL)
+	public function execute($userID, $loginType, $remember = false, $profileID = NULL, $impersonateID = NULL)
 	{
 		// $whereCondition = hasData($profileID) ? 'where:`id`=' . $profileID : 'where:`is_main`=1';
 		// $dataUser = ci()->userM->with_main_profile('fields:id,user_id,roles_id,is_main,department_id,profile_status', $whereCondition, [
@@ -50,10 +50,10 @@ class UserSessionProcessor
 		// 	]
 		// ])->where('id', $userID)->get();
 
-		$dataUser = app(new UsersSearchProcessors)->execute([
+		$dataUser = app(new UserSearchProcessors)->execute([
 			'fields' => 'id,name,user_preferred_name,user_staff_no,user_nric_visa,email,user_contact_no,user_gender,user_dob,username,password,user_marital_status,user_status,company_id',
 			'conditions' => [
-				'id' => $userID,
+				'id' => hasData($impersonateID) ? $impersonateID : $userID,
 			],
 			'with' => [
 				'main_profile' => [
@@ -94,7 +94,7 @@ class UserSessionProcessor
 
 			// default session data
 			$defaultSession = [
-				'userID'              	=> encodeID($userID),
+				'userID'              	=> hasData($impersonateID) ? encodeID($impersonateID) : encodeID($userID),
 				'userFullName'      	=> purify($userFullName),
 				'userNickName'      	=> purify($userNickName),
 				'userStaffNo'          	=> encodeID($userStaffNo),
@@ -106,6 +106,7 @@ class UserSessionProcessor
 				'roleID'             	=> encodeID($roleID),
 				'roleGroupID'           => encodeID($roleGroupID),
 				'companyID'         	=> encodeID($companyID),
+				'impersonatorID'        => hasData($impersonateID) ? $userID : NULL,
 				'isLoggedInSession' 	=> TRUE
 			];
 
@@ -265,7 +266,7 @@ class UserSessionProcessor
 			$responseData = [
 				'resCode' => 200,
 				'message' => 'Login',
-				'redirectUrl' => url('dashboard'),
+				'redirectUrl' => 'dashboard',
 			];
 		} else {
 			$responseData = GeneralErrorMessage::LIST['AUTH']['INACTIVE'];

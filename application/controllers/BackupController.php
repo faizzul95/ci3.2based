@@ -17,7 +17,7 @@ class BackupController extends CI_Controller
 		parent::__construct();
 		$this->set_security_headers();
 
-		model('SystemQueueJob_model', 'queueM');
+		// model('SystemQueueJob_model', 'queueM');
 		model('SystemBackupDB_model', 'databaseM');
 	}
 
