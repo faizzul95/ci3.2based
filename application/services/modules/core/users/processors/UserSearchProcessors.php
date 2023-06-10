@@ -15,9 +15,9 @@ class UserSearchProcessors
 		if (hasData($filter)) {
 			// use for login only
 			if (hasData($filter, 'whereQuery')) {
-				$query->where('id', 'like', $filter['whereQuery'])             // this will be WHERE $search
-					->where('email', 'like', $filter['whereQuery'], true)      // if put true, will be OR WHERE $search. else will be AND WHERE $search
-					->where('username', 'like', $filter['whereQuery'], true);  // if put true, will be OR WHERE $search. else will be AND WHERE $search
+				$query->where('id', $filter['whereQuery'])             // this will be WHERE $search
+					->where('email', $filter['whereQuery'], NULL, true)      // if put true, will be OR WHERE $search. else will be AND WHERE $search
+					->where('username', $filter['whereQuery'], NULL, true);  // if put true, will be OR WHERE $search. else will be AND WHERE $search
 			}
 
 			if (hasData($filter, 'searchQuery')) {
@@ -28,6 +28,9 @@ class UserSearchProcessors
 			}
 		}
 
-		return $query->$fetchType();
+		if ($fetchType == 'toSql')
+			return $query->toSql($query);
+		else
+			return $query->$fetchType();
 	}
 }

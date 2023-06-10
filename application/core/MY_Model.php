@@ -789,7 +789,7 @@ class MY_Model extends CI_Model
 	 * @param null $where
 	 * @return mixed
 	 */
-	public function get($where = NULL)
+	public function get($where = NULL, $returnRawQuery = false)
 	{
 		$data = $this->_get_from_cache();
 
@@ -827,7 +827,11 @@ class MY_Model extends CI_Model
 				$row =  $this->_prep_after_read(array($row), FALSE);
 				$row = is_array($row) ? $row[0] : $row->{0};
 				$this->_write_to_cache($row);
-				return $row;
+
+				if ($returnRawQuery)
+					return $this->_database->queries;
+				else
+					return $row;
 			} else {
 				return FALSE;
 			}
@@ -1810,6 +1814,40 @@ class MY_Model extends CI_Model
 	public function purifyData($data)
 	{
 		return purify($data);
+	}
+
+	public function toSql($query, $index = 1)
+	{
+		$response = $rawSql = NULL;
+		$result = $query->get(NULL, true);
+
+		if (hasData($result) && count($result) > 0) {
+			if ($index == 1)
+				$response = $result[1];
+			else if (is_null($index) || empty($index))
+				$response = $result;
+			else if (array_key_exists($index, $result))
+				$response = $result[$index];
+		}
+
+		if (!is_null($response)) {
+			// Remove leading/trailing whitespace and newlines
+			$rawSql = trim($response);
+
+			// Replace newlines with a single space
+			$rawSql = str_replace("\n", " ", $rawSql);
+
+			// Remove extra spaces before and after equal sign (=)
+			$rawSql = str_replace(" = ", "=", $rawSql);
+
+			// Remove extra spaces around logical operators (OR)
+			$rawSql = str_replace(" OR ", " OR ", $rawSql);
+
+			// Remove extra spaces around logical operators (AND)
+			$rawSql = str_replace(" AND ", " AND ", $rawSql);
+		}
+
+		return $rawSql;
 	}
 
 	public function returnFormatedData($id = NULL, $data = NULL, $resCode = '200', $action = 'insert')

@@ -8,6 +8,7 @@ class UsersProfileSwitchLogic
 {
 	public function __construct()
 	{
+		// model('User_model', 'userM');
 	}
 
 	public function logic($request)

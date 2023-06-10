@@ -5,13 +5,13 @@ namespace App\services\modules\authentication\logics;
 use App\services\generals\constants\LoginType;
 use App\services\generals\constants\GeneralErrorMessage;
 
+use App\services\modules\core\users\processors\UserSearchProcessors;
 use App\services\modules\authentication\processors\UserSessionProcessor;
 
 class LoginLogic
 {
 	public function __construct()
 	{
-		model('User_model', 'userM');
 		model('UserAuthAttempt_model', 'attemptM');
 
 		library('recaptcha');
@@ -23,8 +23,10 @@ class LoginLogic
 		// default response
 		$responseData = GeneralErrorMessage::LIST['AUTH']['DEFAULT'];
 
-		$username  = purify($request['username']);
-		$dataUser = ci()->userM->getSpecificUser($username);
+		$dataUser = app(new UserSearchProcessors)->execute([
+			'fields' => 'id,email,username,password,user_status,company_id,two_factor_status',
+			'whereQuery' => purify($request['username'])
+		], 'get');
 
 		$validateRecaptcha = recaptchav2();
 

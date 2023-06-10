@@ -8,6 +8,7 @@ class UsersImpersonateLogic
 {
 	public function __construct()
 	{
+		// model('User_model', 'userM');
 	}
 
 	public function impersonate($request)

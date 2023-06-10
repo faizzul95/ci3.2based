@@ -183,40 +183,44 @@ if (!function_exists('message')) {
 }
 
 if (!function_exists('isSuccess')) {
-	function isSuccess($response = 200)
+	function isSuccess($response = NULL)
 	{
 		$successStatus = [200, 201, 302];
 
-		// check if array
-		if (is_array($response))
-			$response = array_key_exists('resCode', $response) ? $response['resCode'] : (array_key_exists('code', $response) ? $response['code'] : 200);
+		if (hasData($response)) {
+			// check if array
+			if (is_array($response))
+				$response = hasData($response, 'resCode') ? $response['resCode'] : (hasData($response, 'code') ? $response['code'] : 200);
 
-		$code = (is_string($response)) ? (int)$response : $response;
+			$code = (is_string($response)) ? (int)$response : $response;
 
-		if (in_array($code, $successStatus)) {
-			return true;
-		} else {
-			return false;
+			if (in_array($code, $successStatus)) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 }
 
 if (!function_exists('isError')) {
-	function isError($response = 400)
+	function isError($response = NULL)
 	{
 		$errorStatus = [400, 403, 404, 422, 500];
 
-		// check if array
-		if (is_array($response))
-			$response = array_key_exists('resCode', $response) ? $response['resCode'] : (array_key_exists('code', $response) ? $response['code'] : 400);
+		if (hasData($response)) {
+			// check if array
+			if (is_array($response))
+				$response = hasData($response, 'resCode') ? $response['resCode'] : (hasData($response, 'code') ? $response['code'] : 400);
 
-		$code = (is_string($response)) ? (int)$response : $response;
+			$code = (is_string($response)) ? (int)$response : $response;
 
-		if (in_array($code, $errorStatus)) {
-			return true;
-		} else {
-			return false;
+			if (in_array($code, $errorStatus)) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 }
 
