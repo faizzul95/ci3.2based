@@ -183,10 +183,15 @@ if (!function_exists('message')) {
 }
 
 if (!function_exists('isSuccess')) {
-	function isSuccess($resCode = 200)
+	function isSuccess($response = 200)
 	{
 		$successStatus = [200, 201, 302];
-		$code = (is_string($resCode)) ? (int)$resCode : $resCode;
+
+		// check if array
+		if (is_array($response))
+			$response = array_key_exists('resCode', $response) ? $response['resCode'] : (array_key_exists('code', $response) ? $response['code'] : 200);
+
+		$code = (is_string($response)) ? (int)$response : $response;
 
 		if (in_array($code, $successStatus)) {
 			return true;
@@ -197,10 +202,15 @@ if (!function_exists('isSuccess')) {
 }
 
 if (!function_exists('isError')) {
-	function isError($resCode = 400)
+	function isError($response = 400)
 	{
 		$errorStatus = [400, 403, 404, 422, 500];
-		$code = (is_string($resCode)) ? (int)$resCode : $resCode;
+
+		// check if array
+		if (is_array($response))
+			$response = array_key_exists('resCode', $response) ? $response['resCode'] : (array_key_exists('code', $response) ? $response['code'] : 400);
+
+		$code = (is_string($response)) ? (int)$response : $response;
 
 		if (in_array($code, $errorStatus)) {
 			return true;
