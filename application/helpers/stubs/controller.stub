@@ -2,6 +2,10 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%ShowLogic;
+use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%StoreLogic;
+use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%DeleteLogic;
+
 class %CLASS_CONTROLLER_NAME% extends Controller
 {
 	public function __construct()
@@ -20,14 +24,14 @@ class %CLASS_CONTROLLER_NAME% extends Controller
 		]);
 	}
 
-	public function getList%CLASS_NAME%()
+	public function list()
 	{
 		echo $this->%CLASS_NAME%M->get%CLASS_NAME%ListDt();
 	}
 
-	public function get%CLASS_NAME%ByID($id)
+	public function show($id)
 	{
-		json($this->%CLASS_NAME%M::find(xssClean($id)));
+		json(app(new %CLASS_NAME%ShowLogic)->logic(['id' => xssClean($id)]));
 	}
 
 	public function save()
@@ -37,13 +41,13 @@ class %CLASS_CONTROLLER_NAME% extends Controller
 		if ($this->form_validation->run() === FALSE) {
 			validationErrMessage();
 		} else {
-			json($this->%CLASS_NAME%M::save($_POST));
+			json(app(new %CLASS_NAME%StoreLogic)->logic($_POST));
 		}
 	}
 
-	public function delete($id)
+	public function destroy($id)
 	{
-		json($this->%CLASS_NAME%M::remove(xssClean($id)));
+		json(app(new %CLASS_NAME%DeleteLogic)->logic(['id' => xssClean($id)]));
 	}
 
 	public function _rules()
