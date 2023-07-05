@@ -7,7 +7,7 @@ use App\services\modules\authentication\logics\LoginLogic;
 use App\services\modules\authentication\logics\SocialliteLogic;
 use App\services\modules\authentication\logics\ForgotPasswordLogic;
 use App\services\modules\authentication\logics\TwoFactorAuthenticateLogic;
-use App\services\modules\core\users\logics\UsersProfileSwitchLogic;
+use App\services\modules\core\users\logics\UserProfileSwitchLogic;
 
 class AuthenticateController extends CI_Controller
 {
@@ -76,7 +76,7 @@ class AuthenticateController extends CI_Controller
 
 	public function switchProfileUser()
 	{
-		json(app(new UsersProfileSwitchLogic)->logic([
+		json(app(new UserProfileSwitchLogic)->logic([
 			'profile_id'  =>  input('profile_id'),
 			'user_id'  => input('user_id')
 		]));

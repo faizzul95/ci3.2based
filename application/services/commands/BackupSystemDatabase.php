@@ -25,9 +25,26 @@ class BackupSystemDatabase
 	 */
 	public function handle($scheduler): void
 	{
+		// BACKUP DATABASE (DAILY)
 		$scheduler->call(function () {
 			print "[" . timestamp('d/m/Y h:i A') . "]: {$this->taskName} currently is running\n";
 			app('App\services\general\helper\BackupSystem')->backup_database();
+		})
+			->onlyOne()
+			->before(function () {
+				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Started\n";
+				echo shell_exec('php struck maintenance on'); // put system under maintenance before backup
+			})
+			->then(function () {
+				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Finished\n";
+				echo shell_exec('php struck maintenance off'); // put system online after backup complete
+			})->daily('00:15');
+
+
+
+		// BACKUP FILE SYSTEM (WEEKLY ON SUNDAY)
+		$scheduler->call(function () {
+			print "[" . timestamp('d/m/Y h:i A') . "]: {$this->taskName} currently is running\n";
 			app('App\services\general\helper\BackupSystem')->backup_folder();
 		})
 			->onlyOne()
@@ -38,6 +55,6 @@ class BackupSystemDatabase
 			->then(function () {
 				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Finished\n";
 				echo shell_exec('php struck maintenance off'); // put system online after backup complete
-			})->daily();
+			})->sunday();
 	}
 }

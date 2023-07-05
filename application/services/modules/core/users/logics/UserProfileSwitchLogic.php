@@ -4,7 +4,7 @@ namespace App\services\modules\core\users\logics;
 
 use App\services\modules\authentication\processors\UserSessionProcessor;
 
-class UsersProfileSwitchLogic
+class UserProfileSwitchLogic
 {
 	public function __construct()
 	{

@@ -28,9 +28,6 @@ class UserSearchProcessors
 			}
 		}
 
-		if ($fetchType == 'toSql')
-			return $query->toSql($query);
-		else
-			return $query->$fetchType();
+		return $fetchType == 'toSql' ? $query->$fetchType($query) : $query->$fetchType();
 	}
 }

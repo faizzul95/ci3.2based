@@ -225,20 +225,28 @@ if (!function_exists('isError')) {
 }
 
 if (!function_exists('hasData')) {
-	function hasData($data = NULL, $arrKey = NULL)
+	function hasData($data = NULL, $arrKey = NULL, $returnData = false)
 	{
+		$response = false; // default return
+
+		// check if data is exist
 		if (isset($data)) {
-			if (($data !== '' || $data !== NULL || $data !== 'null') && (!empty($data) && !is_null($data))) {
+			if (($data !== '' || $data !== NULL || $data !== 'null' || !is_null($data)) && !empty($data)) {
+				// check if arrKey is exist and not null
 				if (!empty($arrKey) && array_key_exists($arrKey, $data))
-					return !empty($data[$arrKey]) ? true : false;
+					$response = !empty($data[$arrKey]) ? true : false;
 				else if (empty($arrKey))
-					return true;
+					$response = true;
 				else
-					return false;
+					$response = false;
 			}
 		}
 
-		return false;
+		// if return data is set to true it will returm the data instead of bool,
+		if ($returnData)
+			return $response && !empty($arrKey) ? $data[$arrKey] : ($response ? $data : NULL);
+		else
+			return $response;
 	}
 }
 
@@ -256,8 +264,12 @@ if (!function_exists('fileExist')) {
 if (!function_exists('json')) {
 	function json($data = NULL, $code = 200)
 	{
-		if (isArray($data) && array_key_exists("resCode", $data)) {
-			$code = $data['resCode'];
+		if (isArray($data)) {
+			if (hasData($data, 'code'))
+				$code = $data['code'];
+
+			else if (hasData($data, 'resCode'))
+				$code = $data['resCode'];
 		}
 
 		http_response_code($code);
@@ -312,50 +324,6 @@ if (!function_exists('genRunningNo')) {
 			'code' => $pref . str_pad($nextNo, $leadingZero, 0, STR_PAD_LEFT) . $suf,
 			'next' => $nextNo
 		];
-	}
-}
-
-// PAGE ERROR (NODATA) HELPER
-
-if (!function_exists('nodata')) {
-	function nodata($showText = true, $filesName = '5.png')
-	{
-		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
-          <center>
-            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-3' width='38%'>
-            <h4 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
-             <strong> NO INFORMATION FOUND </strong>
-            </h4>";
-		if ($showText) {
-			echo "<h6 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;font-size: 13px;'> 
-                Here are some action suggestions for you to try :- 
-            </h6>";
-		}
-		echo "</center>";
-		if ($showText) {
-			echo "<div class='row d-flex justify-content-center w-100'>
-            <div class='col-lg m-1 text-left' style='max-width: 350px !important;letter-spacing :1px; font-family: Quicksand, sans-serif !important;font-size: 12px;'>
-              1. Try the registrar function (if any).<br>
-              2. Change your word or search selection.<br>
-              3. Contact the system support immediately.<br>
-            </div>
-          </div>";
-		}
-		echo "</div>";
-	}
-}
-
-if (!function_exists('nodataAccess')) {
-	function nodataAccess($filesName = '403.png')
-	{
-		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
-          <center>
-            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-2' width='30%'>
-            <h3 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
-             <strong> NO ACCESS TO THIS INFORMATION </strong>
-            </h3>";
-		echo "</center>";
-		echo "</div>";
 	}
 }
 
@@ -532,28 +500,91 @@ if (!function_exists('app')) {
 		return new class($namespace)
 		{
 			private $namespace;
+			private $obj;
 
 			public function __construct($namespace)
 			{
 				$this->namespace = $namespace;
+				$this->obj = new $namespace();
 			}
 
 			public function __call($method, $args)
 			{
-				$class = $this->namespace;
-				$obj = new $class();
-
-				try {
-					if (method_exists($obj, $method)) {
-						return call_user_func_array(array($obj, $method), $args);
-					} else {
-						throw new Exception("Method $method does not exist");
-					}
-				} catch (Exception $e) {
-					// handle the error
-					return $e->getMessage();
+				if (method_exists($this->obj, $method)) {
+					return $this->obj->$method(...$args);
 				}
+
+				throw new Exception("Method $method does not exist");
 			}
 		};
+	}
+}
+
+// DUMPER HELPER
+
+if (!function_exists('d')) {
+	function d()
+	{
+		array_map(function ($param) {
+			echo '<pre>';
+			print_r($param);
+			echo '</pre>';
+		}, func_get_args());
+	}
+}
+
+if (!function_exists('ddie')) {
+	function ddie()
+	{
+		array_map(function ($param) {
+			echo '<pre>';
+			print_r($param);
+			echo '</pre>';
+		}, func_get_args());
+		die;
+	}
+}
+
+// PAGE ERROR (NODATA) HELPER
+
+if (!function_exists('nodata')) {
+	function nodata($showText = true, $filesName = '5.png')
+	{
+		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
+          <center>
+            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-3' width='38%'>
+            <h4 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
+             <strong> NO INFORMATION FOUND </strong>
+            </h4>";
+		if ($showText) {
+			echo "<h6 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;font-size: 13px;'> 
+                Here are some action suggestions for you to try :- 
+            </h6>";
+		}
+		echo "</center>";
+		if ($showText) {
+			echo "<div class='row d-flex justify-content-center w-100'>
+            <div class='col-lg m-1 text-left' style='max-width: 350px !important;letter-spacing :1px; font-family: Quicksand, sans-serif !important;font-size: 12px;'>
+              1. Try the registrar function (if any).<br>
+              2. Change your word or search selection.<br>
+              3. Contact the system support immediately.<br>
+            </div>
+          </div>";
+		}
+		echo "</div>";
+	}
+}
+
+if (!function_exists('nodataAccess')) {
+	function nodataAccess($filesName = '403.png')
+	{
+		echo "<div id='nodata' class='col-lg-12 mb-4 mt-2'>
+          <center>
+            <img src='" . url('public/custom/images/nodata/' . $filesName) . "' class='img-fluid mb-2' width='30%'>
+            <h3 style='letter-spacing :2px; font-family: Quicksand, sans-serif !important;margin-bottom:15px'> 
+             <strong> NO ACCESS TO THIS INFORMATION </strong>
+            </h3>";
+		echo "</center>";
+		echo "</div>";
 	}
 }
