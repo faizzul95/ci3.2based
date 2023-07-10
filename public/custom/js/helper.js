@@ -286,11 +286,11 @@ const hasData = (data = null, arrKey = null, returnData = false) => {
 
 	// check if data is exist
 	if (isset(data) && data !== '' && data !== 'null') {
+		response = true;
+
 		// check if arrKey is exist and not null
-		if (isset(arrKey) && array_key_exists(arrKey, data)) {
-			response = isset(data[arrKey]) && data[arrKey] !== '' ? true : false;
-		} else if (arrKey === undefined || arrKey === null) {
-			response = true;
+		if (isset(arrKey)) {
+			response = array_key_exists(arrKey, data) ? true : false;
 		}
 	}
 
