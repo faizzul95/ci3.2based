@@ -281,19 +281,26 @@ const isset = (variable_name) => {
 	return false;
 }
 
-const hasData = (variable) => {
+const hasData = (data = null, arrKey = null, returnData = false) => {
+	let response = false; // default return
 
-	if (isDef(variable)) {
-		if (isArray(variable))
-			return variable.length > 0 ? true : false;
-		else if (isObject(variable))
-			return Object.keys(variable).length > 0 ? true : false;
-		else
-			return variable === '' || variable === null || variable === 'null' ? false : true;
+	// check if data is exist
+	if (isset(data) && data !== '' && data !== 'null') {
+		// check if arrKey is exist and not null
+		if (isset(arrKey) && array_key_exists(arrKey, data)) {
+			response = isset(data[arrKey]) && data[arrKey] !== '' ? true : false;
+		} else if (arrKey === undefined || arrKey === null) {
+			response = true;
+		}
 	}
 
-	return false;
-}
+	// if return data is set to true it will return the data instead of bool
+	if (returnData) {
+		return response && isset(arrKey) ? data[arrKey] : (response ? data : null);
+	}
+
+	return response;
+};
 
 const trimData = (text = null) => {
 	if (hasData(text))
@@ -332,9 +339,9 @@ const array_key_exists = (arrKey = null, dataObj = null) => {
 		} else {
 			return false;
 		}
-	} else {
-		return false;
 	}
+
+	return false;
 }
 
 // DATE & TIME HELPER
@@ -1024,4 +1031,153 @@ const skeletonTableCard = (hasFilter = null, buttonRefresh = true) => {
 
 const getImageDefault = (imageName, path = 'public/upload/default/') => {
 	return urls(path + imageName);
+}
+
+
+const generateClientDt = async (id, url = null, dataObj = null, filterColumn = [], nodatadiv = 'nodatadiv', screenLoadID = 'nodata') => {
+
+	const tableID = $('#' + id);
+	var table = tableID.DataTable().clear().destroy();
+
+	loading('#' + screenLoadID, true);
+
+	const res = await callApi('get', url, dataObj);
+
+	if (isSuccess(res)) {
+		if (hasData(res.data)) {
+			table = tableID.DataTable({
+				"data": res.data,
+				"deferRender": true,
+				"processing": true,
+				"serverSide": false,
+				'paging': true,
+				'ordering': true,
+				'info': true,
+				'responsive': true,
+				'iDisplayLength': 10,
+				'bLengthChange': true,
+				'searching': true,
+				'autoWidth': false,
+				'language': {
+					"searchPlaceholder": 'Search...',
+					"sSearch": '',
+					// "lengthMenu": '_MENU_ item / page',
+					// "paginate": {
+					// 	"first": "First",
+					// 	"last": "The End",
+					// 	"previous": "Previous",
+					// 	"next": "Next"
+					// },
+					// "info": "Showing _START_ to _END_ of _TOTAL_ items",
+					// "emptyTable": "No data is available in the table",
+					// "info": "Showing _START_ to  _END_ of  _TOTAL_ items",
+					// "infoEmpty": "Showing 0 to 0 of 0 items",
+					// "infoFiltered": "(filtered from _MAX_ number of items)",
+					// "zeroRecords": "No matching records",
+					// "processing": "<span class='text-danger font-weight-bold font-italic'> Processing ... Please wait a moment..",
+					// "loadingRecords": "Loading...",
+					// "infoPostFix": "",
+					// "thousands": ",",
+				},
+				'columnDefs': filterColumn,
+			});
+			$('#' + nodatadiv).hide();
+			$('#' + id + 'Div').show();
+		} else {
+			$('#' + nodatadiv).empty(); // reset
+			$('#' + nodatadiv).html(nodata());
+			$('#' + nodatadiv).show();
+			$('#' + id + 'Div').hide();
+		}
+	}
+
+	loading('#' + screenLoadID, false);
+
+	return table;
+}
+
+const generateServerDt = (id, url = null, nodatadiv = 'nodatadiv', dataObj = null, filterColumn = []) => {
+
+	const tableID = $('#' + id);
+	tableID.DataTable().clear().destroy();
+
+	let dataSent = null;
+
+	if (dataObj != null) {
+		dataObj[csrf_token_name] = Cookies.get(csrf_cookie_name) // csrf token
+		// dataSent = new URLSearchParams(dataObj);
+		dataSent = dataObj;
+	}
+
+	let ajaxConfig = {
+		type: 'POST',
+		url: $('meta[name="base_url"]').attr('content') + url,
+		dataType: "JSON",
+		data: dataSent,
+		headers: {
+			"Authorization": "Bearer " + Cookies.get(csrf_cookie_name),
+			'X-Requested-With': 'XMLHttpRequest',
+			'content-type': 'application/x-www-form-urlencoded',
+			"X-CSRF-TOKEN": Cookies.get(csrf_cookie_name),
+		},
+		"error": function (xhr, error, exception) {
+			if (exception) {
+				if (isError(xhr.status))
+					noti(xhr.status, exception);
+			}
+		}
+	};
+
+	if (dataSent == null) {
+		delete ajaxConfig['data'];
+	}
+
+	let tableConfig = {
+		// "pagingType": "full_numbers",
+		"processing": true,
+		"serverSide": true,
+		"responsive": true,
+		"iDisplayLength": 10,
+		"bLengthChange": true,
+		"searching": true,
+		"ajax": ajaxConfig,
+		"language": {
+			"searchPlaceholder": 'Search...',
+			"sSearch": '',
+			// "lengthMenu": '_MENU_ item / page',
+			// "paginate": {
+			// 	"first": "First",
+			// 	"last": "The End",
+			// 	"previous": "Previous",
+			// 	"next": "Next"
+			// },
+			// "info": "Showing _START_ to _END_ of _TOTAL_ items",
+			// "emptyTable": "No data is available in the table",
+			// "info": "Showing _START_ to _END_ of _TOTAL_ items",
+			// "infoEmpty": "Showing 0 to 0 of 0 items",
+			// "infoFiltered": "(filtered from _MAX_ number of items)",
+			// "zeroRecords": "No matching records",
+			// "processing": "<span class='text-danger font-weight-bold font-italic'> Processing ... Please wait a moment.. ",
+			// "loadingRecords": "Loading...",
+			// "infoPostFix": "",
+			// "thousands": ",",
+		},
+		"columnDefs": filterColumn,
+		initComplete: function () {
+
+			var totalData = this.api().data().length;
+
+			if (totalData > 0) {
+				$('#' + nodatadiv).hide();
+				$('#' + id + 'Div').show();
+			} else {
+				tableID.DataTable().clear().destroy();
+				$('#' + id + 'Div').hide();
+				$('#' + nodatadiv).show();
+			}
+
+		}
+	};
+
+	return tableID.DataTable(tableConfig);
 }
