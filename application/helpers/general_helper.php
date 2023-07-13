@@ -225,34 +225,46 @@ if (!function_exists('isError')) {
 }
 
 if (!function_exists('hasData')) {
-	function hasData($data = NULL, $arrKey = NULL, $returnData = false)
-	{
-		$response = false; // default return
+    function hasData($data = NULL, $arrKey = NULL, $returnData = false, $defaultValue = NULL)
+    {
+        $response = false; // default return
 
-		// check if data is exist
-		if (isset($data)) {
-			if (($data !== '' || $data !== NULL || $data !== 'null' || !is_null($data)) && !empty($data)) {
+        // check if data is exist
+        if (isset($data)) {
+            if (($data !== '' || $data !== NULL || $data !== 'null') && !empty($data)) {
+                // check if arrKey is exist and not null
+                if (!empty($arrKey)) {
+                    $keys = explode('.', $arrKey);
+                    $keyArr = $keys[0];
 
-				// convert object to array
-				if (is_object($data))
-					$data = (array) $data;
+                    if (count($keys) <= 1) {
+                        if (is_array($data) && array_key_exists($keyArr, $data)) {
+                            $response = !empty($data[$keyArr]) ? true : false;
+                        } else {
+                            $response = !empty($data->$keyArr) ? true : false;
+                        }
+                    } else {
+                        $remainingKeys = implode('.', array_slice($keys, 1));
+                        if (is_array($data) && array_key_exists($keyArr, $data)) {
+                            $response = hasData($data[$keyArr], $remainingKeys, $returnData, $defaultValue);
+                        } else {
+                            $response = hasData($data->$keyArr, $remainingKeys, $returnData, $defaultValue);
+                        }
+                    }
+                } else if (empty($arrKey)) {
+                    $response = true;
+                } else {
+                    $response = false;
+                }
+            }
+        }
 
-				// check if arrKey is exist and not null
-				if (!empty($arrKey) && array_key_exists($arrKey, $data))
-					$response = !empty($data[$arrKey]) ? true : false;
-				else if (empty($arrKey))
-					$response = true;
-				else
-					$response = false;
-			}
-		}
-
-		// if return data is set to true it will returm the data instead of bool,
-		if ($returnData)
-			return $response && !empty($arrKey) ? $data[$arrKey] : ($response ? $data : NULL);
-		else
-			return $response;
-	}
+        // if return data is set to true it will return the data instead of bool,
+        if ($returnData)
+            return $response && !empty($arrKey) ? $data[$arrKey] : ($response ? $data : $defaultValue);
+        else
+            return $response;
+    }
 }
 
 if (!function_exists('fileExist')) {
