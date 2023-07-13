@@ -23,9 +23,9 @@ if (!function_exists('currentTime')) {
 }
 
 if (!function_exists('formatDate')) {
-	function formatDate($date, $format = "d.m.Y")
+	function formatDate($date, $format = "d.m.Y", $defaultValue = NULL)
 	{
-		return date($format, strtotime($date));
+		return hasData($date) ? date($format, strtotime($date)) : $defaultValue;
 	}
 }
 
@@ -232,6 +232,11 @@ if (!function_exists('hasData')) {
 		// check if data is exist
 		if (isset($data)) {
 			if (($data !== '' || $data !== NULL || $data !== 'null' || !is_null($data)) && !empty($data)) {
+
+				// convert object to array
+				if (is_object($data))
+					$data = (array) $data;
+
 				// check if arrKey is exist and not null
 				if (!empty($arrKey) && array_key_exists($arrKey, $data))
 					$response = !empty($data[$arrKey]) ? true : false;
