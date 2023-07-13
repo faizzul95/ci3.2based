@@ -240,14 +240,14 @@ if (!function_exists('hasData')) {
                     if (count($keys) <= 1) {
                         if (is_array($data) && array_key_exists($keyArr, $data)) {
                             $response = !empty($data[$keyArr]) ? true : false;
-                        } else {
+                        } else if (is_object($data) && isset($data->$keyArr)) {
                             $response = !empty($data->$keyArr) ? true : false;
                         }
                     } else {
                         $remainingKeys = implode('.', array_slice($keys, 1));
                         if (is_array($data) && array_key_exists($keyArr, $data)) {
                             $response = hasData($data[$keyArr], $remainingKeys, $returnData, $defaultValue);
-                        } else {
+                        } else if (is_object($data) && isset($data->$keyArr)) {
                             $response = hasData($data->$keyArr, $remainingKeys, $returnData, $defaultValue);
                         }
                     }
