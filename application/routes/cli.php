@@ -8,6 +8,7 @@
 
 // To enable Luthier-CI built-in cli commands
 // uncomment the followings lines:
+use App\core\Struck;
 
 Luthier\Cli::maker();
 Luthier\Cli::migrations();
@@ -316,7 +317,7 @@ Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
 });
 
 Route::cli('optimize', function () {
-	echo shell_exec('php struck clear optimize');
+	Struck::call('optimize');
 });
 
 // schedule

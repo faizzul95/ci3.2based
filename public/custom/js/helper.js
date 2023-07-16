@@ -281,7 +281,7 @@ const isset = (variable_name) => {
 	return false;
 }
 
-const hasData = (data = null, arrKey = null, returnData = false) => {
+const hasData = (data = null, arrKey = null, returnData = false, defaultValue = null) => {
 	let response = false; // default return
 
 	// check if data is exist
@@ -289,14 +289,24 @@ const hasData = (data = null, arrKey = null, returnData = false) => {
 		response = true;
 
 		// check if arrKey is exist and not null
-		if (isset(arrKey)) {
-			response = array_key_exists(arrKey, data) ? true : false;
+		if (isset(arrKey) && arrKey !== '') {
+			const keys = arrKey.split('.');
+			const keyArr = keys[0];
+
+			if (keys.length === 1) {
+				response = array_key_exists(keyArr, data) ? true : false;
+			} else {
+				const remainingKeys = keys.slice(1).join('.');
+				if (array_key_exists(keyArr, data)) {
+					response = hasData(data[keyArr], remainingKeys, returnData, defaultValue);
+				}
+			}
 		}
 	}
 
 	// if return data is set to true it will return the data instead of bool
 	if (returnData) {
-		return response && isset(arrKey) ? data[arrKey] : (response ? data : null);
+		return response && isset(arrKey) ? data[arrKey] : (response ? data : defaultValue);
 	}
 
 	return response;
@@ -311,23 +321,27 @@ const trimData = (text = null) => {
 
 // ARRAY HELPER
 
-const array_push = (arrayData = null, newData = null) => {
-	return arrayData.push(newData);
+const array_push = (arrayData, ...elements) => {
+	return arrayData.push(...elements);
 }
 
-const implode = (arrayData = null, delimiter = ',') => {
-	return arrayData.join(delimiter);
+const array_merge = (...arrays) => {
+	return [].concat(...arrays);
 }
 
-const explode = (data = null, delimiter = ',') => {
-	return data.split(delimiter);
+const implode = (separator = null, arrayData = null) => {
+	return arrayData.join(separator);
 }
 
-const remove = (arr, item) => {
-	if (arr.length) {
-		var index = arr.indexOf(item);
+const explode = (delimiter = null, string = null) => {
+	return string.split(delimiter);
+}
+
+const remove = (arrayData, item) => {
+	if (arrayData.length) {
+		var index = arrayData.indexOf(item);
 		if (index > -1) {
-			return arr.splice(index, 1)
+			return arrayData.splice(index, 1)
 		}
 	}
 }

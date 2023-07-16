@@ -237,7 +237,7 @@ if (!function_exists('hasData')) {
 					$keys = explode('.', $arrKey);
 					$keyArr = $keys[0];
 
-					if (count($keys) <= 1) {
+					if (count($keys) == 1) {
 						if (is_array($data) && array_key_exists($keyArr, $data)) {
 							$response = !empty($data[$keyArr]) ? true : false;
 						} else if (is_object($data) && isset($data->$keyArr)) {

@@ -2,6 +2,8 @@
 
 namespace App\services\commands;
 
+use App\core\Struck;
+
 class BackupSystemDatabase
 {
 	/**
@@ -33,13 +35,12 @@ class BackupSystemDatabase
 			->onlyOne()
 			->before(function () {
 				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Started\n";
-				echo shell_exec('php struck maintenance on'); // put system under maintenance before backup
+				Struck::call('down'); // put system under maintenance before backup
 			})
 			->then(function () {
 				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Finished\n";
-				echo shell_exec('php struck maintenance off'); // put system online after backup complete
+				Struck::call('up'); // put system online after backup complete
 			})->daily('00:15');
-
 
 
 		// BACKUP FILE SYSTEM (WEEKLY ON SUNDAY)
@@ -50,11 +51,11 @@ class BackupSystemDatabase
 			->onlyOne()
 			->before(function () {
 				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Started\n";
-				echo shell_exec('php struck maintenance on'); // put system under maintenance before backup
+				Struck::call('down'); // put system under maintenance before backup
 			})
 			->then(function () {
 				print "[" . timestamp('d/m/Y h:i A') . "]: Job '{$this->taskName}' Finished\n";
-				echo shell_exec('php struck maintenance off'); // put system online after backup complete
+				Struck::call('up'); // put system online after backup complete
 			})->sunday();
 	}
 }
