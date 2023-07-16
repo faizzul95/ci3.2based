@@ -7,15 +7,22 @@ if (!defined('BASEPATH')) {
 if (!function_exists('groupArray')) {
 	function groupArray($arr, $colNames)
 	{
-		$groupStr = '$groupedArr';
-		$groupedArr = array();
+		$groupedArr = [];
 
-		foreach ($colNames as $groupCol) {
-			$groupStr .= '[$value[\'' . $groupCol . '\']]';
-		}
-		foreach ($arr as $key => $value) {
-			$grpStr = $groupStr . '[] = $value;';
-			eval($grpStr);
+		foreach ($arr as $value) {
+			$group = &$groupedArr;
+
+			foreach ($colNames as $groupCol) {
+				$groupKey = $value[$groupCol];
+
+				if (!isset($group[$groupKey])) {
+					$group[$groupKey] = [];
+				}
+
+				$group = &$group[$groupKey];
+			}
+
+			$group[] = $value;
 		}
 
 		return $groupedArr;

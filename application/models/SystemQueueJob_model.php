@@ -11,7 +11,7 @@ class SystemQueueJob_model extends CT_Model
 
 	// the fields that can be filled by insert/update
 	public $fillable = [
-		'queue_uuid',
+		'uuid',
 		'type',
 		'payload',
 		'attempt',
@@ -42,7 +42,7 @@ class SystemQueueJob_model extends CT_Model
 
 	public function getJob()
 	{
-		return $this->db->where_in('status', [1, 2, 4])->where('attempt <', 10)->get($this->table)->row_array();
+		return $this->db->where_in('status', [1, 2])->get($this->table)->row_array();
 	}
 
 	public function getEmailQueueListDt($status = NULL, $dateSearch = NULL)
@@ -55,7 +55,7 @@ class SystemQueueJob_model extends CT_Model
 
 		$serverside = serversideDT();
 		$serverside->query("SELECT 
-        `job`.`queue_uuid`,
+        `job`.`uuid`,
         `job`.`payload`,
         `job`.`attempt`,
         `job`.`status`,
@@ -68,7 +68,7 @@ class SystemQueueJob_model extends CT_Model
 		WHERE `job`.`type` = 'email' $searchQuery $superAdminAccess
         ORDER BY {$this->primary_key} {$this->order}");
 
-		$serverside->hide('queue_uuid'); // hides column from the output
+		$serverside->hide('uuid'); // hides column from the output
 		$serverside->hide('message'); // hides column from the output
 		$serverside->hide('company_id'); // hides column from the output
 		$serverside->hide('created_at'); // hides column from the output
@@ -78,7 +78,7 @@ class SystemQueueJob_model extends CT_Model
 			$dataDecode = json_decode($data['payload'], true);
 
 			if (hasData($dataDecode)) {
-				$uuid = purify($data['queue_uuid']);
+				$uuid = purify($data['uuid']);
 				$name = hasData($dataDecode['name']) ? purify($dataDecode['name']) : '<small> - </small>';
 				$to = purify($dataDecode['to']);
 				$subject = purify($dataDecode['subject']);

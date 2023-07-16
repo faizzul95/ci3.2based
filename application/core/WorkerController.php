@@ -209,7 +209,7 @@ class WorkerController extends CI_Controller
 		while (true) {
 
 			// Loading insurance
-			sleep(0.1);
+			usleep(100000);  // Sleep for 0.1 seconds
 
 			// Call customized listener process, assigns works while catching true by callback return
 			$hasEvent = ($this->handleListen($this->_staticListen)) ? true : false;
@@ -315,8 +315,9 @@ class WorkerController extends CI_Controller
 			if ($this->workerSleep) {
 				sleep($this->workerSleep);
 			}
+
 			// Loading insurance
-			sleep(0.1);
+			usleep(100000);  // Sleep for 0.1 seconds
 		}
 
 		// Print worker close

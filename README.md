@@ -122,16 +122,18 @@ Command (Terminal / Command Prompt):-
 	<li> Jobs (Queue Worker) </li> 
 		<ol type="1">
 			<li> php struck jobs (temporary run until jobs completed) </li>
-			<li> php struck jobs work (temporary run until jobs completed) </li>
-			<li> php struck jobs launch (permanent until services kill) - use in Linux environment </li>
+			<li> php struck jobs:work (temporary run until jobs completed) </li>
+			<li> php struck jobs:listen (permanent until services kill) - use in Linux environment </li>
+			<li> php struck queue:retry < replace with UUID > </li>
+			<li> php struck queue:retry all</li>
 		</ol> 
 	<br>
 		<li> Cron Scheduler (Laravel Task Scheduling) </li> 
 		<ol type="1">
 			<li> php struck schedule:run </li>
-      <li> php struck schedule:list </li>
-      <li> php struck schedule:work </li>
-      <li> php struck schedule:fail </li>
+			<li> php struck schedule:list </li>
+			<li> php struck schedule:work </li>
+			<li> php struck schedule:fail </li>
 		</ol> 
 	<br>
 	<li> Module Bundler </li> 

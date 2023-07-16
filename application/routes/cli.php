@@ -347,6 +347,19 @@ Route::cli('schedule:list', function () {
 	dd(cronScheduler()->getExecutedJobs());
 });
 
+Route::cli('queue:retry/{uuid?}', function ($uuid = NULL) {
+	if (hasData($uuid)) {
+		$queue = new Struck();
+		if ($uuid == 'all') {
+			$queue->processAllFailedQueue();
+		} else {
+			$queue->processFailedQueueByUUID($uuid);
+		}
+	} else {
+		echo "Please provide UUID!\n\n";
+	}
+});
+
 Route::cli('schedule:fail', function () {
 	$scheduler = cronScheduler();
 

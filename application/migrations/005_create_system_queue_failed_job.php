@@ -2,13 +2,13 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Migration_create_system_queue_job extends CI_Migration
+class Migration_create_system_queue_failed_job extends CI_Migration
 {
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->dbforge();
-		$this->table_name = 'system_queue_job';
+		$this->table_name = 'system_queue_failed_job';
 	}
 
 	public function up()
@@ -18,12 +18,9 @@ class Migration_create_system_queue_job extends CI_Migration
 			'uuid' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
 			'type' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
 			'payload' => ['type' => 'LONGTEXT', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
-			'attempt' => ['type' => 'INT', 'constraint' => '11', 'null' => TRUE, 'default' => 0, 'comment' => ''],
-			'status' => ['type' => 'TINYINT', 'constraint' => '150', 'null' => TRUE, 'default' => 1, 'comment' => '1-pending,2-running,3-completed'],
-			'message' => ['type' => 'LONGTEXT', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
 			'company_id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'null' => TRUE, 'comment' => 'refer table company'],
-			'created_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
-			'updated_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
+			'exception' => ['type' => 'LONGTEXT', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
+			'failed_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
 		]);
 
 		$this->dbforge->add_key('id', TRUE);

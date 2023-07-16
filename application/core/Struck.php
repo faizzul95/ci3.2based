@@ -4,8 +4,12 @@ namespace App\core;
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use App\services\generals\traits\QueueTrait;
+
 class Struck
 {
+	use QueueTrait;
+
 	public static function call($command)
 	{
 		$command = strtolower($command);
