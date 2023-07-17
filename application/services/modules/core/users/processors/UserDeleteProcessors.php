@@ -10,7 +10,7 @@ class UserDeleteProcessors
 
 	public function execute($request = NULL)
 	{
-		$query = $this->newQuery('USER');
+		$query = $this->newQuery('User_model');
 		return $query::remove($request);
 	}
 }

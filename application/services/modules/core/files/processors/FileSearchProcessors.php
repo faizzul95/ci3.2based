@@ -10,7 +10,7 @@ class FileSearchProcessors
 
 	public function execute($filter = NULL, $fetchType = 'get_all')
 	{
-		$query = $this->newQuery('FILES', $filter);
+		$query = $this->newQuery('EntityFiles_model', $filter);
 
 		if (hasData($filter)) {
 

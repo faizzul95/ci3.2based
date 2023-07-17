@@ -10,7 +10,7 @@ class ProfileStoreProcessors
 
 	public function execute($request = NULL)
 	{
-		$query = $this->newQuery('PROFILE');
+		$query = $this->newQuery('UserProfile_model');
 		return $query::save($request);
 	}
 }

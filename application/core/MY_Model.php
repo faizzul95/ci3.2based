@@ -1927,15 +1927,32 @@ class MY_Model extends CI_Model
 		foreach ($filter as $columnName => $value) {
 			if (is_array($value)) {
 				$operator = strtoupper($value[0]);
-				$values = is_array($value[1]) ? $value[1] : [$value[1]];
-				$notCondition = false;
+				if (in_array($operator, ['IN', 'NOT IN'])) {
+					$values = is_array($value[1]) ? $value[1] : [$value[1]];
+					$notCondition = false;
 
-				if (in_array($operator, ['NOT IN', 'NOTIN', 'WHERE NOT IN'])) {
-					$notCondition = true;
-					$operator = 'NOT IN';
+					if ($operator == 'NOT IN') {
+						$notCondition = true;
+					}
+
+					$query->where($columnName, $values, NULL, false, $notCondition);
+				} else if ($operator == 'BETWEEN') {
+					$values = is_array($value[1]) ? $value[1] : [$value[1]];
+
+					$valueFrom = $values[0];
+					$valueTo = count($values) == 1 ? $values[0] : $values[1];
+
+					$minValueFrom = min([$valueFrom, $valueTo]);
+					$maxValueTo = max([$valueFrom, $valueTo]);
+
+					$query->where($columnName, ">=", $minValueFrom, false);
+					$query->where($columnName, "<=", $maxValueTo, false);
+				} else {
+					if (!is_array($value[1])) {
+						$values = $value[1];
+						$query->where($columnName, $operator, $value[1], false);
+					}
 				}
-
-				$query->where($columnName, $values, NULL, false, $notCondition);
 			} else {
 				$query->where($columnName, $value);
 			}

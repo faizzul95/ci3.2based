@@ -10,7 +10,7 @@ class ProfileSearchProcessors
 
 	public function execute($filter = NULL, $fetchType = 'get_all')
 	{
-		$query = $this->newQuery('PROFILE', $filter);
+		$query = $this->newQuery('UserProfile_model', $filter);
 
 		if (hasData($filter)) {
 			if (hasData($filter, 'searchQuery')) {

@@ -2,18 +2,13 @@
 
 namespace App\services\generals\traits;
 
-use App\services\generals\constants\ModelDB;
-
 trait QueryTrait
 {
 	public function newQuery($model, $filter = NULL)
 	{
-		$modelName = ModelDB::LIST[$model]['model'];
-		$assignName = ModelDB::LIST[$model]['assign'];
+		model($model);
 
-		model($modelName, $assignName);
-
-		$query = ci()->$assignName;
+		$query = ci()->$model;
 
 		if (hasData($filter)) {
 			if (hasData($filter, 'fields')) {

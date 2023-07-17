@@ -10,7 +10,7 @@ class UserSearchProcessors
 
 	public function execute($filter = NULL, $fetchType = 'get_all')
 	{
-		$query = $this->newQuery('USER', $filter);
+		$query = $this->newQuery('User_model', $filter);
 
 		if (hasData($filter)) {
 			// use for login only
