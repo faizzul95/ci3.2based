@@ -2,7 +2,7 @@
 
 Framework : CodeIgniter 3 (version 3.2.0-dev) <br/>
 Status : <i> support </i> <br/>
-Last update : 05/07/2023
+Last update : 17/07/2023
 
 ======================================================================
 
@@ -14,10 +14,9 @@ Last update : 05/07/2023
 	<ol type="1">
 		<li> Download this project </li>
 		<li> Rename project folder to any name </li>
-		<li> Open application/config/config.php. Change line 28 to match your project folder name (important!) </li>
-		<li> Run command "composer update" using CMD/Terminal (make sure to install composer!) </li>
-		<li> Run command "npm update" using CMD/Terminal (make sure to install Node.js!) </li>
-		<li> Configure the .env files for database & environment </li>
+		<li> Run command "composer install/update" using CMD/Terminal (make sure to install composer!) </li>
+		<li> Run command "npm install/update" using CMD/Terminal (make sure to install Node.js!) </li>
+		<li> Configure the .env files for ENVIRONMENT, DATABASE & APP </li>
 	</ol>
 
 - HOW TO INSTALL GRUNT ASSET BUNDLER?

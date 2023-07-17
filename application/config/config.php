@@ -25,7 +25,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 */
 
 if (is_cli()) {
-	$path = 'http://localhost/ci3.2based/';
+	$path = env('APP_URL');
 } else {
 	$path = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
 	$path .= '://' . $_SERVER['HTTP_HOST'];
@@ -423,11 +423,11 @@ $config['cookie_samesite'] 	= 'Lax';
 | 'csrf_regenerate' = Regenerate token on every submission
 | 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
 */
-$config['csrf_protection'] = TRUE;
-$config['csrf_token_name'] = 'cid';
-$config['csrf_cookie_name'] = 'ccookie';
+$config['csrf_protection'] = env('CSRF_ENABLE');
+$config['csrf_token_name'] = env('CSRF_TOKEN_NAME');
+$config['csrf_cookie_name'] = env('CSRF_COOKIE_NAME');
 $config['csrf_expire'] = 7200;
-$config['csrf_regenerate'] = TRUE;
+$config['csrf_regenerate'] = env('CSRF_REGENERATE');
 $config['csrf_exclude_uris'] = array();
 
 /*
