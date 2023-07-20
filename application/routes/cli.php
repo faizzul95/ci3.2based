@@ -17,6 +17,7 @@ Luthier\Cli::migrations();
 Route::cli('cron/database/{upload?}', 'BackupController@BackupDatabase');
 Route::cli('cron/system/{upload?}', 'BackupController@BackupSystem');
 
+// QUEUE / JOBS
 Route::cli('jobs', 'JobController@work');
 
 Route::cli('jobs:listen', 'JobController@listen'); // only macbook & linux
@@ -34,6 +35,20 @@ Route::cli('jobs:list', function () {
 	echo shell_exec('ps aux|grep php');
 });
 
+Route::cli('queue:retry/{uuid?}', function ($uuid = NULL) {
+	if (hasData($uuid)) {
+		$queue = new Struck();
+		if ($uuid == 'all') {
+			$queue->processAllFailedQueue();
+		} else {
+			$queue->processFailedQueueByUUID($uuid);
+		}
+	} else {
+		echo "Please provide UUID!\n\n";
+	}
+});
+
+// STUB
 Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NULL, $tableName = NULL) {
 
 	$name = isset($name) ? trim($name) : NULL;
@@ -204,7 +219,7 @@ Route::cli('structure/{name}/{tableName?}', function ($name, $tableName = NULL) 
 	// // Write the stub file to the new model file
 	file_put_contents($filename, $stubModel);
 
-	echo "Create controller & models $name successfully\n\n";
+	output("success", "Create controller & models $name successfully\n");
 });
 
 Route::cli('clear/{type}', function ($type) {
@@ -212,6 +227,7 @@ Route::cli('clear/{type}', function ($type) {
 	$folderCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'ci_sessions';
 	$folderViewCache = APPPATH . 'cache' . DIRECTORY_SEPARATOR . 'blade_cache';
 	$folderLogs = APPPATH . 'logs';
+	$typeMessage = 'success';
 
 	if (in_array($type, ['all', 'cache', 'view', 'views', 'log', 'logs', 'optimize'])) {
 
@@ -245,82 +261,13 @@ Route::cli('clear/{type}', function ($type) {
 		$message = $type . ' folder clear successfully';
 	} else {
 		$message = "Error : The type only support for 'cache','view' or 'log' : Your enter " . $type;
+		$typeMessage = 'error';
 	}
 
-	echo $message . "\n\n";
+	output($typeMessage, $message . "\n");
 });
 
-Route::cli('init/{type}/{fileName?}', function ($type, $name = NULL) {
-
-	$name = isset($name) ? trim($name) : NULL;
-	$name = isset($name) ? ucfirst($name) : NULL;
-
-	if (in_array($type, ['cron', 'migrate', 'job'])) {
-
-		$pathSrcFolder = APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'files' . DIRECTORY_SEPARATOR;
-
-		$pathFiles = [
-			'cron' => [
-				'controllers' => 'BackupController.php',
-				'migrations' => 'xxx_create_system_backup_db.php',
-				'models' => 'SystemBackupDB_model.php',
-			],
-			'migrate' => [
-				'controllers' => 'MigrateController.php',
-			],
-			'job' => [
-				'controllers' => 'JobController.php',
-				'migrations' => 'xxx_create_system_queue_job.php',
-				'models' => 'SystemQueueJob_model.php',
-			]
-		];
-
-		$copyFiles = $pathFiles[$type];
-		$typeFiles = [];
-
-		foreach ($copyFiles as $folder => $filesName) {
-
-			$pathSrc = $pathSrcFolder . $folder . DIRECTORY_SEPARATOR . $filesName;
-
-			if (is_file($pathSrc)) {
-				$pathTarget = APPPATH . $folder . DIRECTORY_SEPARATOR . $filesName;
-				if ($folder == 'migrations') {
-
-					// Get all files from folder
-					$files = scandir(APPPATH . $folder);
-
-					// Remove . and .. from files list
-					$files = array_diff($files, array('.', '..'));
-
-					// Count total number of files in folder
-					$totalFiles = count($files);
-
-					$genNo = genRunningNo($totalFiles, NULL, NULL, NULL, 3);
-
-					$newFilename = str_replace('xxx', $genNo['code'], $pathTarget);
-
-					copy($pathSrc, $pathTarget);
-					rename($pathTarget, $newFilename);
-				} else {
-					copy($pathSrc, $pathTarget);
-				}
-				array_push($typeFiles, $folder);
-			}
-		};
-
-		$message = "Files " . implode(", ", $typeFiles) . " have been copy successfully!";
-	} else {
-		$message = "Error : The type only support for 'cron','migrate' or 'job' : Your enter " . $type;
-	}
-
-	echo $message . "\n\n";
-});
-
-Route::cli('optimize', function () {
-	Struck::call('optimize');
-});
-
-// schedule
+// SCHEDULER
 Route::cli('schedule:run', function () {
 	$CI = &get_instance();
 	$CI->load->config('scheduler');
@@ -334,30 +281,17 @@ Route::cli('schedule:run', function () {
 			app($namspaces)->handle($scheduler);
 		}
 
-		echo "Task Scheduling is running . . \n\n";
+		output('success', "Task Scheduling is running..") . "\n\n";
 
 		// Reset the scheduler after a previous run
 		$scheduler->resetRun()->run(); // now we can run it again
 	} else {
-		echo "No task/command to execute\n\n";
+		output('error', "No task/command to execute") . "\n\n";
 	}
 });
 
 Route::cli('schedule:list', function () {
 	dd(cronScheduler()->getExecutedJobs());
-});
-
-Route::cli('queue:retry/{uuid?}', function ($uuid = NULL) {
-	if (hasData($uuid)) {
-		$queue = new Struck();
-		if ($uuid == 'all') {
-			$queue->processAllFailedQueue();
-		} else {
-			$queue->processFailedQueueByUUID($uuid);
-		}
-	} else {
-		echo "Please provide UUID!\n\n";
-	}
 });
 
 Route::cli('schedule:fail', function () {
@@ -398,6 +332,12 @@ Route::cli('schedule:work', function () {
 	}
 });
 
+
+//  GENERAL
+Route::cli('optimize', function () {
+	Struck::call('optimize');
+});
+
 Route::cli('maintenance/{type}', function ($type = 'on') {
 	if (in_array($type, ['on', 'off'])) {
 		$filename = 'maintenance.flag';
@@ -414,4 +354,9 @@ Route::cli('maintenance/{type}', function ($type = 'on') {
 			print "[" . timestamp('d/m/Y h:i A') . "]: System is back online!\n\n";
 		}
 	}
+});
+
+Route::cli('websocket', function () {
+	output('success', "Websocket is running..");
+	app('App\services\generals\helpers\WebSocketHelpers')->init();
 });

@@ -32,6 +32,8 @@
 		"phpoffice/phpspreadsheet": "^1.27",
 		"google/apiclient": "^2.13",
 		"voku/html-min": "^4.5",
-		"peppeocchi/php-cron-scheduler": "4.*"
+		"peppeocchi/php-cron-scheduler": "4.*",
+		"cboden/ratchet": "^0.4.4",
+		"textalk/websocket": "^1.6"
 	}
 }

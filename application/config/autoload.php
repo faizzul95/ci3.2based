@@ -115,6 +115,7 @@ $autoload['helper'] = array(
 	'custom_rbac_helper',
 	'custom_qr_generator',
 	'custom_upload',
+	'custom_websocket_helper',
 	'google_authenticator',
 );
 
