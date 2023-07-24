@@ -1,13 +1,13 @@
 <?php
 
-namespace App\libraries\WebSocket;
+namespace App\libraries\CI_WebSocket;
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
 // Namespaces
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
-use App\libraries\WebSocket\Helpers\AUTHORIZATION;
+use App\libraries\CI_WebSocket\Helpers\AUTHORIZATION;
 
 /**
  * @package   CodeIgniter WebSocket Library: Server class

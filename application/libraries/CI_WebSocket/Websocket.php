@@ -1,11 +1,11 @@
 <?php
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
-// Namespaces
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
-use App\libraries\WebSocket\Server;
+use App\libraries\CI_WebSocket\Server;
 
 /**
  * @package   CodeIgniter Ratchet WebSocket Library: Main class
@@ -98,27 +98,27 @@ class Websocket
 		$this->config = (!empty($config)) ? $config : array();
 
 		// Config file verification
-		if (empty($this->config)) {
-			output('fatal', 'The configuration file does not exist');
-		}
+		// if (!hasData($this->config)) {
+		// 	output('fatal', 'The configuration file does not exist');
+		// }
 
 		// Assign HOST value to class var
-		$this->host = (!empty($this->config['websocket']['host'])) ? $this->config['websocket']['host'] : '';
+		$this->host = hasData(env('WEBSOCKET_HOST'), NULL, TRUE, '');
 
 		// Assign PORT value to class var
-		$this->port = (!empty($this->config['websocket']['port'])) ? $this->config['websocket']['port'] : '';
+		$this->port = hasData(env('WEBSOCKET_PORT'), NULL, TRUE, '');
 
 		// Assign AUTH value to class var
-		$this->auth = (!empty($this->config['websocket']['auth'] && $this->config['websocket']['auth'])) ? true : false;
+		$this->auth = hasData(env('WEBSOCKET_AUTH'), NULL, TRUE, FALSE);
 
 		// Assign DEBUG value to class var
-		$this->debug = (!empty($this->config['websocket']['debug'] && $this->config['websocket']['debug'])) ? true : false;
+		$this->debug = hasData(env('WEBSOCKET_DEBUG'), NULL, TRUE, FALSE);
 
 		// Assign Timer value to class var
-		$this->timer = (!empty($this->config['websocket']['timer_enabled'] && $this->config['websocket']['timer_enabled'])) ? true : false;
+		$this->timer = hasData(env('WEBSOCKET_TIMER_ENABLED'), NULL, TRUE, FALSE);
 
 		// Assign Timer Interval value to class var
-		$this->timer_interval = (!empty($this->config['websocket']['timer_interval'])) ? $this->config['websocket']['timer_interval'] : 1;
+		$this->timer_interval = hasData(env('WEBSOCKET_TIMER_INTERVAL'), NULL, TRUE, 1);
 	}
 
 	/**

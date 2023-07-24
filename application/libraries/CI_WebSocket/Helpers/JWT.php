@@ -1,6 +1,6 @@
 <?php
 
-namespace App\libraries\WebSocket\Helpers;
+namespace App\libraries\CI_WebSocket\Helpers;
 
 /**
  * JSON Web Token implementation, based on this spec:
@@ -62,7 +62,7 @@ class JWT
 				//throw new DomainException('Empty algorithm');
 			}
 			if ($sig != JWT::sign("$headb64.$bodyb64", $key, $header->alg)) {
-				throw new UnexpectedValueException('Signature verification failed');
+				throw new \UnexpectedValueException('Signature verification failed');
 			}
 		}
 		return $payload;
@@ -114,7 +114,7 @@ class JWT
 			'HS512' => 'sha512',
 		);
 		if (empty($methods[$method])) {
-			throw new DomainException('Algorithm not supported');
+			throw new \DomainException('Algorithm not supported');
 		}
 		return hash_hmac($methods[$method], $msg, $key, true);
 	}
@@ -133,7 +133,7 @@ class JWT
 		if (function_exists('json_last_error') && $errno = json_last_error()) {
 			JWT::_handleJsonError($errno);
 		} else if ($obj === null && $input !== 'null') {
-			throw new DomainException('Null result with non-null input');
+			throw new \DomainException('Null result with non-null input');
 		}
 		return $obj;
 	}
@@ -152,7 +152,7 @@ class JWT
 		if (function_exists('json_last_error') && $errno = json_last_error()) {
 			JWT::_handleJsonError($errno);
 		} else if ($json === 'null' && $input !== null) {
-			throw new DomainException('Null result with non-null input');
+			throw new \DomainException('Null result with non-null input');
 		}
 		return $json;
 	}
@@ -200,7 +200,7 @@ class JWT
 			JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',
 			JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON'
 		);
-		throw new DomainException(
+		throw new \DomainException(
 			isset($messages[$errno])
 				? $messages[$errno]
 				: 'Unknown JSON error: ' . $errno

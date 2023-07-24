@@ -2,17 +2,17 @@
 
 namespace App\services\generals\helpers;
 
-class WebSocketHelpers
+class WebSocketRunner
 {
 	public function init()
 	{
-		// // Load package path
-		library('WebSocket/Websocket');
+		$ci = ci();
+		library('CI_WebSocket/Websocket');
 
 		// // Run server
-		ci()->websocket->set_callback('auth', array($this, '_auth'));
-		ci()->websocket->set_callback('event', array($this, '_event'));
-		ci()->websocket->run();
+		$ci->websocket->set_callback('auth', array($this, '_auth'));
+		$ci->websocket->set_callback('event', array($this, '_event'));
+		$ci->websocket->run();
 	}
 
 	public function _auth($datas = null)

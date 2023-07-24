@@ -281,17 +281,17 @@ Route::cli('schedule:run', function () {
 			app($namspaces)->handle($scheduler);
 		}
 
-		output('success', "Task Scheduling is running..") . "\n\n";
+		output('success', "Task Scheduling is running..\n\n");
 
 		// Reset the scheduler after a previous run
 		$scheduler->resetRun()->run(); // now we can run it again
 	} else {
-		output('error', "No task/command to execute") . "\n\n";
+		output('error', "No task/command to execute\n\n");
 	}
 });
 
 Route::cli('schedule:list', function () {
-	dd(cronScheduler()->getExecutedJobs());
+	ddie(cronScheduler()->getExecutedJobs());
 });
 
 Route::cli('schedule:fail', function () {
@@ -306,7 +306,7 @@ Route::cli('schedule:fail', function () {
 	// job that failed
 	$job = $failedJob->getJob();
 
-	dd($failedJob, $exception, $job);
+	ddie($failedJob, $exception, $job);
 });
 
 Route::cli('schedule:work', function () {
@@ -324,11 +324,11 @@ Route::cli('schedule:work', function () {
 			app($namspaces)->handle($scheduler);
 		}
 
-		echo "Task Scheduling is running . . \n\n";
+		output('success', "Task Scheduling is running . . \n\n");
 
 		$scheduler->work();
 	} else {
-		echo "No task/command to execute\n\n";
+		output('info', "No task/command to execute\n\n");
 	}
 });
 
@@ -346,17 +346,17 @@ Route::cli('maintenance/{type}', function ($type = 'on') {
 			if (!file_exists($filename)) {
 				fopen($filename, 'w');
 			};
-			print "[" . timestamp('d/m/Y h:i A') . "]: System is currently offline!\n\n";
+			output('success', "[" . timestamp('d/m/Y h:i A') . "]: System is currently offline!\n");
 		} else if ($type == 'off') {
 			if (file_exists($filename)) {
 				unlink($filename);
 			}
-			print "[" . timestamp('d/m/Y h:i A') . "]: System is back online!\n\n";
+			output('success', "[" . timestamp('d/m/Y h:i A') . "]: System is back online!\n");
 		}
 	}
 });
 
 Route::cli('websocket', function () {
 	output('success', "Websocket is running..");
-	app('App\services\generals\helpers\WebSocketHelpers')->init();
+	app('App\services\generals\helpers\WebSocketRunner')->init();
 });
