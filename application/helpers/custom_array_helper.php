@@ -144,3 +144,24 @@ if (!function_exists('removeArrByVal')) {
 		return array_values(array_diff($array, array($value)));
 	}
 }
+
+if (!function_exists('stringToNestedArray')) {
+	function stringToNestedArray($string, $data, $defaultValue = NULL, $separator = '.')
+	{
+		$keys = explode($separator, $string);
+		$result = $data;
+
+		foreach ($keys as $key) {
+			// If the key exists in the current level of the array, move to the next level.
+			if (is_array($result) && array_key_exists($key, $result)) {
+				$result = $result[$key];
+			} elseif (is_object($result) && isset($result->$key)) {
+				$result = $result->$key;
+			} else {
+				return $defaultValue;
+			}
+		}
+
+		return $result;
+	}
+}

@@ -261,7 +261,7 @@ if (!function_exists('hasData')) {
 
 		// if return data is set to true it will return the data instead of bool,
 		if ($returnData)
-			return $response && !empty($arrKey) ? $data[$arrKey] : ($response ? $data : $defaultValue);
+			return $response && !empty($arrKey) ? stringToNestedArray($arrKey, $data, $defaultValue) : ($response ? $data : $defaultValue);
 		else
 			return $response;
 	}
