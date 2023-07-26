@@ -1,6 +1,73 @@
 // CODEIGNITER 3 : CSRF same as in Application/config/config.php.
 let csrf_token_name = 'cid';
 let csrf_cookie_name = 'ccookie';
+let localeMapCurrency = {
+	USD: {
+		symbol: '$',
+		pattern: '$ #,##0.00',
+		code: 'en-US'
+	}, // United States Dollar (USD)
+	JPY: {
+		symbol: '¥',
+		pattern: '¥ #,##0',
+		code: 'ja-JP'
+	}, // Japanese Yen (JPY)
+	GBP: {
+		symbol: '£',
+		pattern: '£ #,##0.00',
+		code: 'en-GB'
+	}, // British Pound Sterling (GBP)
+	EUR: {
+		symbol: '€',
+		pattern: '€ #,##0.00',
+		code: 'en-GB'
+	}, // Euro (EUR) - Using en-GB for Euro
+	AUD: {
+		symbol: 'A$',
+		pattern: 'A$ #,##0.00',
+		code: 'en-AU'
+	}, // Australian Dollar (AUD)
+	CAD: {
+		symbol: 'C$',
+		pattern: 'C$ #,##0.00',
+		code: 'en-CA'
+	}, // Canadian Dollar (CAD)
+	CHF: {
+		symbol: 'CHF',
+		pattern: 'CHF #,##0.00',
+		code: 'de-CH'
+	}, // Swiss Franc (CHF)
+	CNY: {
+		symbol: '¥',
+		pattern: '¥ #,##0.00',
+		code: 'zh-CN'
+	}, // Chinese Yuan (CNY)
+	SEK: {
+		symbol: 'kr',
+		pattern: 'kr #,##0.00',
+		code: 'sv-SE'
+	}, // Swedish Krona (SEK)
+	MYR: {
+		symbol: 'RM',
+		pattern: 'RM #,##0.00',
+		code: 'ms-MY'
+	}, // Malaysian Ringgit (MYR)
+	SGD: {
+		symbol: 'S$',
+		pattern: 'S$ #,##0.00',
+		code: 'en-SG'
+	}, // Singapore Dollar (SGD)
+	INR: {
+		symbol: '₹',
+		pattern: '₹ #,##0.00',
+		code: 'en-IN'
+	}, // Indian Rupee (INR)
+	IDR: {
+		symbol: 'Rp',
+		pattern: 'Rp #,##0',
+		code: 'id-ID'
+	}, // Indonesian Rupiah (IDR)
+};
 
 // CUSTOM HELPER
 
@@ -388,6 +455,53 @@ const getCurrentDate = () => {
 
 	return yyyy + '-' + mm + '-' + dd;
 }
+
+// CURRENCY HELPER
+
+const formatCurrency = (value, code = null, includeSymbol = false) => {
+	// Check if the "Intl" object is available in the browser
+	if (typeof Intl === 'undefined' || typeof Intl.NumberFormat === 'undefined') {
+		return 'Error: The "Intl" object is not available in this browser, which is required for number formatting.';
+	}
+
+	if (!localeMapCurrency.hasOwnProperty(code)) {
+		return 'Error: Invalid country code.';
+	}
+
+	// Validate the includeSymbol parameter
+	if (typeof includeSymbol !== 'boolean') {
+		return 'Error: includeSymbol parameter must be a boolean value.';
+	}
+
+	const currencyData = localeMapCurrency[code];
+
+	const formatter = new Intl.NumberFormat(currencyData.code, {
+		style: 'decimal',
+		useGrouping: true,
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+
+	if (includeSymbol) {
+		const symbolFormatter = new Intl.NumberFormat(currencyData.code, {
+			style: 'currency',
+			currency: code,
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2,
+		});
+		return symbolFormatter.format(value);
+	}
+
+	return formatter.format(value);
+};
+
+const currencySymbol = (currencyCode = null) => {
+	if (!localeMapCurrency.hasOwnProperty(currencyCode)) {
+		return 'Error: Invalid country code.';
+	}
+
+	return localeMapCurrency[currencyCode]['symbol'];
+};
 
 // API CALLBACK HELPER 
 

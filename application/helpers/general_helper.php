@@ -78,12 +78,16 @@ if (!function_exists('currency_format')) {
 	}
 }
 
-if (!function_exists('formatCurrencyByCountry')) {
-	function formatCurrencyByCountry($value, $code, $includeSymbol = false)
+if (!function_exists('formatCurrency')) {
+	function formatCurrency($value, $code, $includeSymbol = false)
 	{
 		// Check if the "intl" extension is installed and enabled
 		if (!extension_loaded('intl')) {
 			return 'Error: The "intl" extension is not installed or enabled, which is required for number formatting.';
+		}
+
+		if (empty($value)) {
+			$value = 0.0;
 		}
 
 		// Map the country codes to their respective locale codes
