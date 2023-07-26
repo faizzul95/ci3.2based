@@ -78,6 +78,54 @@ if (!function_exists('currency_format')) {
 	}
 }
 
+if (!function_exists('formatCurrencyByCountry')) {
+	function formatCurrencyByCountry($value, $code, $includeSymbol = false)
+	{
+		// Check if the "intl" extension is installed and enabled
+		if (!extension_loaded('intl')) {
+			return 'Error: The "intl" extension is not installed or enabled, which is required for number formatting.';
+		}
+
+		// Map the country codes to their respective locale codes
+		$localeMap = array(
+			'USD' => ['pattern' => '$ #,##0.00', 'code' => 'en_US'], // United States Dollar (USD)
+			'JPY' => ['pattern' => '¥ #,##0', 'code' => 'ja_JP'], // Japanese Yen (JPY)
+			'GBP' => ['pattern' => '£ #,##0.00', 'code' => 'en_GB'], // British Pound Sterling (GBP)
+			'EUR' => ['pattern' => '€ #,##0.00', 'code' => 'en_GB'], // Euro (EUR) - Using en_GB for Euro
+			'AUD' => ['pattern' => 'A$ #,##0.00', 'code' => 'en_AU'], // Australian Dollar (AUD)
+			'CAD' => ['pattern' => 'C$ #,##0.00', 'code' => 'en_CA'], // Canadian Dollar (CAD)
+			'CHF' => ['pattern' => 'CHF #,##0.00', 'code' => 'de_CH'], // Swiss Franc (CHF)
+			'CNY' => ['pattern' => '¥ #,##0.00', 'code' => 'zh_CN'], // Chinese Yuan (CNY)
+			'SEK' => ['pattern' => 'kr #,##0.00', 'code' => 'sv_SE'], // Swedish Krona (SEK)
+			'MYR' => ['pattern' => 'RM #,##0.00', 'code' => 'ms_MY'], // Malaysian Ringgit (MYR)
+			'SGD' => ['pattern' => 'S$ #,##0.00', 'code' => 'en_SG'], // Singapore Dollar (SGD)
+			'INR' => ['pattern' => '₹ #,##0.00', 'code' => 'en_IN'], // Indian Rupee (INR) - Using en_IN for Rupee
+			'IDR' => ['pattern' => 'Rp #,##0', 'code' => 'id_ID'], // Indonesian Rupiah (IDR)
+		);
+
+		if (!array_key_exists($code, $localeMap)) {
+			return "Error: Invalid country code.";
+		}
+
+		// Validate the $includeSymbol parameter
+		if (!is_bool($includeSymbol)) {
+			return "Error: \$includeSymbol parameter must be a boolean value.";
+		}
+
+		$currencyData = $localeMap[$code];
+
+		// Create a NumberFormatter instance with the desired locale (country code)
+		$formatter = new NumberFormatter($currencyData['code'], NumberFormatter::DECIMAL);
+
+		if ($includeSymbol) {
+			$formatter->setPattern($currencyData['pattern']);
+		}
+
+		// Format the currency value using the NumberFormatter
+		return $formatter->formatCurrency($value, $currencyData['code']);
+	}
+}
+
 // ENCODE & DECODE HELPERS SECTION
 
 if (!function_exists('encode_base64')) {
