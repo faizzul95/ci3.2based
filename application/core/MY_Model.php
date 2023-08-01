@@ -113,6 +113,21 @@ class MY_Model extends CI_Model
 	 */
 	public $protected = null;
 
+	/**
+	 * @var null|array
+	 * Sets hidden fields.
+	 * If value is set as null, the $hidden will be set as an array.
+	 * If value is set as an array, there won't be any changes done to it 
+	 */
+	public $hidden = null;
+
+	/**
+	 * @var null|array
+	 * Sets hidden fields.
+	 * If value is set as null, the $hidden will be set as an array.
+	 * If value is set as an array, there won't be any changes done to it 
+	 */
+	public $appends = null;
 
 	/** @var bool | array
 	 * Enables created_at and updated_at fields
@@ -823,9 +838,21 @@ class MY_Model extends CI_Model
 			$this->_reset_trashed();
 			if ($query->num_rows() == 1) {
 				$row = $query->row_array();
+
 				$row = $this->trigger('after_get', $row);
 				$row =  $this->_prep_after_read(array($row), FALSE);
 				$row = is_array($row) ? $row[0] : $row->{0};
+
+				if (!empty($row)) {
+					if ($this->appends) {
+						$row = $this->appendData($row);
+					}
+
+					if ($this->hidden) {
+						$row = $this->removeHiddenDataRecursive($row, $this->hidden);
+					}
+				}
+
 				$this->_write_to_cache($row);
 
 				if ($returnRawQuery)
@@ -879,6 +906,17 @@ class MY_Model extends CI_Model
 				$data = $query->result_array();
 				$data = $this->trigger('after_get', $data);
 				$data = $this->_prep_after_read($data, TRUE);
+
+				if (!empty($data)) {
+					if ($this->appends) {
+						$data = $this->appendData($data);
+					}
+
+					if ($this->hidden) {
+						$data = $this->removeHiddenDataRecursive($data, $this->hidden);
+					}
+				}
+
 				$this->_write_to_cache($data);
 				return $data;
 			} else {
@@ -1369,6 +1407,19 @@ class MY_Model extends CI_Model
 				break;
 		}
 		//$this->_trashed = ''; issue #208...
+		return $this;
+	}
+
+	/**
+	 * public function with_hidden()
+	 * Sets $hidden to null
+	 */
+	public function with_hidden($item = true)
+	{
+		if ($item) {
+			$this->hidden = NULL;
+		}
+
 		return $this;
 	}
 
@@ -1989,6 +2040,67 @@ class MY_Model extends CI_Model
 		}
 
 		return $result;
+	}
+
+	public function removeHiddenDataRecursive($data, $hidden)
+	{
+		if ($data) {
+			foreach ($data as $key => $value) {
+				// If the current element is an array, recursively remove hidden keys
+				if (is_array($value)) {
+					$data[$key] = $this->removeHiddenDataRecursive($value, $hidden);
+				} else {
+					// If the key is in the $hidden array, remove it from the $data array
+					if (in_array($key, $hidden)) {
+						unset($data[$key]);
+					}
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	public function appendData($resultQuery)
+	{
+		if ($this->appends) {
+			foreach ($this->appends as $func) {
+				$words = trim($func);
+				$words = explode('_', $func);
+				$formattedWords = array_map('ucfirst', $words);
+				$formattedName = implode('', $formattedWords);
+				$functionName = 'get' . $formattedName . 'Attribute';
+
+				if (method_exists($this, $functionName)) {
+					if ($this->is_multidimensional($resultQuery)) {
+						foreach ($resultQuery as $key => $dataRes) {
+
+							// set variable attribute
+							foreach ($this->fillable as $attributeName) {
+								$this->$attributeName = $dataRes[$attributeName];
+							}
+
+							$resultQuery[$key][trim($func)] = $this->$functionName();
+						}
+					} else {
+						// set variable attribute to object $this
+						foreach ($this->fillable as $attributeName) {
+							$this->$attributeName = $resultQuery[$attributeName];
+						}
+
+						$resultQuery[trim($func)] = $this->$functionName();
+					}
+				}
+
+				// remove variable attribute from object $this
+				foreach ($this->fillable as $attributeName) {
+					if ($this->$attributeName)
+						unset($this->$attributeName);
+				}
+			}
+		}
+
+		return $resultQuery;
 	}
 
 	/*

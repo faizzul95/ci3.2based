@@ -22,6 +22,16 @@ trait QueryTrait
 			if (hasData($filter, 'conditions')) {
 				$query->scopeConditionQuery($query, $filter['conditions']);
 			}
+
+			if (hasData($filter, 'limit')) {
+				$query->limit($filter['limit'], 0);
+			}
+
+			if (hasData($filter, 'hidden')) {
+				// if set to true. will return all data include hidden field
+				// else set to false. the hidden field will be exclude in result query
+				$query->with_hidden($filter['hidden']);
+			}
 		}
 
 		return $query;
