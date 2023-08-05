@@ -71,8 +71,17 @@ let localeMapCurrency = {
 
 // CUSTOM HELPER
 
-const log = (value = null, comment = '') => {
-	console.log(comment, value);
+const log = (...args) => {
+	args.forEach((param) => {
+		console.log(param);
+	});
+}
+
+const dd = (...args) => {
+	args.forEach((param) => {
+		console.log(param);
+	});
+	throw new Error("Execution terminated by dd()");
 }
 
 const loadingBtn = (id, display = false, text = "<i class='ti ti-device-floppy ti-xs mb-1'></i> Save") => {
@@ -373,10 +382,16 @@ const hasData = (data = null, arrKey = null, returnData = false, defaultValue = 
 
 	// if return data is set to true it will return the data instead of bool
 	if (returnData) {
-		return response && isset(arrKey) ? data[arrKey] : (response ? data : defaultValue);
+		return response && isset(arrKey) ? stringToNestedArray(arrKey, data, defaultValue) : (response ? data : defaultValue);
 	}
 
 	return response;
+};
+
+const stringToNestedArray = (string, data, defaultValue = null, separator = '.') => {
+	const keys = string.split(separator);
+	const result = keys.reduce((obj, key) => obj !== undefined && obj !== null ? obj[key] : defaultValue, data);
+	return result === undefined ? defaultValue : result;
 };
 
 const trimData = (text = null) => {
