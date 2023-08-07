@@ -1867,17 +1867,13 @@ class MY_Model extends CI_Model
 		return purify($data);
 	}
 
-	public function toSql($query, $index = 1)
+	public function toSql($query, $index = 0)
 	{
 		$response = $rawSql = NULL;
 		$result = $query->get(NULL, true);
 
-		if (hasData($result) && count($result) > 0) {
-			if ($index == 1)
-				$response = $result[1];
-			else if (is_null($index) || empty($index))
-				$response = $result;
-			else if (array_key_exists($index, $result))
+		if (is_array($result) && count($result) > 0) {
+			if (array_key_exists($index, $result))
 				$response = $result[$index];
 		}
 

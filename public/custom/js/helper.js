@@ -1,4 +1,4 @@
-// CODEIGNITER 3 : CSRF same as in Application/config/config.php.
+// CODEIGNITER 3 : CSRF must be same as in ENV Files.
 let csrf_token_name = 'cid';
 let csrf_cookie_name = 'ccookie';
 let localeMapCurrency = {
@@ -1080,6 +1080,35 @@ const nodataAccess = (filesName = '403.png') => {
             </div>";
 }
 
+const skeletonTableOnly = (totalData = 3) => {
+
+	let body = '';
+	for (let index = 0; index < totalData; index++) {
+		body += '<tr>\
+					<td width="5%" class="skeleton"> </td>\
+					<td width="31%" class="skeleton"> </td>\
+					<td width="25%" class="skeleton"> </td>\
+					<td width="25%" class="skeleton"> </td>\
+					<td width="14%" class="skeleton"> </td>\
+				</tr>';
+	}
+
+	return '<div class="col-xl-12 mt-2">\
+				<button type="button" class="btn btn-default btn-sm skeleton">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </button>\
+				<button type="button" class="btn btn-default btn-sm float-end skeleton mb-3">\
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+				</button>\
+				<table class="table">\
+					<tbody>' + body + '</tbody>\
+				</table>\
+				<button type="button" class="btn btn-default btn-sm float-end skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button>\
+				<button type="button" class="btn btn-default btn-sm me-1 float-end skeleton">&nbsp;&nbsp;</button>\
+				<button type="button" class="btn btn-default btn-sm me-1 float-end skeleton">&nbsp;&nbsp;</button>\
+				<button type="button" class="btn btn-default btn-sm me-1 float-end skeleton">&nbsp;&nbsp;</button>\
+				<button type="button" class="btn btn-default btn-sm me-1 float-end skeleton">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button>\
+			</div>';
+}
+
 const skeletonTable = (hasButton = true, hasFilter = null, buttonRefresh = true) => {
 
 	let totalData = 3;
@@ -1239,7 +1268,7 @@ const generateClientDt = async (id, url = null, dataObj = null, filterColumn = [
 	return table;
 }
 
-const generateServerDt = (id, url = null, nodatadiv = 'nodatadiv', dataObj = null, filterColumn = []) => {
+const generateServerDt = (id, url = null, nodatadiv = 'nodatadiv', dataObj = null, filterColumn = [], screenLoadID = null) => {
 
 	const tableID = $('#' + id);
 	tableID.DataTable().clear().destroy();
@@ -1250,6 +1279,14 @@ const generateServerDt = (id, url = null, nodatadiv = 'nodatadiv', dataObj = nul
 		dataObj[csrf_token_name] = Cookies.get(csrf_cookie_name) // csrf token
 		// dataSent = new URLSearchParams(dataObj);
 		dataSent = dataObj;
+	}
+
+	if (screenLoadID != null) {
+		// loading('#' + screenLoadID, true);
+		$('#' + id + 'Div').hide();
+		$('#' + nodatadiv).empty();
+		$('#' + nodatadiv).hide();
+        $('#' + screenLoadID).html(skeletonTableOnly(5));
 	}
 
 	let ajaxConfig = {
@@ -1310,12 +1347,17 @@ const generateServerDt = (id, url = null, nodatadiv = 'nodatadiv', dataObj = nul
 
 			var totalData = this.api().data().length;
 
+			if (screenLoadID != null) {
+				$('#' + screenLoadID).empty();
+			}
+
 			if (totalData > 0) {
 				$('#' + nodatadiv).hide();
 				$('#' + id + 'Div').show();
 			} else {
 				tableID.DataTable().clear().destroy();
 				$('#' + id + 'Div').hide();
+				$('#' + nodatadiv).html(nodata());
 				$('#' + nodatadiv).show();
 			}
 
