@@ -1,20 +1,32 @@
 CODEIGNITER 3.20 (BASED) SERVICES - DOCUMENTATION
 
-Requirement : Remember to create MODEL (refer readme to create model using command/cli) first!
+Description : 
+
+This documentation is meant to provide a better understanding of the new approach for creating logic, which replaces the original method in CodeIgniter 3.
+
+The original approach used in CodeIgniter 3 involved creating every CRUD logic within the Controller and handling all data operations within the Model. 
+This resulted in the necessity of creating different functions in either the model or the controller for each required query to retrieve data.
+
+However, with the introduction of the CRUD isolation method as services, developers can now utilize the same functionality across various contexts. 
+This not only enables consistency but also simplifies the task of maintaining the code.
 
 ==============================================================================================
 
-1. Folder: Logic
+Requirement : Remember to create MODEL first! (refer readme to create model using command/cli) 
+
+==============================================================================================
+
+1. Folder: Logics
 	a) Used for business logic:
-		i) ShowLogic - used to create logic for single data.
+		i) ShowLogic - used to create logic for query single result by ID or primary key conditions.
 		ii) StoreLogic - used to create logic for inserting and updating data.
 		iii) DeleteLogic - used to create logic for deleting data.
 
 2. Folder: Processors
 	a) Used for processing database operations: saving, deleting, and updating.
 	b) Use the following prefixes:
-		i) ShowProcessor - used to query a single result by ID or primary key conditions.
-		ii) StoreProcessor - used to save (insert/update) data.
+		i) StoreProcessor - used to save (insert/update) data.
+		ii) DeleteProcessor - used to destroy data.
 		iii) SearchProcessor - used for advanced querying based on specific columns (defined by filters). Refer to the example below:
 
 				$filter = [
@@ -251,11 +263,11 @@ class UserShowLogic  <--- change
 
 <?php
 
-namespace App\services\modules\core\users\processors;
+namespace App\services\modules\core\users\processors; <--- change
 
 use App\services\generals\traits\QueryTrait;
 
-class UserStoreProcessors
+class UserStoreProcessors <--- change
 {
 	use QueryTrait;
 
@@ -295,7 +307,6 @@ class UserDeleteProcessors <--- change
 
 // BASIC STRUCTURE FOR Search Processors
 
-
 <?php
 
 namespace App\services\modules\users\processors; <--- change
@@ -328,16 +339,30 @@ class UserSearchProcessors <--- change
 
 ==============================================================================================
 
+// EXAMPLE USAGE OF SEARCH PROCESSOR (in Controller or Any files)
+
+1) IMPORTING THE CLASS
+
+	use App\services\modules\core\users\processors\UserSearchProcessors;
+
+	$data = app(new UserSearchProcessors)->execute($filter, 'get');
+
+2) DIRECT USAGE
+
+	$data = app('App\services\modules\core\users\processors\UserSearchProcessors')->execute($filter, 'get');
+
+..............................................................................................
+
 ADDITIONAL NOTES FOR SearchProcessors:
 
 Function Structure:
 
 execute($filter = NULL, $fetchType = 'get_all', $cache_file_name = NULL)
 
-	1) Parameter 1 ($filter): Receives an array for the query. The default value is NULL.
-	2) Parameter 2 ($fetchType): Can only accept the following values:
-		a) get_all (default) 	- Retrieves all data.
-		b) get 					- Retrieves a single data.
-		c) count_rows 			- Returns the total number of rows.
-		d) toSql 				- Returns the query string.
+	1) Parameter 1 ($filter)	: Receives an array for the query. The default value is NULL.
+	2) Parameter 2 ($fetchType)	: Can only accept the following values:
+		a) get_all (default) - Retrieves all data.
+		b) get 				 - Retrieves a single data.
+		c) count_rows 		 - Returns the total number of rows.
+		d) toSql 			 - Returns the query string.
 	3) Parameter 3 ($cache_file_name): Caches the result. This enhances data retrieval speed when the cache exists. The default value is NULL.
