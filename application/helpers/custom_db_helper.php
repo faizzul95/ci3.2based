@@ -608,24 +608,39 @@ if (!function_exists('isInsertData')) {
 	}
 }
 
-function getClassNameFromFile($filePathName)
-{
-	$php_code = file_get_contents($filePathName);
-
-	$classes = array();
-	$tokens = token_get_all($php_code);
-	$count = count($tokens);
-	for ($i = 2; $i < $count; $i++) {
-		if (
-			$tokens[$i - 2][0] == T_CLASS
-			&& $tokens[$i - 1][0] == T_WHITESPACE
-			&& $tokens[$i][0] == T_STRING
-		) {
-
-			$class_name = $tokens[$i][1];
-			$classes[] = $class_name;
+if (!function_exists('createWhereCondition')) {
+	function createWhereCondition($condition , $conditional = 'AND')
+	{
+		$conditionString = [];
+		foreach ($condition as $field => $value) {
+			if (!empty($value) && $value !== '')
+				$conditionString[] = "$field='$value'";
 		}
-	}
 
-	return $classes[0];
+		return !empty($conditionString) ? implode(' '.$conditional.' ', $conditionString) : '';
+	}
+}
+
+if (!function_exists('getClassNameFromFile')) {
+	function getClassNameFromFile($filePathName)
+	{
+		$php_code = file_get_contents($filePathName);
+
+		$classes = array();
+		$tokens = token_get_all($php_code);
+		$count = count($tokens);
+		for ($i = 2; $i < $count; $i++) {
+			if (
+				$tokens[$i - 2][0] == T_CLASS
+				&& $tokens[$i - 1][0] == T_WHITESPACE
+				&& $tokens[$i][0] == T_STRING
+			) {
+
+				$class_name = $tokens[$i][1];
+				$classes[] = $class_name;
+			}
+		}
+
+		return $classes[0];
+	}
 }

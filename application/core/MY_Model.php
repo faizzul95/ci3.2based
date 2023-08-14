@@ -1971,38 +1971,64 @@ class MY_Model extends CI_Model
 
 	public function scopeConditionQuery($query, $filter)
 	{
-		foreach ($filter as $columnName => $value) {
-			if (is_array($value)) {
-				$operator = strtoupper($value[0]);
-				if (in_array($operator, ['IN', 'NOT IN'])) {
-					$values = is_array($value[1]) ? $value[1] : [$value[1]];
-					$notCondition = false;
+		if (is_array($filter)) {
+			foreach ($filter as $columnName => $value) {
+				if (is_array($value)) {
 
-					if ($operator == 'NOT IN') {
-						$notCondition = true;
+					$operator = strtoupper($value[0]);
+
+					if (in_array($operator, ['IN', 'NOT IN'])) {
+						$values = is_array($value[1]) ? $value[1] : [$value[1]];
+						$notCondition = false;
+
+						if ($operator == 'NOT IN') {
+							$notCondition = true;
+						}
+
+						$query->where($columnName, $values, NULL, false, $notCondition);
+					} else if ($operator == 'BETWEEN') {
+						$values = is_array($value[1]) ? $value[1] : [$value[1]];
+
+						$valueFrom = $values[0];
+						$valueTo = count($values) == 1 ? $values[0] : $values[1];
+
+						$minValueFrom = min([$valueFrom, $valueTo]);
+						$maxValueTo = max([$valueFrom, $valueTo]);
+
+						$query->where($columnName, ">=", $minValueFrom, false);
+						$query->where($columnName, "<=", $maxValueTo, false);
+					} else if ($operator == 'LIKE') {
+						$valueToSearch = $value[1];
+						if (count($value) <= 2) {
+							$query->where($columnName, 'like', $valueToSearch);
+						} else {
+							$pattern = $value[2];
+
+							if (strpos($pattern, '%a%') !== false) {
+								$likeValue = str_replace('%a%', '%' . $valueToSearch . '%', $pattern);
+							} elseif (strpos($pattern, '%a') !== false) {
+								$likeValue = str_replace('%a', '%' . $valueToSearch, $pattern);
+							} elseif (strpos($pattern, 'a%') !== false) {
+								$likeValue = str_replace('a%',  $valueToSearch . '%', $pattern);
+							} else {
+								$likeValue = $pattern;
+							}
+
+							$filter = $columnName . " " . $operator . " '" . $likeValue . "'";
+							$query->where($filter, NULL, NULL, FALSE, FALSE, TRUE);
+						}
+					} else {
+						if (!is_array($value[1])) {
+							$values = $value[1];
+							$query->where($columnName, $operator, $value[1], false);
+						}
 					}
-
-					$query->where($columnName, $values, NULL, false, $notCondition);
-				} else if ($operator == 'BETWEEN') {
-					$values = is_array($value[1]) ? $value[1] : [$value[1]];
-
-					$valueFrom = $values[0];
-					$valueTo = count($values) == 1 ? $values[0] : $values[1];
-
-					$minValueFrom = min([$valueFrom, $valueTo]);
-					$maxValueTo = max([$valueFrom, $valueTo]);
-
-					$query->where($columnName, ">=", $minValueFrom, false);
-					$query->where($columnName, "<=", $maxValueTo, false);
 				} else {
-					if (!is_array($value[1])) {
-						$values = $value[1];
-						$query->where($columnName, $operator, $value[1], false);
-					}
+					$query->where($columnName, $value);
 				}
-			} else {
-				$query->where($columnName, $value);
 			}
+		} else {
+			$query->where($filter, NULL, NULL, FALSE, FALSE, TRUE);
 		}
 
 		return $query;
@@ -2073,7 +2099,7 @@ class MY_Model extends CI_Model
 
 							// set variable attribute
 							foreach ($this->fillable as $attributeName) {
-								$this->$attributeName = $dataRes[$attributeName];
+								$this->$attributeName = array_key_exists($attributeName, $dataRes) ? $dataRes[$attributeName] : NULL;
 							}
 
 							$resultQuery[$key][trim($func)] = $this->$functionName();

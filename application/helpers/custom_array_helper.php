@@ -43,6 +43,17 @@ if (!function_exists('fillUndefinedIndex')) {
 	}
 }
 
+if (!function_exists('removeNullorEmptyValues')) {
+	function removeNullorEmptyValues(array &$array)
+	{
+		foreach ($array as $key => $value) {
+			if (empty($value) || $value === '') {
+				unset($array[$key]);
+			}
+		}
+	}
+}
+
 if (!function_exists('searcharrayExist')) {
 	function searcharrayExist($valueSearch, $array)
 	{

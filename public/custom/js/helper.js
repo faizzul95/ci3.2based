@@ -1080,7 +1080,7 @@ const nodataAccess = (filesName = '403.png') => {
             </div>";
 }
 
-const skeletonTableOnly = (totalData = 3) => {
+const skeletonTableOnly = (totalData = 5) => {
 
 	let body = '';
 	for (let index = 0; index < totalData; index++) {
@@ -1205,6 +1205,7 @@ const getImageDefault = (imageName, path = 'public/upload/default/') => {
 	return urls(path + imageName);
 }
 
+// DATATABLE HELPER
 
 const generateClientDt = async (id, url = null, dataObj = null, filterColumn = [], nodatadiv = 'nodatadiv', screenLoadID = 'nodata') => {
 
@@ -1365,4 +1366,68 @@ const generateServerDt = (id, url = null, nodatadiv = 'nodatadiv', dataObj = nul
 	};
 
 	return tableID.DataTable(tableConfig);
+}
+
+// IMPORT EXCEL & PRINT HELPER
+
+const printHelper = async (method = 'get', url, filter = null, config = null) => {
+
+	let btnID = hasData(config, 'id', true, 'printBtn');
+	let btnText = hasData(config, 'text', true, '<i class="bx bx-printer"></i> Print');
+	let textHeader = hasData(config, 'header', true, 'LIST');
+
+	loadingBtn(btnID, true);
+
+	const res = await callApi(method, url, filter);
+
+	if (isSuccess(res)) {
+
+		if (isSuccess(res.data.resCode)) {
+			const divToPrint = document.createElement('div');
+			divToPrint.setAttribute('id', 'generatePDF');
+			divToPrint.innerHTML = res.data.result
+
+			document.body.appendChild(divToPrint);
+			printDiv('generatePDF', btnID, $('#' + btnID).html(), textHeader);
+			document.body.removeChild(divToPrint);
+		} else {
+			noti(res.data.resCode, res.data.message);
+			console.log(res.data.resCode, res.data.message);
+		}
+
+		setTimeout(function () {
+			loadingBtn(btnID, false, btnText);
+		}, 450);
+	}
+}
+
+// EXPORT LIST TO EXCEL
+const exportExcelHelper = async (method = 'get', url, filter = null, config = null) => {
+
+	let btnID = hasData(config, 'id', true, 'exportBtn');
+	let btnText = hasData(config, 'text', true, '<i class="bx bx-spreadsheet"></i> Export as Excel');
+
+	loadingBtn(btnID, true);
+
+	const res = await callApi(method, url, filter);
+
+	if (isSuccess(res)) {
+		noti(res.data.resCode, res.data.message);
+
+		// Create a link to download the Excel file
+		const link = document.createElement('a');
+		link.href = res.data.path;
+		link.download = res.data.filename;
+		document.body.appendChild(link);
+
+		// Click the link to start the download
+		link.click();
+
+		// Remove the link from the DOM
+		document.body.removeChild(link);
+	}
+
+	setTimeout(function () {
+		loadingBtn(btnID, false, btnText);
+	}, 450);
 }
