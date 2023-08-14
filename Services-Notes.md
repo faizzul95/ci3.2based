@@ -1,122 +1,142 @@
+CODEIGNITER 3.20 (BASED) SERVICES - DOCUMENTATION
+
 Requirement : Remember to create MODEL (refer readme to create model using command/cli) first!
 
 ==============================================================================================
 
-1- Folder : Logics
-    a) use for business logic 
-        i)   ShowLogic   - use to make a logic for single data
-        ii)  StoreLogic  - use to make a logic for insert & update data
-        iii) DeleteLogic - use to make a logic for delete data
+1. Folder: Logic
+	a) Used for business logic:
+		i) ShowLogic - used to create logic for single data.
+		ii) StoreLogic - used to create logic for inserting and updating data.
+		iii) DeleteLogic - used to create logic for deleting data.
 
-2- Folder : Processors
-    a) use for processing to database, save, delete, update
-    b) Use prefix as below:-
-        i)   ShowProcessor - to query single result by id or PK conditions
-        ii)  StoreProcessor - to save (insert/update) data
-        iii) SearchProcessor - to advanced query by specific column (define by filter). refer example below
+2. Folder: Processors
+	a) Used for processing database operations: saving, deleting, and updating.
+	b) Use the following prefixes:
+		i) ShowProcessor - used to query a single result by ID or primary key conditions.
+		ii) StoreProcessor - used to save (insert/update) data.
+		iii) SearchProcessor - used for advanced querying based on specific columns (defined by filters). Refer to the example below:
 
-                $filter = [
-                    'fields' => '', <--- built in, string with coma (,) as separator
-                    'conditions' => '', <--- built in, string or array
-                    'limit' => [], <--- built in, string 
-                    'hidden' => [], <--- built in, boolean = TRUE to return all data include hidden field, FALSE to exclude hidden field
-                    'with' => [], <--- built in, array 
-                    'min' => '', <--- built in, string or array 
-                    'max' => '', <--- built in, string or array 
-                    'sum' => '', <--- built in, string or array 
-                    'searchQuery'=> '', <--- self-defined in searchProcessors (required)
-                    'whereQuery', <--- self-defined in searchProcessors
-                ];
-
-                ----------------------------------------------------------------------
-
-                EXAMPLE FOR USING CONDITION 
-
-                // example for conditions using ARRAY
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'date_start >=' => '2023-08-10',
-                        'date_completed <' => '2023-08-14',
-                    ],
-                    ......
-                ];
-
-                // example for conditions using STRING
-                $filter = [
-                    ......
-                    'conditions' => "date_start >= '2023-08-10' AND date_completed < '2023-08-14'",
-                    ......
-                ];
+				$filter = [
+					'fields' => '', // Built-in: a string with commas (,) as separators.
+					'conditions' => '', // Built-in: a string or array for specifying conditions.
+					'limit' => '', // Built-in: a string to specify the limit.
+					'hidden' => [], // Built-in: a boolean. Set to TRUE to return all data, including hidden fields, or FALSE to exclude hidden fields (model-related).
+					'with' => [], // Built-in: an array for specifying relationships.
+					'min' => '', // Built-in: a string or array for specifying minimum values.
+					'max' => '', // Built-in: a string or array for specifying maximum values.
+					'sum' => '', // Built-in: a string or array for specifying sum operations.
+					'searchQuery' => '', // Self-defined in searchProcessors (required).
+					'whereQuery' => '', // Self-defined in searchProcessors.
+				];
 
                 ----------------------------------------------------------------------
 
-                EXAMPLE FOR USING CONDITION "!=", ">", ">=" , "<", "<=" AND ANY SQL CONDITION EXCEPT "=" 
+                EXAMPLE FOR USING CONDITION (BASIC)
 
-                // example for "!=" conditions
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'id !=' => 2,
-                    ],
-                    ......
-                ];
+                1) Conditions using ARRAY
 
-                // example for ">=" & "<" conditions
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'date_start >=' => '2023-08-10',
-                        'date_completed <' => '2023-08-14',
-                    ],
-                    ......
-                ];
+					$filter = [
+						......
+						'conditions' => [
+							'id' => 2,
+							'user_age >=' => '30',
+							'user_register <' => '2023-08-14',
+						],
+						......
+					];
+
+                2) Conditions using STRING (RAW QUERY)
+				
+					$filter = [
+						......
+						'conditions' => "id = 2 AND user_age >= '30' AND user_register < '2023-08-14'",
+						......
+					];
 
                 ----------------------------------------------------------------------
 
-                EXAMPLE FOR USING CONDITION "IN", "NOT IN", "BETWEEN" , "LIKE" 
+				EXAMPLE OF USING CONDITIONS SUCH AS "!=", ">", ">=", "<", "<=" OR ANY SQL CONDITION EXCEPT "=": 
 
-                // example for IN conditions
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'id' => ['IN', [1,2,3,4,5]],
-                    ],
-                    ......
-                ];
+                1) Using "!=" conditions
 
-                // example for NOT IN
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'user_status' => ['NOT IN', [1,2,3,4]],
-                    ],
-                    ......
-                ];
+					$filter = [
+						......
+						'conditions' => [
+							'id !=' => 2,
+						],
+						......
+					];
 
-                // example for BETWEEN 
-                // NOTE : VALUE 1 & VALUE 2 will auto detect which is min and max. can only have 2 values
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'register_date' => ['BETWEEN', ['VALUE 1', 'VALUE 2']],
-                    ],
-                    ......
-                ];
+                2) Using ">=" & "<" conditions simultaneous
 
-                // example for LIKE 
-                // NOTE : 
-                    1) 1st param is LIKE - required, 
-                    2) 2nd param is value to search - required, 
-                    3) 3rd param is pattern (only accept %a, %a%, a%) - optional, default is %a%
+					$filter = [
+						......
+						'conditions' => [
+							'date_start >=' => '2023-08-10',
+							'date_completed <' => '2023-08-14',
+						],
+						......
+					];
 
-                $filter = [
-                    ......
-                    'conditions' => [
-                        'username' => ['LIKE', 'TEST DATA', '%a'],
-                    ],
-                    ......
-                ];
+                ----------------------------------------------------------------------
+
+				EXAMPLE OF USING CONDITION: "IN", "NOT IN", "BETWEEN", "LIKE"
+
+                1) IN conditions
+
+					a) 1st param is IN - required
+                    b) 2nd param is value to be searched in array - required
+
+					$filter = [
+						......
+						'conditions' => [
+							'id' => ['IN', [1,2,3,4,5]],
+						],
+						......
+					];
+
+                2) NOT IN conditions
+
+					a) 1st param is NOT IN - required 
+                    b) 2nd param is value to be searched in array - required
+
+					$filter = [
+						......
+						'conditions' => [
+							'user_status' => ['NOT IN', [1,2,3,4]],
+						],
+						......
+					];
+
+                3) BETWEEN conditions
+
+				 	a) 1st param is BETWEEN - required 
+                    b) 2nd param is value to be searched in array (only 2 value max) - required 
+
+                	ADDITINAL NOTES : VALUE 1 & VALUE 2 will auto detect which is min and max.
+
+					$filter = [
+						......
+						'conditions' => [
+							'register_date' => ['BETWEEN', ['VALUE 1', 'VALUE 2']],
+						],
+						......
+					];
+
+                4) LIKE conditions
+                	 
+                    a) 1st param is LIKE - required, 
+                    b) 2nd param is value to be searched - required, 
+                    c) 3rd param is pattern (only accepts %a, %a%, a%) - optional, default is %a% if not set
+
+					$filter = [
+						......
+						'conditions' => [
+							'username' => ['LIKE', $value, '%a'],
+						],
+						......
+					];
 
                 ----------------------------------------------------------------------
 
@@ -147,7 +167,7 @@ Requirement : Remember to create MODEL (refer readme to create model using comma
                     ]
 
 
-                 EXAMPLE 3 (ADVANCED WITH - INCLUDE CONDITION) :
+                EXAMPLE 3 (ADVANCED WITH - INCLUDE CONDITION) :
 
                     $filter = [
                         'fields' => 'id,name,user_preferred_name,email,user_contact_no',
@@ -176,37 +196,37 @@ Requirement : Remember to create MODEL (refer readme to create model using comma
 
                 ----------------------------------------------------------------------
 
-                Notes : This example can be use for MAX, MIN & SUM
+				Notes: This example can be used for MAX, MIN & SUM operations.
 
-                EXAMPLE USING MAX (STRING) : 
+				EXAMPLE USING MAX (STRING):
 
-                    $filter = [
-                        ......
-                        'max' => 'user_gender' <-- this is column name, use for single column
-                        ......
-                    ]
+					$filter = [
+						......
+						'max' => 'user_gender', // This is the column name, used for a single column.
+						......
+					]
 
-                EXAMPLE USING MAX (ARRAY (NON-MULTI) - param1 : column name, param2 : alias_name) : 
+				EXAMPLE USING MAX (ARRAY - param1: column name, param2: alias_name):
 
-                    $filter = [
-                        ......
-                        'max' => ['user_gender', 'gender'] <--- this is column name & alias for column name
-                        ......
-                    ]
+					$filter = [
+						......
+						'max' => ['user_gender', 'gender'], // This is the column name and alias for the column.
+						......
+					]
 
-                EXAMPLE USING MAX (ARRAY MULTI-DIMENSION - param1 : column name, param2 : alias_name) : 
+				EXAMPLE USING MAX (MULTI-DIMENSIONAL ARRAY - param1: column name, param2: alias_name):
 
-                    $filter = [
-                        ......
-                        'max' => [['user_gender', 'gender'], ['user_wages', 'wages']] <-- if has multiple column use this instead (include alias)
-                        ......
-                    ]
+					$filter = [
+						......
+						'max' => [['user_gender', 'gender'], ['user_wages', 'wages']], // If there are multiple columns, use this format (including aliases).
+						......
+					]
 
 
 ==============================================================================================
 
 
-// BASIC STRUCTURE FOR Logics
+// BASIC STRUCTURE FOR Logics (Show, Store [Insert/Update], Delete/Destroy)
 
 
 <?php
@@ -221,15 +241,59 @@ class UserShowLogic  <--- change
 
     public function logic($request)
     {
-        
+        // any business logic
     }
+}
+
+==============================================================================================
+
+// BASIC STRUCTURE FOR Store Processors
+
+<?php
+
+namespace App\services\modules\core\users\processors;
+
+use App\services\generals\traits\QueryTrait;
+
+class UserStoreProcessors
+{
+	use QueryTrait;
+
+	public function execute($request = NULL)
+	{
+		$query = $this->newQuery('User_model');
+		return $query::save($request);
+	}
 }
 
 
 ==============================================================================================
 
 
-// BASIC STRUCTURE FOR Processors
+// BASIC STRUCTURE FOR Delete Processors
+
+<?php
+
+namespace App\services\modules\core\users\processors; <--- change
+
+use App\services\generals\traits\QueryTrait;
+
+class UserDeleteProcessors <--- change
+{
+	use QueryTrait;
+
+	public function execute($request = NULL)
+	{
+		$query = $this->newQuery('<--- CHANGE TO MODEL CLASS NAME --->');
+		return $query::remove($request);
+	}
+}
+
+
+==============================================================================================
+
+
+// BASIC STRUCTURE FOR Search Processors
 
 
 <?php
@@ -248,8 +312,8 @@ class UserSearchProcessors <--- change
 
         if (hasData($filter)) {
             if (hasData($filter, 'searchQuery')) {
-                $query->where('<--- CHANGE TO CoLUMN NAME --->', 'like', $filter['searchQuery'])           // this will be LIKE $search
-                    ->where('<--- CHANGE TO CoLUMN NAME --->', 'like', $filter['searchQuery'], true);    // if put true, will be OR LIKE $search. else will be AND LIKE $search
+                $query->where('<--- CHANGE TO COLUMN NAME --->', 'like', $filter['searchQuery'])         // this will be LIKE $search
+                    ->where('<--- CHANGE TO COLUMN NAME --->', 'like', $filter['searchQuery'], true);    // if put true, will be OR LIKE $search. else will be AND LIKE $search
             }
         }
 
@@ -264,17 +328,16 @@ class UserSearchProcessors <--- change
 
 ==============================================================================================
 
+ADDITIONAL NOTES FOR SearchProcessors:
 
-ADDITIONAL NOTES FOR SearchProcessors : 
+Function Structure:
 
-structure function : 
- 
- execute($filter = NULL, $fetchType = 'get_all', $cache_files_name = NULL)
+execute($filter = NULL, $fetchType = 'get_all', $cache_file_name = NULL)
 
-    1 - param1 = $filter - receive and array for query. default is NULL.
-    2 - param2 = $fetchType (2nd param) only can receive value below :-
-            a) get_all (default) - get all data, 
-            b) get - get single data,
-            c) count_rows - return total row
-            d) toSql - return string of query
-    3 - param3 = $cache_files_name - will cache the result. it will help to serve data more faster when cache is exist. default is NULL
+	1) Parameter 1 ($filter): Receives an array for the query. The default value is NULL.
+	2) Parameter 2 ($fetchType): Can only accept the following values:
+		a) get_all (default) 	- Retrieves all data.
+		b) get 					- Retrieves a single data.
+		c) count_rows 			- Returns the total number of rows.
+		d) toSql 				- Returns the query string.
+	3) Parameter 3 ($cache_file_name): Caches the result. This enhances data retrieval speed when the cache exists. The default value is NULL.
