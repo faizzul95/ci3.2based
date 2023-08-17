@@ -18,6 +18,9 @@
 			"App\\": "application/"
 		}
 	},
+	"config": {
+		"process-timeout":850
+	},
 	"require": {
 		"php": ">=8.0",
 		"vlucas/phpdotenv": "^5.5",
