@@ -273,7 +273,7 @@ class UserStoreProcessors <--- change
 
 	public function execute($request = NULL)
 	{
-		$query = $this->newQuery('User_model');
+		$query = $this->newQuery(<--- CHANGE TO MODEL CLASS NAME --->);
 		return $query::save($request);
 	}
 }
@@ -329,8 +329,9 @@ class UserSearchProcessors <--- change
         }
 
         if (hasData($cache_files_name)) {
-            $query->set_cache($cache_files_name);
-        }
+			if ($fetchType != 'toSql')
+				$query->set_cache($cache_files_name);
+		}
 
         return $fetchType == 'toSql' ? $query->$fetchType($query) : $query->$fetchType();
     }

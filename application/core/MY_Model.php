@@ -436,6 +436,20 @@ class MY_Model extends CI_Model
 		return FALSE;
 	}
 
+	public function isMultiCustomCheck($resultQuery)
+	{
+		if (!is_array($resultQuery)) {
+			return false;
+		}
+
+		foreach ($resultQuery as $value) {
+			if (!is_array($value)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 	/**
 	 * public function update($data)
@@ -1910,7 +1924,7 @@ class MY_Model extends CI_Model
 
 	public function scopeWithQuery($query, $filter)
 	{
-		if (hasData($filter)) {
+		if (hasData($filter) && is_array($filter)) {
 			foreach ($filter as $key => $with) {
 				if (is_int($key)) {
 					$withStatement = "with_" . $with;
@@ -2085,7 +2099,7 @@ class MY_Model extends CI_Model
 
 	public function appendData($resultQuery)
 	{
-		if ($this->appends) {
+		if ($resultQuery && $this->appends) {
 			foreach ($this->appends as $func) {
 				$words = trim($func);
 				$words = explode('_', $func);
@@ -2094,7 +2108,7 @@ class MY_Model extends CI_Model
 				$functionName = 'get' . $formattedName . 'Attribute';
 
 				if (method_exists($this, $functionName)) {
-					if ($this->is_multidimensional($resultQuery)) {
+					if ($this->isMultiCustomCheck($resultQuery)) {
 						foreach ($resultQuery as $key => $dataRes) {
 
 							// set variable attribute
@@ -2107,7 +2121,7 @@ class MY_Model extends CI_Model
 					} else {
 						// set variable attribute to object $this
 						foreach ($this->fillable as $attributeName) {
-							$this->$attributeName = $resultQuery[$attributeName];
+							$this->$attributeName = array_key_exists($attributeName, $resultQuery) ? $resultQuery[$attributeName] : NULL;
 						}
 
 						$resultQuery[trim($func)] = $this->$functionName();
@@ -2116,7 +2130,7 @@ class MY_Model extends CI_Model
 
 				// remove variable attribute from object $this
 				foreach ($this->fillable as $attributeName) {
-					if ($this->$attributeName)
+					if (isset($this->$attributeName))
 						unset($this->$attributeName);
 				}
 			}
