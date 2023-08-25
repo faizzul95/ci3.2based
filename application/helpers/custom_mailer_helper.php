@@ -158,23 +158,33 @@ function sentUsingMailer($recipientData = NULL, $subject = NULL, $dataBody = NUL
 	return $response;
 }
 
-function replaceTextWithData($string = NULL, $arrayOfStringToReplace = array())
+/**
+ * Replaces placeholders in a string with corresponding values from the provided array.
+ * Placeholders are of the form %placeholder%.
+ * If a placeholder is not found in the array, the original placeholder is retained.
+ *
+ * @param {string} $string - The input string containing placeholders.
+ * @param {Array} $arrayOfStringToReplace - An associative array containing key-value pairs for replacement.
+ * @returns {string} The input string with placeholders replaced by array values.
+ */
+function replaceTextWithData($string, $arrayOfStringToReplace)
 {
-	$dataToReplace = arrayDataReplace($arrayOfStringToReplace);
-	return str_replace(array_keys($dataToReplace), array_values($dataToReplace), $string);
-}
+	// // Initialize an empty array to store the replacement data
+	// $newData = array();
 
-function arrayDataReplace($data)
-{
-	$newKey = $newValue = $newData = [];
-	foreach ($data as $key => $value) {
-		array_push($newKey, '%' . $key . '%');
-		array_push($newValue, $value);
-	}
+	// // Loop through the array and create a new associative array for replacement
+	// foreach ($arrayOfStringToReplace as $key => $value) {
+	// 	$newData['%' . $key . '%'] = $value;
+	// }
 
-	foreach ($newKey as $key => $data) {
-		$newData[$data] = $newValue[$key];
-	}
+	// // Replace placeholders with corresponding values in the string
+	// $replacedString = str_replace(array_keys($newData), array_values($newData), $string);
 
-	return $newData;
+	$replacedString = str_replace(
+		array_map(fn ($key) => "%$key%", array_keys($arrayOfStringToReplace)),
+		array_values($arrayOfStringToReplace),
+		$string
+	);
+
+	return $replacedString;
 }

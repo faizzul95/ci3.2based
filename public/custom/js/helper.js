@@ -216,6 +216,24 @@ const hasData = (data = null, arrKey = null, returnData = false, defaultValue = 
 };
 
 /**
+ * Function: replaceTextWithData
+ * Replaces placeholders in a string with corresponding data values.
+ * Placeholders are defined as %placeholder_name%.
+ * If a data value for a placeholder is not found, the placeholder remains unchanged.
+ *
+ * @param {string} string - The input string containing placeholders.
+ * @param {object} data - An object containing key-value pairs for replacement.
+ * @returns {string} - The string with placeholders replaced by data values.
+ */
+const replaceTextWithData = (string = '', data) => {
+	// Use regular expression to match %placeholder%
+	return string.replace(/%([^%]+)%/g, (match, key) => {
+		// If a data value exists for the key, replace with the value; otherwise, keep the original placeholder
+		return data[key] || match;
+	});
+};
+
+/**
  * Function: ucfirst
  * Description: Converts the first character of a string to uppercase.
  *
