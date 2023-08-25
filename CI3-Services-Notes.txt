@@ -286,18 +286,40 @@ class UserStoreProcessors <--- change
 
 <?php
 
-namespace App\services\modules\core\users\processors; <--- change
+namespace App\services\modules\users\processors; <--- change
 
 use App\services\generals\traits\QueryTrait;
 
-class UserDeleteProcessors <--- change
+class UserDeleteProcessors  <--- change
 {
 	use QueryTrait;
 
+	protected $model;
+
+	public function __construct()
+	{
+		$this->model = '<--- CHANGE TO MODEL CLASS NAME --->';
+	}
+
 	public function execute($request = NULL)
 	{
-		$query = $this->newQuery('<--- CHANGE TO MODEL CLASS NAME --->');
-		return $query::remove($request);
+		$query = $this->newQuery($this->model, ['conditions' => $request]);
+		$count = $query->count_rows();
+
+		if ($count > 0) {
+			$getType = $count == 1 ? 'get' : 'get_all';
+			$data = $this->newQuery($this->model, ['conditions' => $request])->$getType();
+			$resCode = $this->newQuery($this->model, ['conditions' => $request])->delete() ? 200 : 400;
+			return returnData([
+				"action" => 'delete',
+				"resCode" => $resCode,
+				"message" =>  message($resCode, 'delete'),
+				"id" => $count == 1 ? $data[$query->primary_key] : NULL,
+				"data" => $data
+			], $resCode);
+		}
+
+		return returnData(["action" => 'delete', "resCode" => 400, "message" =>  message(400, 'delete')], 400);
 	}
 }
 
