@@ -287,30 +287,31 @@ if (!function_exists('hasData')) {
 	{
 		// Check if data is not set, empty, or null
 		if (!isset($data) || empty($data) || is_null($data)) {
-			return false;
+			return $returnData ? ($defaultValue ?? $data) : false;
 		}
 
 		// If arrKey is not provided, consider data itself as having data
 		if (is_null($arrKey)) {
-			return true;
+			return $returnData ? ($defaultValue ?? $data) : true;
 		}
 
 		// Split the keys into an array
 		$keys = explode('.', $arrKey);
 		$currentKey = array_shift($keys);
 
-		// Check if data is an array and the current key exists
-		if (is_array($data) && array_key_exists($currentKey, $data)) {
-			// If no more keys left, return the data or true based on returnData flag
-			if (empty($keys)) {
-				if ($returnData) {
-					return $data[$currentKey] ?? $defaultValue;
-				}
-				return true;
-			}
+		// Check if $data is an array or an object
+		if (is_array($data) || is_object($data)) {
+			// If it's an array and the key exists, or it's an object and the property exists
+			if ((is_array($data) && array_key_exists($currentKey, $data)) || (is_object($data) && isset($data->$currentKey))) {
 
-			// Recursively call hasData for the nested key
-			return hasData($data[$currentKey], implode('.', $keys), $returnData, $defaultValue);
+				// If no more keys left, return the data or true based on returnData flag
+				if (empty($keys)) {
+					return $returnData ? ($data instanceof ArrayAccess ? $data[$currentKey] ?? $defaultValue : $data->$currentKey ?? $defaultValue) : true;
+				}
+
+				// Recursively call hasData for the nested key
+				return hasData(is_array($data) ? ($data[$currentKey] ?? null) : ($data->$currentKey ?? null), implode('.', $keys), $returnData, $defaultValue);
+			}
 		}
 
 		// No match found, return false or return default value
