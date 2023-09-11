@@ -14,7 +14,7 @@ class RememberLogic
 
 	public function logic()
 	{
-		$token = get_cookie('remember_me_token_cipmo');
+		$token = get_cookie('remember_me_token_ciarcav5');
 
 		// check if token cookie is exist in browsers
 		if (hasData($token)) {

@@ -14,15 +14,15 @@ trait PermissionAbilitiesTrait
 		if (hasData($permissionHeader)) {
 
 			// initialize table
-			model('MODEL_NAME', 'model_alias');
+			// model('CompanyProfileRoles_model', 'profileM');
 
-			$dataProfiles = ci()->model_alias::find(currentUserProfileID());
-			$permissionArray = ''; // create own logic
+			// $dataProfiles = ci()->profileM::find(currentUserProfileID());
+			// $permissionArray = json_decode($dataProfiles['abilities_json'], true);
 
-			if (hasData($permissionArray))
-				$permission = in_array($permissionHeader, $permissionArray) ? true : false;
-			else
-				$permission = false; // set false
+			// if (hasData($permissionArray))
+			// 	$permission = in_array($permissionHeader, $permissionArray) ? true : false;
+			// else
+			// 	$permission = false; // set false
 
 		} else {
 			$permission = true; // set true if no header x-permission to validate

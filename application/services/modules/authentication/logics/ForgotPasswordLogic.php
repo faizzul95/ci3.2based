@@ -47,7 +47,7 @@ class ForgotPasswordLogic
 					'reset_token_expired' => date('Y-m-d H:i:s', strtotime(timestamp() . ' + 30 minutes'))
 				]);
 
-				if (isSuccess($resetPassData['resCode'])) {
+				if (isSuccess($resetPassData['code'])) {
 					$url = 'auth/reset-password/' . $token;
 					$template = ci()->templateM->where('email_type', 'FORGOT_PASSWORD')->where('email_status', '1')->where('company_id', $companyID)->get();
 
@@ -75,9 +75,9 @@ class ForgotPasswordLogic
 							])
 						], false);
 
-						if (isSuccess($saveQueue['resCode'])) {
+						if (isSuccess($saveQueue['code'])) {
 							$responseData = [
-								'resCode' => 200,
+								'code' => 200,
 								'message' => 'Email has been sent',
 								'redirectUrl' => url(''),
 							];
@@ -113,7 +113,7 @@ class ForgotPasswordLogic
 		if (hasData($dataReset)) {
 			// check if token is expired
 			if ($dataReset['reset_token_expired'] > timestamp())
-				$responseData = ['resCode' => 200, 'message' => "", 'data' => $dataReset];
+				$responseData = ['code' => 200, 'message' => "", 'data' => $dataReset];
 		}
 
 		return $responseData;

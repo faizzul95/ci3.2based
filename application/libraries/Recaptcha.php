@@ -86,7 +86,7 @@ class Recaptcha
 	public function __construct($options = NULL)
 	{
 		// Get CodeIgniter instance
-		$this->_ci = &get_instance();
+		$this->_ci = ci();
 
 		// Load the config file
 		$this->_ci->config->load('recaptcha', FALSE, TRUE);

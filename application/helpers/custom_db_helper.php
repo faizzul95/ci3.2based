@@ -4,26 +4,49 @@ if (!defined('BASEPATH')) {
 	exit('No direct script access allowed');
 }
 
-// CanThink Solution (Fahmy)
-
-if (!function_exists('db_name')) {
-	function db_name($debug = false)
-	{
-		if ($debug)
-			dd(DB_NAME);
-		else
-			return DB_NAME;
-	}
-}
-
+/**
+ * Return data and set HTTP response code.
+ *
+ * This function logs the provided data and sets the HTTP response code.
+ *
+ * @param mixed $data The data to return.
+ * @param int   $code The HTTP response code (default is 200).
+ *
+ * @return mixed The provided data.
+ */
 if (!function_exists('returnData')) {
-	function returnData($data = NULL, $code = 200)
+	function returnData($data = null, $code = 200)
 	{
-		logDebug($data, isSuccess($code) ? 'info' : 'error');
+		// Set the HTTP response code.
 		http_response_code($code);
+
+		// Return the provided data.
 		return $data;
 	}
 }
+
+/**
+ * Get the database name.
+ *
+ * This function retrieves the database name defined in the DB_NAME constant.
+ * If the $debug parameter is set to true, it will use the ddd() function for debugging.
+ *
+ * @param bool $debug Set to true to enable debugging output using ddd()
+ * @return string|null The database name if not in debug mode, null if in debug mode
+ */
+if (!function_exists('db_name')) {
+	function db_name($debug = false)
+	{
+		// If debugging is enabled, output the database name 
+		if ($debug) {
+			ddd(DB_NAME);
+		}
+
+		// If not in debug mode, return the database name
+		return DB_NAME;
+	}
+}
+
 
 if (!function_exists('insert')) {
 	function insert($table = NULL, $data = NULL, $enableXss = true)
@@ -34,25 +57,25 @@ if (!function_exists('insert')) {
 			$filterData = sanitizeInput($data, $table, $enableXss);
 
 			try {
-				$ci = get_instance();
+				$ci = ci();
 				$isAuditEnable = $ci->config->item('audit_enable'); // get config audit trail
 				$isTrackInsertEnable = $ci->config->item('track_insert'); // get config track insert
 
 				$resultInsert = $ci->db->insert($table, $filterData);
-				$resCode = ($resultInsert['status']) ? 201 : 400;
+				$code = ($resultInsert['status']) ? 201 : 400;
 
 				return returnData([
 					"action" => 'insert',
-					"resCode" => $resCode,
-					"message" =>  message($resCode, 'insert'),
+					"code" => $code,
+					"message" =>  message($code, 'insert'),
 					"id" => $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $ci->db->insert_id(),
 					"data" => $filterData
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "INSERT ERROR : " . $e->getMessage());
 				return returnData([
 					'action' => 'insert',
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -64,25 +87,25 @@ if (!function_exists('insert')) {
 			$filterData = sanitizeInput($data, $table);
 
 			try {
-				$ci = get_instance();
+				$ci = ci();
 				$isAuditEnable = $ci->config->item('audit_enable'); // get config audit trail
 				$isTrackInsertEnable = $ci->config->item('track_insert'); // get config track insert
 
 				$resultInsert = $ci->db->insert($table, $filterData);
-				$resCode = ($resultInsert['status']) ? 201 : 400;
+				$code = ($resultInsert['status']) ? 201 : 400;
 
 				return returnData([
 					"action" => 'insert',
-					"resCode" => $resCode,
-					"message" =>  message($resCode, 'insert'),
+					"code" => $code,
+					"message" =>  message($code, 'insert'),
 					"id" => $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $ci->db->insert_id(),
 					"data" => $filterData
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "INSERT ERROR : " . $e->getMessage());
 				return returnData([
 					'action' => 'insert',
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -91,7 +114,7 @@ if (!function_exists('insert')) {
 		} else {
 			return returnData([
 				'action' => 'insert',
-				'resCode' => 422,
+				'code' => 422,
 				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
 				'id' => NULL,
 				'data' => $data,
@@ -114,21 +137,21 @@ if (!function_exists('update')) {
 			}
 
 			try {
-				$ci = get_instance();
-				$resCode = ($ci->db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
+				$ci = ci();
+				$code = ($ci->db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
 
 				return returnData([
 					"action" => 'update',
-					"resCode" => $resCode,
-					"message" =>  message($resCode, 'update'),
+					"code" => $code,
+					"message" =>  message($code, 'update'),
 					"id" => $pkValue,
 					"data" => $filterData
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "UPDATE ERROR : " . $e->getMessage());
 				return returnData([
 					"action" => 'update',
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -145,21 +168,21 @@ if (!function_exists('update')) {
 			}
 
 			try {
-				$ci = get_instance();
-				$resCode = ($ci->db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
+				$ci = ci();
+				$code = ($ci->db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
 
 				return returnData([
 					"action" => 'update',
-					"resCode" => $resCode,
-					"message" =>  message($resCode, 'update'),
+					"code" => $code,
+					"message" =>  message($code, 'update'),
 					"id" => $pkValue,
 					"data" => $filterData
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "UPDATE ERROR : " . $e->getMessage());
 				return returnData([
 					"action" => 'update',
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -168,7 +191,7 @@ if (!function_exists('update')) {
 		} else {
 			return returnData([
 				'action' => 'update',
-				'resCode' => 422,
+				'code' => 422,
 				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
 				'id' => NULL,
 				'data' => $data,
@@ -183,32 +206,32 @@ if (!function_exists('delete')) {
 		if (antiXss($pkValue) === false) {
 
 			try {
-				$ci = get_instance();
+				$ci = ci();
 
 				$previous_values = NULL;
 
 				if (!empty($pkValue)) {
 					$pkTable = (empty($pkTableCT)) ? primary_field_name($table) : $pkTableCT;
 					$previous_values = find($table, [$pkTable => $pkValue], 'row_array');
-					$resCode = ($ci->db->delete($table, [$pkTable => $pkValue])) ? 200 : 400;
+					$code = ($ci->db->delete($table, [$pkTable => $pkValue])) ? 200 : 400;
 					$typeAction = 'delete';
 				} else {
-					$resCode = $ci->db->truncate($table) ? 200 : 400;
+					$code = $ci->db->truncate($table) ? 200 : 400;
 					$typeAction = 'truncate';
 				}
 
 				return returnData([
 					'action' => $typeAction,
-					"resCode" => $resCode,
-					"message" =>  message($resCode, $typeAction),
+					"code" => $code,
+					"message" =>  message($code, $typeAction),
 					"id" => $pkValue,
 					"data" => $previous_values
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "REMOVE ERROR : " . $e->getMessage());
 				return returnData([
 					'action' => 'delete',
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -217,7 +240,7 @@ if (!function_exists('delete')) {
 		} else {
 			return returnData([
 				'action' => 'delete',
-				'resCode' => 422,
+				'code' => 422,
 				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
 				'id' => NULL,
 				'data' => [],
@@ -232,7 +255,7 @@ if (!function_exists('deleteWithCondition')) {
 		if (antiXss($condition) === false) {
 
 			try {
-				$ci = get_instance();
+				$ci = ci();
 				$previous_values = findAll($table, $condition);
 
 				foreach ($condition as $key => $value) {
@@ -242,18 +265,18 @@ if (!function_exists('deleteWithCondition')) {
 						$ci->db->where($key, $value);
 				}
 
-				$resCode = ($ci->db->delete($table)) ? 200 : 400;
+				$code = ($ci->db->delete($table)) ? 200 : 400;
 
 				return returnData([
-					"resCode" => $resCode,
-					"message" =>  message($resCode, 'delete'),
+					"code" => $code,
+					"message" =>  message($code, 'delete'),
 					"id" => NULL,
 					"data" => $previous_values
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "REMOVE W.C ERROR : " . $e->getMessage());
 				return returnData([
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -261,7 +284,7 @@ if (!function_exists('deleteWithCondition')) {
 			}
 		} else {
 			return returnData([
-				'resCode' => 422,
+				'code' => 422,
 				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
 				'id' => NULL,
 				'data' => $condition,
@@ -282,7 +305,7 @@ if (!function_exists('save')) {
 		// search if data exist using PK
 		$exist = (isset($data[$pkColumnName])) ? find($table, [$pkColumnName => $data[$pkColumnName]], 'row_array') : NULL;
 
-		$dataInsert = (isAssociative($data)) ?  $data : ((!empty($exist)) ? $data[1] : merge($data[0], $data[1]));
+		$dataInsert = (isAssociative($data)) ?  $data : ((!empty($exist)) ? $data[1] : array_merge($data[0], $data[1]));
 
 		if (isset($dataInsert[$pkColumnName])) {
 			unset($dataInsert[$pkColumnName]); // auto increment, no need to update or insert
@@ -324,22 +347,22 @@ if (!function_exists('updateBatch')) {
 			}
 
 			try {;
-				$ci = get_instance();
+				$ci = ci();
 				$updateResult = $ci->db->update_batch($table, $filterData, $pkColumnName);
-				$resCode = $updateResult > 0 ? 200 : 400; // always return true if has data update
+				$code = $updateResult > 0 ? 200 : 400; // always return true if has data update
 
 				return returnData([
 					"action" => 'update',
-					"resCode" => $resCode,
-					"message" => isSuccess($resCode) ? $updateResult . ' data has been updated' : 'Please consult the system administrator',
+					"code" => $code,
+					"message" => isSuccess($code) ? $updateResult . ' data has been updated' : 'Please consult the system administrator',
 					"totalUpdate" => $updateResult,
 					"data" => $filterData
-				], $resCode);
+				], $code);
 			} catch (Exception $e) {
 				log_message('error', "BATCH UPDATE ERROR : " . $e->getMessage());
 				return returnData([
 					"action" => 'update',
-					'resCode' => 422,
+					'code' => 422,
 					'message' => 'Something when wrong.',
 					'id' => NULL,
 					'data' => $e->getMessage(),
@@ -348,7 +371,7 @@ if (!function_exists('updateBatch')) {
 		} else {
 			return returnData([
 				'action' => 'update',
-				'resCode' => 422,
+				'code' => 422,
 				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
 				'id' => NULL,
 				'data' => [],
@@ -433,157 +456,6 @@ if (!function_exists('primary_field_name')) {
 	}
 }
 
-if (!function_exists('hasMany')) {
-	function hasMany($modelRef, $columnRef, $condition, $option = NULL, $with = NULL)
-	{
-		$dataArr = $obj = $tableRef = '';
-
-		if (!empty($condition)) {
-			$fileName = APPPATH . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . $modelRef . '.php';
-			if (file_exists($fileName)) {
-				require_once $fileName;
-				$className = getClassNameFromFile($fileName);
-				$obj = new $className;
-				$tableRef = $obj->table;
-				$tableRefPK = $obj->id;
-
-				// check table
-				if (isTableExist($tableRef)) {
-
-					$whereCon = NULL;
-					if (!empty($option)) {
-						foreach ($option as $key => $value) {
-							$whereCon .= "AND {$key}='$value'";
-						}
-					}
-
-					$dataArr = rawQuery("SELECT * FROM $tableRef WHERE {$columnRef}='$condition' $whereCon");
-
-					if (!empty($with)) {
-						$dataRelation = $objStore = array(); // reset array
-						foreach ($with as $functionName) {
-							if (in_array($functionName, $obj->with)) {
-								$functionCall = $functionName . 'Relation';
-
-								// check if function up is exist
-								if (method_exists($obj, $functionCall)) {
-									if (!isMultidimension($dataArr)) {
-										$dataRelation = $obj->$functionCall($dataArr);
-										$dataStore = [
-											$functionName => [
-												'data' => (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL,
-												'objData' => (isset($dataRelation['obj'])) ? $dataRelation['obj'] : NULL,
-											]
-										];
-										array_push($objStore, $dataStore);
-										$dataArr[$functionName] = (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL;
-									} else {
-										foreach ($dataArr as $key => $subdata) {
-											$dataRelation = $obj->$functionCall($subdata);
-											$dataStore = [
-												$functionName => [
-													'data' => (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL,
-													'objData' => (isset($dataRelation['obj'])) ? $dataRelation['obj'] : NULL,
-												]
-											];
-											array_push($objStore, $dataStore);
-											$dataArr[$key][$functionName] = (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return [
-			'obj' => $obj,
-			'table' => $tableRef,
-			'column' => $columnRef,
-			'id' => $condition,
-			'data' => (!empty($dataArr)) ? xssClean($dataArr) : NULL,
-		];
-	}
-}
-
-if (!function_exists('hasOne')) {
-	function hasOne($modelRef, $columnRef, $condition, $option = NULL, $with = NULL)
-	{
-		$dataArr = $obj = $tableRef = '';
-
-		if (!empty($condition)) {
-			$fileName = APPPATH . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . $modelRef . '.php';
-			if (file_exists($fileName)) {
-				require_once $fileName;
-				$className = getClassNameFromFile($fileName);
-				$obj = new $className;
-
-				$tableRef = $obj->table;
-				$tableRefPK = $obj->id;
-
-				// check table
-				if (isTableExist($tableRef)) {
-
-					$whereCon = NULL;
-					if (!empty($option)) {
-						foreach ($option as $key => $value) {
-							$whereCon .= "AND {$key}='$value'";
-						}
-					}
-
-					$dataArr = rawQuery("SELECT * FROM $tableRef WHERE {$columnRef}='$condition' $whereCon LIMIT 1", 'row_array');
-
-					if (!empty($with)) {
-						$dataRelation = $objStore = array(); // reset array
-						foreach ($with as $functionName) {
-							if (in_array($functionName, $obj->with)) {
-								$functionCall = $functionName . 'Relation';
-
-								// check if function up is exist
-								if (method_exists($obj, $functionCall)) {
-									if (!isMultidimension($dataArr)) {
-										$dataRelation = $obj->$functionCall($dataArr);
-										$dataStore = [
-											$functionName => [
-												'data' => (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL,
-												'objData' => (isset($dataRelation['obj'])) ? $dataRelation['obj'] : NULL,
-											]
-										];
-										array_push($objStore, $dataStore);
-										$dataArr[$functionName] = (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL;
-									} else {
-										foreach ($dataArr as $key => $subdata) {
-											$dataRelation = $obj->$functionCall($subdata);
-											$dataStore = [
-												$functionName => [
-													'data' => (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL,
-													'objData' => (isset($dataRelation['obj'])) ? $dataRelation['obj'] : NULL,
-												]
-											];
-											array_push($objStore, $dataStore);
-											$dataArr[$key][$functionName] = (isset($dataRelation['data'])) ? $dataRelation['data'] : NULL;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return [
-			'obj' => $obj,
-			'table' => $tableRef,
-			'column' => $columnRef,
-			'id' => $condition,
-			'data' => (!empty($dataArr)) ? xssClean($dataArr[0]) : NULL,
-		];
-	}
-}
-
 if (!function_exists('isUpdateData')) {
 	function isUpdateData($typeAction)
 	{
@@ -609,7 +481,7 @@ if (!function_exists('isInsertData')) {
 }
 
 if (!function_exists('createWhereCondition')) {
-	function createWhereCondition($condition , $conditional = 'AND')
+	function createWhereCondition($condition, $conditional = 'AND')
 	{
 		$conditionString = [];
 		foreach ($condition as $field => $value) {
@@ -617,7 +489,7 @@ if (!function_exists('createWhereCondition')) {
 				$conditionString[] = "$field='$value'";
 		}
 
-		return !empty($conditionString) ? implode(' '.$conditional.' ', $conditionString) : '';
+		return !empty($conditionString) ? implode(' ' . $conditional . ' ', $conditionString) : '';
 	}
 }
 

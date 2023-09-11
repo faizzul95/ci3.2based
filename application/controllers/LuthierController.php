@@ -8,14 +8,14 @@
  * the CI_Router class.
  */
 
-defined('BASEPATH') or exit('No direct script access allowed');
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 class LuthierController extends CI_Controller
 {
-	/**
-	 * Luthier CI fake index method
-	 */
-	public function index()
-	{
-	}
+    /**
+     * Luthier CI fake index method
+     */
+    public function index()
+    {
+    }
 }

@@ -2,7 +2,7 @@
 
 Framework : CodeIgniter 3 (version 3.2.0-dev) <br/>
 Status : <i> support </i> <br/>
-Last update : 17/07/2023
+Last update : 13/09/2023
 
 ======================================================================
 
@@ -161,6 +161,7 @@ Notes :
 Command to run using terminal or cmd (without $) :
 - php struck create $type $fileName $tableName
 - php struck structure $fileName $tableName
+- php struck generate services $moduleName $fileName $modelName
 
 Example :
 <ol type="A">
@@ -179,6 +180,11 @@ Example :
 		<ol type="1">
 			<li> php struck structure MasterRoles (will create controller & basic model) </li>
 			<li> php struck structure MasterRoles master_role (will create controller & model with table columns from database) </li>
+		</ol> 
+	<br>
+	<li> Services </li> 
+		<ol type="1">
+			<li> php struck generate services core userProfile users_profile </li>
 		</ol> 
 	<br>
 </ol>

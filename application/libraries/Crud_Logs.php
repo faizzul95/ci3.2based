@@ -27,7 +27,7 @@ class Crud_Logs
 
 	public function __construct()
 	{
-		$this->CI = &get_instance();
+		$this->CI = ci();
 		$this->CI->load->library('session');
 
 		static::$folder         = 'logs';

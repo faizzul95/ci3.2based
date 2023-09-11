@@ -285,8 +285,9 @@ define('VIEWPATH', $view_folder . DIRECTORY_SEPARATOR);
  * And away we go...
  */
 
-if (file_exists(APPPATH . 'hooks/common_hook.php')) {
-	require_once APPPATH . 'hooks/common_hook.php';
+// Load hooks before CodeIgniter initialization
+if (file_exists(APPPATH . 'hooks/initial_hook.php')) {
+	require_once APPPATH . 'hooks/initial_hook.php';
 }
 
 require_once BASEPATH . 'core/CodeIgniter.php';

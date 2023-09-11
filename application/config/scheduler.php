@@ -11,6 +11,5 @@ defined('BASEPATH') or exit('No direct script access allowed');
 |
 */
 $config['commands'] = [
-	'App\services\commands\EmailSubscription',
 	'App\services\commands\BackupSystemDatabase',
 ];

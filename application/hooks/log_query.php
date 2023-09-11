@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 class Log_Query
 {
@@ -13,14 +13,14 @@ class Log_Query
     protected $_file_prefix = '';
     protected $_enabled = true;
     protected static $func_overload;
-    
+
     public function __construct()
     {
-        $this->CI =& get_instance();
+        $this->CI = &get_instance();
 
         log_message('info', 'Log_Query Hook Initialized');
 
-        $config =& get_config();
+        $config = &get_config();
 
         isset(self::$func_overload) or self::$func_overload = (extension_loaded('mbstring') && ini_get('mbstring.func_overload'));
 
@@ -114,11 +114,11 @@ class Log_Query
     // --------------------------------------------------------------------
 
     /**
-    * Byte-safe strlen()
-    *
-    * @param	string	$str
-    * @return	int
-    */
+     * Byte-safe strlen()
+     *
+     * @param	string	$str
+     * @return	int
+     */
     protected static function strlen($str)
     {
         return (self::$func_overload) ? mb_strlen($str, '8bit') : strlen($str);
@@ -127,19 +127,19 @@ class Log_Query
     // --------------------------------------------------------------------
 
     /**
-    * Byte-safe substr()
-    *
-    * @param	string	$str
-    * @param	int	$start
-    * @param	int	$length
-    * @return	string
-    */
+     * Byte-safe substr()
+     *
+     * @param	string	$str
+     * @param	int	$start
+     * @param	int	$length
+     * @return	string
+     */
     protected static function substr($str, $start, $length = NULL)
     {
         if (self::$func_overload) {
             return mb_substr($str, $start, $length, '8bit');
         }
-        
+
         return isset($length) ? substr($str, $start, $length) : substr($str, $start);
     }
 }

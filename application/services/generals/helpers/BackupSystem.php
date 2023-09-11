@@ -86,12 +86,12 @@ class BackupSystem
 		try {
 			// Save the archive file to the server
 			if ($this->CI->zip->archive($directory)) {
-				$res = ['resCode' => 200, 'message' => 'Backup system successfully', 'path' => $directory, 'filename' => $filename];
+				$res = ['code' => 200, 'message' => 'Backup system successfully', 'path' => $directory, 'filename' => $filename];
 			} else {
-				$res = ['resCode' => 400, 'message' => 'Failed to backup system.', 'path' => $directory, 'filename' => $filename];
+				$res = ['code' => 400, 'message' => 'Failed to backup system.', 'path' => $directory, 'filename' => $filename];
 			}
 		} catch (\Exception $e) {
-			$res = ['resCode' => 400, 'message' => $e->getMessage(), 'path' => $directory, 'filename' => $filename];
+			$res = ['code' => 400, 'message' => $e->getMessage(), 'path' => $directory, 'filename' => $filename];
 		}
 
 		ini_set("memory_limit", "256M");
@@ -131,12 +131,12 @@ class BackupSystem
 
 		try {
 			if (write_file($file_path, $backup)) {
-				$res = ['resCode' => 200, 'message' => 'Backup database successfully', 'path' => $file_path, 'filename' => $filename, 'storage' => 'local'];
+				$res = ['code' => 200, 'message' => 'Backup database successfully', 'path' => $file_path, 'filename' => $filename, 'storage' => 'local'];
 			} else {
-				$res = ['resCode' => 400, 'message' => 'Failed to backup database.', 'path' => $file_path, 'filename' => $filename, 'storage' => 'local'];
+				$res = ['code' => 400, 'message' => 'Failed to backup database.', 'path' => $file_path, 'filename' => $filename, 'storage' => 'local'];
 			}
 		} catch (\Exception $e) {
-			$res = ['resCode' => 400, 'message' => $e->getMessage(), 'path' => $file_path, 'filename' => $filename, 'storage' => 'local'];
+			$res = ['code' => 400, 'message' => $e->getMessage(), 'path' => $file_path, 'filename' => $filename, 'storage' => 'local'];
 		}
 
 		ini_set("memory_limit", "256M");

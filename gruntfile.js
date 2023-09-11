@@ -21,6 +21,7 @@ var jsPathSrc = [
 	'public/custom/js/validationJS.js',
 	'public/custom/js/toastr.min.js',
 	'public/custom/js/block-ui.js',
+	'public/custom/js/js-cookie.js',
 ];
 
 var babelDistFiles = {

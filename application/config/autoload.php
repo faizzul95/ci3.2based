@@ -59,7 +59,6 @@ $autoload['packages'] = array();
 |	$autoload['libraries'] = array('user_agent' => 'ua');
 */
 $autoload['libraries'] = array(
-	'env',
 	'session',
 	'database',
 	'email',
@@ -98,24 +97,27 @@ $autoload['drivers'] = array();
 |	$autoload['helper'] = array('url', 'file');
 */
 $autoload['helper'] = array(
-	'env',
-	'ci3',
-	'general',
 	'url',
 	'form',
 	'security',
 	'file',
 	'cookie',
-	'custom_db',
-	'custom_session',
+	'custom_ci3',
+	'custom_general',
 	'custom_api',
+	'custom_data',
+	'custom_date_time',
 	'custom_array',
+	'custom_session',
+	'custom_db',
 	'custom_plugin',
 	'custom_mailer',
-	'custom_rbac_helper',
 	'custom_qr_generator',
 	'custom_upload',
-	'custom_websocket_helper',
+	'custom_websocket',
+	'custom_rbac',
+	'custom_project',
+	'custom_jwt',
 	'google_authenticator',
 );
 
@@ -133,8 +135,12 @@ $autoload['helper'] = array(
 */
 $autoload['config'] = array(
 	'recaptcha',
+	// 'security',
+	// 'scheduler',
+	// 'trail',
 	// 'log',
 );
+
 
 /*
 | -------------------------------------------------------------------

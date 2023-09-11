@@ -35,4 +35,13 @@ Route::group('/auth', function () {
 		// 	'currentSubSidebar' => 'login'
 		// ]);
 	});
+
+	// Leave impersonate users
+	Route::get('/leave-user', function () {
+		$leave = app('App\services\modules\core\users\logics\UserImpersonateLogic')->leaveImpersonation();
+
+		if (hasData($leave, 'resCode') && isSuccess($leave['resCode'])) {
+			redirect($leave['redirectUrl'], true);
+		}
+	});
 });

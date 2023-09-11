@@ -553,7 +553,7 @@ trait RateLimitingThrottleTrait
 
 				// check if ip is currently in permanent blocked
 				if ($this->isPermanentBlocked($ip)) {
-					return response(['code' => 403, 'message' => 'You are permanently blocked'], HTTP_UNAUTHORIZED);
+					return returnData(['code' => 403, 'message' => 'You are permanently blocked'], 403);
 					exit;
 				}
 
@@ -569,7 +569,7 @@ trait RateLimitingThrottleTrait
 					if ($this->isMaxTemporaryBlockedReached($throttleData)) {
 						$this->blockIpPermanent($ip);
 						log_message('error', "IP {$ip} is permanently blocked");
-						return response(['code' => 403, 'message' => 'You are permanently blocked, Please contact support to further information'], HTTP_UNAUTHORIZED);
+						return returnData(['code' => 403, 'message' => 'You are permanently blocked, Please contact support to further information'], 403);
 						exit;
 					}
 
@@ -577,7 +577,7 @@ trait RateLimitingThrottleTrait
 					if (time() >= $throttleData['temp_blocked_until_time']) {
 						$throttleData = $this->unblockIp($ip, $throttleData); // get the latest throttle data
 					} else {
-						return response(['code' => 429, 'message' => 'Too many requests, You are temporarily blocked. Please try again in ' . $this->elapsedTime($throttleData['temp_blocked_until_time'])], HTTP_LIMIT_REQUEST);
+						return returnData(['code' => 429, 'message' => 'Too many requests, You are temporarily blocked. Please try again in ' . $this->elapsedTime($throttleData['temp_blocked_until_time'])], 429);
 						exit;
 					}
 				}
@@ -586,7 +586,7 @@ trait RateLimitingThrottleTrait
 				if ($this->isSpoofedIP($ip)) {
 					$this->blockIpTemporary($ip, $throttleData);
 					log_message('error', "IP {$ip} is spoofed");
-					return response(['code' => 400, 'message' => 'IP addresses do not match, IP has been temporary blocked'], HTTP_BAD_REQUEST);
+					return returnData(['code' => 400, 'message' => 'IP addresses do not match, IP has been temporary blocked'], 400);
 					exit;
 				}
 
@@ -601,12 +601,12 @@ trait RateLimitingThrottleTrait
 					// check if warning has reach
 					if ($this->isMaxWarningsReached($throttleData)) {
 						$this->blockIpTemporary($ip, $throttleData);
-						return response(['code' => 429, 'message' => 'You are temporarily blocked, Please try again later'], HTTP_LIMIT_REQUEST);
+						return returnData(['code' => 429, 'message' => 'You are temporarily blocked, Please try again later'], 429);
 						exit;
 					}
 
 					$this->incrementWarningCount($ip, $throttleData);
-					return response(['code' => 429, 'message' => 'Too many requests'], HTTP_LIMIT_REQUEST);
+					return returnData(['code' => 429, 'message' => 'Too many requests'], 429);
 					exit;
 				}
 

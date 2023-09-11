@@ -26,6 +26,11 @@
 Route::set('default_controller', 'AuthenticateController');
 // Route::get('/', 'AuthenticateController@index');
 
+// CRON JOB (SERVICES)
+Route::group('/cron', function () {
+	Route::get('/database/{upload?}', 'BackupController@BackupDrive');
+});
+
 // Open login page
 Route::get('/', function () {
 	// check user session if exist
@@ -33,9 +38,9 @@ Route::get('/', function () {
 		redirect('dashboard', true);
 	} else {
 
-		$remember = app('App\services\modules\authentication\logics\RememberLogic')->execute();
+		$remember = app('App\services\modules\authentication\logics\RememberLogic')->logic();
 
-		if (hasData($remember, 'resCode') && isSuccess($remember['resCode'])) {
+		if (hasData($remember, 'code') && isSuccess($remember['code'])) {
 			redirect($remember['redirectUrl'], true);
 		}
 
@@ -71,5 +76,6 @@ Route::set('404_override', function () {
 });
 
 require __DIR__ . '/PAGES/RedirectPages.php';
+require __DIR__ . '/PAGES/SuperadminPages.php';
 
 Route::set('translate_uri_dashes', FALSE);

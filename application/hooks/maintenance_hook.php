@@ -25,7 +25,7 @@ class Maintenance_hook
 			if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
 				http_response_code(503);
 				header('Content-Type: application/json');
-				echo json_encode(['resCode' => 503, 'message' => 'Service Temporarily Unavailable'], JSON_PRETTY_PRINT);
+				echo json_encode(['code' => 503, 'message' => 'Service Temporarily Unavailable'], JSON_PRETTY_PRINT);
 			} else {
 				header('HTTP/1.1 503 Service Temporarily Unavailable');
 				include(APPPATH . 'views/errors/maintenance.php');

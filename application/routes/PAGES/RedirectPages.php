@@ -3,12 +3,20 @@
 Route::get('/dashboard', 'DashboardController@index', ['middleware' => 'Sanctum']);
 Route::get('/profile', 'UserProfileController@index', ['middleware' => 'Sanctum']);
 
-// Route::group('/smm', ['middleware' => ['Sanctum', 'Superadmin']], function () {
-// 	Route::get('/', 'PackagePlanController@index');
-// });
+Route::group('/chat', ['middleware' => ['Sanctum']], function () {
+	Route::get('/', function () {
+		render('chat/room',  [
+			'title' => 'Chat',
+			'currentSidebar' => 'Chat',
+			'currentSubSidebar' => NULL
+		]);
+	});
 
-Route::get('/chat/{id?}', function ($id = NULL) {
-	render('dashboard/chat',  [
-		'user_id' => $id
-	]);
+	Route::get('/room/{id?}', function ($id = NULL) {
+		render('chat/room',  [
+			'title' => 'Chat',
+			'currentSidebar' => 'Chat',
+			'currentSubSidebar' => NULL
+		]);
+	});
 });

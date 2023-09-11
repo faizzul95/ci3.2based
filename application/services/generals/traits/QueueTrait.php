@@ -114,7 +114,7 @@ trait QueueTrait
 			$job['failed_at'] = timestamp();
 			$addFailed = ci()->failedM::save($job, false);
 
-			if (isSuccess($addFailed['resCode'])) {
+			if (isSuccess($addFailed['code'])) {
 				ci()->queueM::remove($jobID);
 			}
 
@@ -146,7 +146,7 @@ trait QueueTrait
 
 				$dataSave = ci()->queueM::save($queue, false);
 
-				if (isSuccess($dataSave['resCode'])) {
+				if (isSuccess($dataSave['code'])) {
 					ci()->failedM::remove($id);
 					echo "{$uuid} has successfully re-queue.\n";
 				} else {
@@ -180,7 +180,7 @@ trait QueueTrait
 			unset($getRequeueData['id']);
 			$dataSave = ci()->queueM::save($getRequeueData, false);
 
-			if (isSuccess($dataSave['resCode'])) {
+			if (isSuccess($dataSave['code'])) {
 				ci()->failedM::remove($id);
 				echo "{$uuid} has successfully re-queue.\n";
 			} else {

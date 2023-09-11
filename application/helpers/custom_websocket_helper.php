@@ -42,7 +42,7 @@ if (!function_exists('valid_jwt')) {
 	 */
 	function valid_jwt($token)
 	{
-		return App\libraries\WebSocket\Helpers\AUTHORIZATION::validateToken($token);
+		return App\libraries\CI_WebSocket\Helpers\AUTHORIZATION::validateToken($token);
 	}
 }
 
@@ -58,17 +58,29 @@ if (!function_exists('output')) {
 	 * @param string $var String
 	 * @return string
 	 */
-	function output($type = 'success', $output = null)
+	function output($type = 'success', $message = null)
 	{
-		if ($type == 'success') {
-			echo "\033[32m" . $output . "\033[0m\n" . PHP_EOL;
-		} elseif ($type == 'error') {
-			echo "\033[31m" . $output . "\033[0m\n" . PHP_EOL;
-		} elseif ($type == 'fatal') {
-			echo "\033[31m" . $output . "\033[0m\n" . PHP_EOL;
-			exit(EXIT_ERROR);
-		} else {
-			echo $output . PHP_EOL;
+		// Define color codes for text and background
+		$colors = [
+			'success' => ['text' => "\e[97m", 'bg' => "\e[42m"], // White text on green background for SUCCESS
+			'info'    => ['text' => "\e[97m", 'bg' => "\e[44m"], // White text on blue background for INFO
+			'error'   => ['text' => "\e[97m", 'bg' => "\e[41m"], // White text on red background for ERROR
+			'warning' => ['text' => "\e[30m", 'bg' => "\e[43m"], // Black text on yellow background for WARNING
+		];
+
+		// Check if the specified type is valid, otherwise use default colors
+		if (!isset($colors[$type])) {
+			$type = 'default';
 		}
+
+		// ANSI color code for text reset
+		$colorReset = "\e[0m";
+
+		// Format and display the badge and message
+		$badge = strtoupper($type);
+		$textColor = $colors[$type]['text'];
+		$bgColor = $colors[$type]['bg'];
+
+		echo "{$bgColor}{$textColor} {$badge} {$colorReset} {$message}\n" . PHP_EOL;
 	}
 }

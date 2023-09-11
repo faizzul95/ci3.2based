@@ -3,7 +3,8 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%ShowLogic;
-use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%StoreLogic;
+use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%CreateLogic;
+use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%UpdateLogic;
 use App\services\modules\%CLASS_NAME%\logics\%CLASS_NAME%DeleteLogic;
 
 class %CLASS_CONTROLLER_NAME% extends Controller
@@ -11,7 +12,7 @@ class %CLASS_CONTROLLER_NAME% extends Controller
 	public function __construct()
 	{
 		parent::__construct();
-		model('%CLASS_NAME%_model', '%CLASS_NAME%M');
+		model('%TABLE_NAME%_model', '%TABLE_NAME%M');
 	}
 
 	public function index()
@@ -19,35 +20,45 @@ class %CLASS_CONTROLLER_NAME% extends Controller
 		render('folder_name/file_name',  [
 			'title' => '',
 			'currentSidebar' => '',
-			'currentSubSidebar' => NULL,
-			'permission' => NULL
+			'currentSubSidebar' => NULL
 		]);
 	}
 
 	public function list()
 	{
-		echo $this->%CLASS_NAME%M->get%CLASS_NAME%ListDt();
+		echo $this->%TABLE_NAME%M->get%CLASS_NAME%ListDt();
 	}
 
-	public function show($id)
+	public function show($id = NULL)
 	{
-		json(app(new %CLASS_NAME%ShowLogic)->logic(['id' => xssClean($id)]));
+		jsonResponse(app(new %CLASS_NAME%ShowLogic)->logic(['id' => xssClean($id)]));
 	}
 
-	public function save()
+	public function store()
 	{
 		$this->_rules();
 
 		if ($this->form_validation->run() === FALSE) {
-			validationErrMessage();
+			validationErrorReturn();
 		} else {
-			json(app(new %CLASS_NAME%StoreLogic)->logic($_POST));
+			jsonResponse(app(new %CLASS_NAME%CreateLogic)->logic($_POST));
+		}
+	}
+
+	public function update()
+	{
+		$this->_rules();
+
+		if ($this->form_validation->run() === FALSE) {
+			validationErrorReturn();
+		} else {
+			jsonResponse(app(new %CLASS_NAME%UpdateLogic)->logic($_POST));
 		}
 	}
 
 	public function destroy($id)
 	{
-		json(app(new %CLASS_NAME%DeleteLogic)->logic(['id' => xssClean($id)]));
+		jsonResponse(app(new %CLASS_NAME%DeleteLogic)->logic(['id' => xssClean($id)]));
 	}
 
 	public function _rules()

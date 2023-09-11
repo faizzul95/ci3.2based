@@ -11,14 +11,16 @@
 |
 */
 
-$hook = Luthier\Hook::getHooks(
-	[
-		'modules' => [
-			// 'debug',
-			// 'auth'
-		],
-	]
-);
+// $hook = Luthier\Hook::getHooks(
+// 	[
+// 		'modules' => [
+// 			// 'debug',
+// 			// 'auth'
+// 		],
+// 	]
+// );
+
+$hook = Luthier\Hook::getHooks();
 
 $preSystem = [
 	[
@@ -36,14 +38,7 @@ $preSystem = [
 	[
 		'class'     => '',
 		'function'  => 'autoload',
-		'filename'  => 'autoload_hook.php',
-		'filepath'  => 'hooks',
-		'params'    => ''
-	],
-	[
-		'class'     => '',
-		'function'  => 'env',
-		'filename'  => 'common_hook.php',
+		'filename'  => 'load_hook.php',
 		'filepath'  => 'hooks',
 		'params'    => ''
 	],
@@ -55,7 +50,7 @@ foreach ($preSystem as $hookHelper) {
 
 $hook['post_controller_constructor'][] = array(
 	'function' => 'redirect_ssl',
-	'filename' => 'ssl.php',
+	'filename' => 'load_hook.php',
 	'filepath' => 'hooks'
 );
 

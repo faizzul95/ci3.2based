@@ -12,10 +12,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 // use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 
-// use Dompdf\Dompdf;
-// use Dompdf\Options;
-
-use Luthier\Debug;
+// use Luthier\Debug;
 use Ramsey\Uuid\Uuid;
 
 if (!defined('BASEPATH')) {
@@ -24,12 +21,12 @@ if (!defined('BASEPATH')) {
 
 // ROUTING PLUGIN
 
-if (!function_exists('logDebug')) {
-	function logDebug($logMessage = NULL, $logType = 'info', $type = 'log')
-	{
-		Debug::$type($logMessage, $logType);
-	}
-}
+// if (!function_exists('logDebug')) {
+// 	function logDebug($logMessage = NULL, $logType = 'info', $type = 'log')
+// 	{
+// 		Debug::$type($logMessage, $logType);
+// 	}
+// }
 
 // SECURITY PLUGIN 
 
@@ -141,15 +138,15 @@ if (!function_exists('readExcel')) {
 					/**  Convert Spreadsheet Object to an Array for ease of use  **/
 					$spreadSheetAry = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
-					return ['resCode' => 201, 'data' => $spreadSheetAry, 'count' => count($spreadSheetAry)];
+					return ['code' => 201, 'data' => $spreadSheetAry, 'count' => count($spreadSheetAry)];
 				} else {
-					return returnData(['resCode' => 422, 'message' => 'The files upload was not found.'], 422);
+					return returnData(['code' => 422, 'message' => 'The files upload was not found.'], 422);
 				}
 			} else {
-				return returnData(['resCode' => 422, 'message' => 'The size is not supported : ' . $size . ' bytes'], 422);
+				return returnData(['code' => 422, 'message' => 'The size is not supported : ' . $size . ' bytes'], 422);
 			}
 		} else {
-			return returnData(['resCode' => 422, 'message' => 'The file type is not supported : ' . $type], 422);
+			return returnData(['code' => 422, 'message' => 'The file type is not supported : ' . $type], 422);
 		}
 	}
 }
@@ -180,7 +177,7 @@ if (!function_exists('exportToExcel')) {
 				->setKeywords('data,export,excel')
 				->setCreator(env('APP_NAME'))
 				->setLastModifiedBy(currentUserFullName())
-				->setCompany(currentCompanyName())
+				// ->setCompany(currentCompanyName())
 				->setCategory('Data Export')
 				->setCreated(timestamp());
 
@@ -200,7 +197,7 @@ if (!function_exists('exportToExcel')) {
 
 			// Check if the writer object is valid
 			if ($writer === null) {
-				return ['resCode' => 400, 'message' => 'Error creating Xlsx writer object'];
+				return ['code' => 400, 'message' => 'Error creating Xlsx writer object'];
 			}
 
 			// end output buffering and flush the output
@@ -223,62 +220,20 @@ if (!function_exists('exportToExcel')) {
 
 			// Check if the file was saved successfully
 			// if ($result === null) {
-			// 	return ['resCode' => 400, 'message' => 'Error saving Excel file'];
+			// 	return ['code' => 400, 'message' => 'Error saving Excel file'];
 			// 	exit;
 			// }
 
 			// Return success message
-			return ['resCode' => 200, 'message' => 'File exported', 'filename' => $filename, 'path' => url($tempFile)];
+			return ['code' => 200, 'message' => 'File exported', 'filename' => $filename, 'path' => url($tempFile)];
 		} catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
-			return ['resCode' => 400, 'message' => 'Error writing to file: ', $e->getMessage()];
+			return ['code' => 400, 'message' => 'Error writing to file: ', $e->getMessage()];
 		} catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
-			return ['resCode' => 400, 'message' => 'Error: ', $e->getMessage()];
+			return ['code' => 400, 'message' => 'Error: ', $e->getMessage()];
 		} catch (Exception $e) {
 			// Return error message
-			return ['resCode' => 400, 'message' => 'Error exporting file: ' . $e->getMessage()];
+			return ['code' => 400, 'message' => 'Error exporting file: ' . $e->getMessage()];
 		}
-	}
-}
-
-// EXPORT PDF PLUGIN
-
-if (!function_exists('generate_dompdf')) {
-	function generate_dompdf($dataToPrint, $option = NULL)
-	{
-		$author = empty($option) ? "CANTHINK SOLUTION" : (isset($option['author']) ? $option['author'] : NULL);
-		$title = empty($option) ? "REPORT PDF" : (isset($option['title']) ? $option['title'] : "REPORT PDF");
-		$filename = empty($option) ? "report" : (isset($option['filename']) ? $option['filename'] : "report");
-		$paper = empty($option) ? "A4" : (isset($option['paper']) ? $option['paper'] : "A4");
-		$orientation = empty($option) ? "portrait" : (isset($option['orientation']) ? $option['orientation'] : "portrait");
-		$download = empty($option) ? TRUE : (isset($option['download']) ? $option['download'] : TRUE);
-
-		ob_end_clean(); // reset previous buffer
-		ini_set('display_errors', '1');
-		ini_set('memory_limit', '2048M');
-		ini_set('max_execution_time', 0);
-
-		ob_start();
-
-		// instantiate and use the dompdf class
-		$dompdf = new Dompdf();
-		$dompdf->loadHtml($dataToPrint);
-
-		// (Optional) Setup the paper size and orientation
-		$dompdf->setPaper($paper, $orientation);
-
-		// Render the HTML as PDF
-		$dompdf->render();
-
-		$dompdf->addInfo('Title', $title);
-		$dompdf->addInfo('Author', $author);
-
-		// Output the generated PDF to Browser
-		if ($download)
-			$result = $dompdf->stream($filename . '.pdf', array('Attachment' => 1));
-		else
-			$result = $dompdf->stream($filename . '.pdf', array('Attachment' => 0));
-
-		ob_end_clean();
 	}
 }
 
@@ -326,7 +281,7 @@ if (!function_exists('loadBladeTemplate')) {
 		try {
 			$blade = new BladeOne($views, $cache, BladeOne::MODE_AUTO);
 			// $blade->setAuth(currentUserID(), currentUserRoleID(), permission());
-			$blade->setBaseUrl(baseURL() . 'public/'); // with or without trail slash
+			$blade->setBaseUrl(base_url() . 'public/'); // with or without trail slash
 			// echo $blade->run($fileName, $data);
 			echo minifyHtml($blade->run($fileName, $data));
 		} catch (Exception $e) {

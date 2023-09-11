@@ -17,14 +17,12 @@ class Sanctum implements Luthier\MiddlewareInterface
 		if (empty($token)) {
 			if (!isLoginCheck()) {
 				if (isAjax())
-					return response(['code' => 401, 'message' => 'Login is required!'], HTTP_UNAUTHORIZED);
+					return returnData(['code' => 401, 'message' => 'Login is required!'], 401);
 				else
 					redirect('', true);
 			}
 		} else {
-			$data = validate_jwt_token($token);
-			if ($data === false)
-				return response(['code' => 401, 'message' => 'Login is required!'], HTTP_UNAUTHORIZED);
+			return validate_jwt_token($token);
 		}
 	}
 }

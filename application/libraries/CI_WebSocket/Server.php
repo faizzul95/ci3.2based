@@ -47,12 +47,12 @@ class Server implements MessageComponentInterface
 	public function __construct()
 	{
 		// Load the CI instance
-		$this->CI = &get_instance();
+		$this->CI = ci();
 
 		// Initialize object as SplObjectStorage (see PHP doc)
 		$this->clients = new \SplObjectStorage;
 
-		// // Check if auth is required
+		// Check if auth is required
 		if ($this->CI->websocket->auth && empty($this->CI->websocket->callback['auth'])) {
 			output('fatal', 'Authentication callback is required, you must set it before run server, aborting..');
 		}

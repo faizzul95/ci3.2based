@@ -17,7 +17,7 @@ class GoogleServices
 
 	public function __construct($scope = NULL)
 	{
-		$this->CI = &get_instance();
+		$this->CI = ci();
 
 		try {
 			$this->CI->load->config('google');
@@ -85,7 +85,7 @@ class GoogleServices
 				$this->getAccessToken();
 			}
 		} catch (\Exception $e) {
-			return ['resCode' => 400, 'message' => $e->getMessage(), 'data' => NULL];
+			return ['code' => 400, 'message' => $e->getMessage(), 'data' => NULL];
 		}
 	}
 

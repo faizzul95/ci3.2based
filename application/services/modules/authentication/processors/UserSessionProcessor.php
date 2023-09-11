@@ -260,11 +260,11 @@ class UserSessionProcessor
 				// Refresh the token in the database and cookie
 				$new_token = $userID . bin2hex(random_bytes(16));
 				ci()->userM::save(['id' => $userID, 'remember_token' => $new_token]);
-				set_cookie('remember_me_token_cipmo', $new_token, strtotime('+2 week'));
+				set_cookie('remember_me_token_ciarcav5', $new_token, strtotime('+4 week'));
 			}
 
 			$responseData = [
-				'resCode' => 200,
+				'code' => 200,
 				'message' => 'Login',
 				'redirectUrl' => 'dashboard',
 			];

@@ -31,6 +31,13 @@ function sentUsingMailGun($recipientData = NULL, $subject = NULL, $dataBody = NU
 		$cc = NULL;
 		$bcc = NULL;
 
+		// Add a To recipient
+		if (isArray($recipientData['recipient_email'])) {
+			$to = $recipientData['recipient_email'];
+		} else {
+			$to = $recipientData['recipient_name'] . ' <' . $recipientData['recipient_email'] . '>';
+		}
+
 		// Add a CC recipient
 		if (array_key_exists("recipient_cc", $recipientData) && hasData($recipientData['recipient_cc'])) {
 			$cc = $recipientData['recipient_cc'];
@@ -41,13 +48,7 @@ function sentUsingMailGun($recipientData = NULL, $subject = NULL, $dataBody = NU
 			$bcc = $recipientData['recipient_bcc'];
 		}
 
-		if (isArray($recipientData['recipient_email'])) {
-			$to = $recipientData['recipient_email'];
-		} else {
-			$to = $recipientData['recipient_name'] . ' <' . $recipientData['recipient_email'] . '>';
-		}
-
-		$result = $mgClient->messages()->send(env('APP_DOMAIN'), array(
+		$dataSent = [
 			'from'    => env('MAIL_FROM_NAME') . '<' . env('MAIL_FROM_ADDRESS') . '>',
 			'to'      => $to,
 			'subject' => $subject,
@@ -60,7 +61,9 @@ function sentUsingMailGun($recipientData = NULL, $subject = NULL, $dataBody = NU
 			//         'filename' => 'test_file.txt'
 			//     )
 			// )
-		));
+		];
+
+		$result = $mgClient->messages()->send(env('APP_DOMAIN'), $dataSent);
 
 		if ($result) {
 			return ['success' => true, 'message' => 'Email sent successfully'];
@@ -158,33 +161,17 @@ function sentUsingMailer($recipientData = NULL, $subject = NULL, $dataBody = NUL
 	return $response;
 }
 
-/**
- * Replaces placeholders in a string with corresponding values from the provided array.
- * Placeholders are of the form %placeholder%.
- * If a placeholder is not found in the array, the original placeholder is retained.
- *
- * @param {string} $string - The input string containing placeholders.
- * @param {Array} $arrayOfStringToReplace - An associative array containing key-value pairs for replacement.
- * @returns {string} The input string with placeholders replaced by array values.
- */
-function replaceTextWithData($string, $arrayOfStringToReplace)
+function arrayDataReplace($data)
 {
-	// // Initialize an empty array to store the replacement data
-	// $newData = array();
+	$newKey = $newValue = $newData = [];
+	foreach ($data as $key => $value) {
+		array_push($newKey, '%' . $key . '%');
+		array_push($newValue, $value);
+	}
 
-	// // Loop through the array and create a new associative array for replacement
-	// foreach ($arrayOfStringToReplace as $key => $value) {
-	// 	$newData['%' . $key . '%'] = $value;
-	// }
+	foreach ($newKey as $key => $data) {
+		$newData[$data] = $newValue[$key];
+	}
 
-	// // Replace placeholders with corresponding values in the string
-	// $replacedString = str_replace(array_keys($newData), array_values($newData), $string);
-
-	$replacedString = str_replace(
-		array_map(fn ($key) => "%$key%", array_keys($arrayOfStringToReplace)),
-		array_values($arrayOfStringToReplace),
-		$string
-	);
-
-	return $replacedString;
+	return $newData;
 }

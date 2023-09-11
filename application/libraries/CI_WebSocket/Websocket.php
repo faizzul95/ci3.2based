@@ -103,22 +103,22 @@ class Websocket
 		// }
 
 		// Assign HOST value to class var
-		$this->host = hasData(env('WEBSOCKET_HOST'), NULL, TRUE, '');
+		$this->host = env('WEBSOCKET_HOST', '');
 
 		// Assign PORT value to class var
-		$this->port = hasData(env('WEBSOCKET_PORT'), NULL, TRUE, '');
+		$this->port = env('WEBSOCKET_PORT', '');
 
 		// Assign AUTH value to class var
-		$this->auth = hasData(env('WEBSOCKET_AUTH'), NULL, TRUE, FALSE);
+		$this->auth = env('WEBSOCKET_AUTH', FALSE);
 
 		// Assign DEBUG value to class var
-		$this->debug = hasData(env('WEBSOCKET_DEBUG'), NULL, TRUE, FALSE);
+		$this->debug = env('WEBSOCKET_DEBUG', FALSE);
 
 		// Assign Timer value to class var
-		$this->timer = hasData(env('WEBSOCKET_TIMER_ENABLED'), NULL, TRUE, FALSE);
+		$this->timer = env('WEBSOCKET_TIMER_ENABLED', FALSE);
 
 		// Assign Timer Interval value to class var
-		$this->timer_interval = hasData(env('WEBSOCKET_TIMER_INTERVAL'), NULL, TRUE, 1);
+		$this->timer_interval = env('WEBSOCKET_TIMER_INTERVAL', 1);
 	}
 
 	/**

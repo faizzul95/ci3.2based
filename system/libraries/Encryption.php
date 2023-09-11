@@ -49,9 +49,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @author		Andrey Andreev
  * @link		https://codeigniter.com/userguide3/libraries/encryption.html
  */
-
-#[\AllowDynamicProperties]
-
 class CI_Encryption {
 
 	/**

@@ -44,14 +44,14 @@ class GoogleDrive extends GoogleServices
 				// Delete the backup file from the server
 				unlink($backup_file);
 
-				$res = ['resCode' => 200, 'message' => NULL, 'data' => $file];
+				$res = ['code' => 200, 'message' => NULL, 'data' => $file];
 			} catch (\Exception $e) {
-				$res = ['resCode' => 400, 'message' => $e->getMessage(), 'data' => NULL];
+				$res = ['code' => 400, 'message' => $e->getMessage(), 'data' => NULL];
 			}
 
 			return $res;
 		} else {
-			return ['resCode' => 400, 'message' => 'File to upload is does not exist', 'data' => NULL];
+			return ['code' => 400, 'message' => 'File to upload is does not exist', 'data' => NULL];
 		}
 	}
 

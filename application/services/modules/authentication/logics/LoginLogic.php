@@ -24,7 +24,7 @@ class LoginLogic
 		$responseData = GeneralErrorMessage::LIST['AUTH']['DEFAULT'];
 
 		$dataUser = app(new UserSearchProcessors)->execute([
-			'fields' => 'id,email,username,password,user_status,company_id,two_factor_status',
+			'fields' => 'id,email,username,password,user_status,two_factor_status',
 			'whereQuery' => purify($request['username'])
 		], 'get');
 
@@ -57,7 +57,7 @@ class LoginLogic
 						// if 2FA is enabled
 						else {
 							$responseData =  [
-								'resCode' => 200,
+								'code' => 200,
 								'message' => "",
 								'redirectUrl' => url('auth/verify/') . $userID . '/' . timestamp('YmdHis') . '/' . $rememberme,
 							];

@@ -15,15 +15,15 @@ class Api implements Luthier\MiddlewareInterface
 	public function run($args)
 	{
 		if (!isAjax()) {
-			return response(['code' => 422, 'message' => 'API is only accessible via AJAX REQUEST!'], HTTP_UNPROCESSABLE_ENTITY);
+			return returnData(['code' => 422, 'message' => 'API is only accessible via AJAX REQUEST!'], 422);
 		} else {
 			if ($this->hasPermissionAction()) {
 				if ($this->isXssAttack())
-					return response(['code' => 422, 'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!'], HTTP_UNPROCESSABLE_ENTITY);
+					return returnData(['code' => 422, 'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!'], 422);
 				else
 					$this->isRateLimiting();
 			} else {
-				return response(['resCode' => 400, 'message' => 'You are not authorized to perform this action'], HTTP_BAD_REQUEST);
+				return returnData(['code' => 400, 'message' => 'You are not authorized to perform this action'], 400);
 			}
 		}
 	}

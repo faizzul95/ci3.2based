@@ -54,16 +54,4 @@ final class GeneralStatus
 			'badge' => '<span class="badge badge-label bg-danger"> Failed </span>',
 		],
 	];
-
-	// MODULE STATUS
-
-	public const ALL_STATUS = 'ALL';
-	public const USER_STATUS = 'USER';
-	public const QUEUE_STATUS = 'QUEUE';
-
-	public const MODULE = [
-		self::ALL_STATUS => [self::ACTIVE, self::INACTIVE, self::SUSPENDED, self::DELETED, self::UNVERIFIED, self::ENDED],
-		self::USER_STATUS => [self::ACTIVE, self::INACTIVE, self::SUSPENDED, self::DELETED, self::UNVERIFIED],
-		self::QUEUE_STATUS => [self::QUEUE_PENDING, self::QUEUE_RUNNING, self::QUEUE_COMPLETE, self::QUEUE_FAIL],
-	];
 }

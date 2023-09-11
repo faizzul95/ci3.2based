@@ -1878,7 +1878,8 @@ class MY_Model extends CI_Model
 
 	public function purifyData($data)
 	{
-		return purify($data);
+		// return purify($data);
+		return $data;
 	}
 
 	public function toSql($query, $index = 0)
@@ -1911,17 +1912,6 @@ class MY_Model extends CI_Model
 		return $rawSql;
 	}
 
-	public function returnFormatedData($id = NULL, $data = NULL, $resCode = '200', $action = 'insert')
-	{
-		return returnData([
-			"action" => $action,
-			"resCode" => $resCode,
-			"message" =>  message($resCode, $action),
-			"id" => $id,
-			"data" => $data
-		], $resCode);
-	}
-
 	public function scopeWithQuery($query, $filter)
 	{
 		if (hasData($filter) && is_array($filter)) {
@@ -1936,7 +1926,7 @@ class MY_Model extends CI_Model
 					$conditionField = NULL;
 					$conditionwWith = NULL;
 
-					if (isArray($with)) {
+					if (is_array($with)) {
 						if (hasData($with, 'fields')) {
 							$conditionField = 'fields:' . $with['fields'];
 						}

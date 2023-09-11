@@ -137,7 +137,7 @@ class WorkerController extends CI_Controller
 	{
 		// CLI only
 		if (php_sapi_name() != "cli") {
-			die('Access denied');
+			die(output('error', 'Access denied'));
 		}
 
 		parent::__construct();
@@ -159,7 +159,7 @@ class WorkerController extends CI_Controller
 	{
 		// Env check
 		if (!$this->_isLinux()) {
-			die("Error environment: Queue Listener requires Linux OS, you could use `work` or `single` instead.");
+			die(output('error', "Queue Listener requires Linux OS, you could use `work` or `single` instead."));
 		}
 
 		// Pre-work check
@@ -222,8 +222,9 @@ class WorkerController extends CI_Controller
 					$workingFlag = true;
 					$startTime = microtime(true);
 
-					echo "Queue Listener - Job detect\n";
-					echo "Queue Listener - Start dispatch\n";
+					output('info', "Queue Listener - Job detect");
+					output('info', "Queue Listener - Start dispatch");
+
 					$this->_log("Queue Listener - Job detect");
 					$this->_log("Queue Listener - Start dispatch");
 
@@ -245,7 +246,8 @@ class WorkerController extends CI_Controller
 							$isAlive = $this->_isPidAlive($pid);
 							if (!$isAlive) {
 								$this->_log("Queue Listener - Worker health check: Missing #{$id} (PID: {$pid})");
-								echo "Queue Listener - Worker health check: Missing #{$id} (PID: {$pid})\n";
+								output('info', "Queue Listener - Worker health check: Missing #{$id} (PID: {$pid})");
+
 								$r = $this->_workerCmd($workerCmd, $id);
 							}
 						}
@@ -271,8 +273,9 @@ class WorkerController extends CI_Controller
 				// Clear worker stack
 				$this->_pidStack = [];
 				$costSeconds = number_format(microtime(true) - $startTime, 2, '.', '');
-				echo "Queue Listener - Job empty\n";
-				echo "Queue Listener - Stop dispatch, total cost: {$costSeconds}s\n\n";
+				output('info', "Queue Listener - Job empty");
+				output('info', "Queue Listener - Stop dispatch, total cost: {$costSeconds}s\n\n");
+				
 				$this->_log("Queue Listener - Job empty");
 				$this->_log("Queue Listener - Stop dispatch, total cost: {$costSeconds}s");
 			}
@@ -322,7 +325,7 @@ class WorkerController extends CI_Controller
 
 		// Print worker close
 		$costSeconds = number_format(microtime(true) - $startTime, 2, '.', '');
-		echo "Queue Worker - Close #{$id} (PID: {$pid}) | cost: {$costSeconds}s\n\n";
+		output('info', "Queue Worker - Close #{$id} (PID: {$pid}) | cost: {$costSeconds}s\n");
 		$this->_print("Queue Worker - Close #{$id} (PID: {$pid}) | cost: {$costSeconds}s");
 
 		return;
@@ -343,12 +346,12 @@ class WorkerController extends CI_Controller
 	{
 		// Env check
 		if (!$this->_isLinux()) {
-			die("Error environment: Queue Launcher requires Linux OS, you could use `work` or `single` instead.");
+			die(output('error', "Queue Launcher requires Linux OS, you could use `work` or `single` instead."));
 		}
 
 		// Action check
 		if (!in_array($action, ['listen', 'work'])) {
-			die("Action: `{$action}` is invalid for Launcher.");
+			die(output('error', "Action: `{$action}` is invalid for Launcher."));
 		}
 
 		// Null so far
@@ -374,7 +377,7 @@ class WorkerController extends CI_Controller
 
 		if ($exist) {
 			$psInfo = shell_exec($psInfoCmd);
-			die("Skip: Same process `{$action}` is running: {$route}.\n------\n{$psInfo}");
+			die(output('warning', "Skip: Same process `{$action}` is running: {$route}.\n------\n{$psInfo}"));
 		}
 
 		// Launch by calling command
@@ -382,7 +385,7 @@ class WorkerController extends CI_Controller
 		$result = shell_exec($launchCmd);
 		$result = shell_exec($psCmd);
 		$psInfo = shell_exec($psInfoCmd);
-		echo "Success to launch process `{$action}`: {$route}.\nCalled command: {$launchCmd}\n------\n\n{$psInfo}\n\n";
+		output('success', "Success to launch process `{$action}`: {$route}.\nCalled command: {$launchCmd}\n------\n\n{$psInfo}\n\n");
 
 		return;
 	}
@@ -417,7 +420,7 @@ class WorkerController extends CI_Controller
 			$lockData = json_decode(file_get_contents($lockFile), true);
 			// Check expires time
 			if (isset($lockData['expires_at']) && time() <= $lockData['expires_at']) {
-				die("Single is already running: {$lockFile}\n");
+				die(output('warning', "Single is already running: {$lockFile}"));
 			}
 		}
 
@@ -534,7 +537,8 @@ class WorkerController extends CI_Controller
 
 		// Log
 		$time = date("Y-m-d H:i:s");
-		echo "Queue Listener - Dispatch Worker #{$workerCount} (PID: {$pid})\n";
+		output('info', "Queue Listener - Dispatch Worker #{$workerCount} (PID: {$pid})\n");
+
 		$this->_log("Queue Listener - Dispatch Worker #{$workerCount} (PID: {$pid})");
 
 		return true;
@@ -579,7 +583,8 @@ class WorkerController extends CI_Controller
 	 */
 	protected function _formatTextLine($textLine)
 	{
-		return $textLine = date("Y-m-d H:i:s") . " - {$textLine}" . PHP_EOL;
+		return output('info', date("Y-m-d H:i:s") . " - {$textLine}");
+		// $textLine = date("Y-m-d H:i:s") . " - {$textLine}" . PHP_EOL;
 	}
 
 	/**

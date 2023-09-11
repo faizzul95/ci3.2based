@@ -11,7 +11,7 @@
 		"source": "https://github.com/bcit-ci/CodeIgniter"
 	},
 	"suggest": {
-		"paragonie/random_compat": "Provides better randomness in PHP 7.x"
+		"paragonie/random_compat": "Provides better randomness in PHP 8.x"
 	},
 	"autoload": {
 		"psr-4": {
@@ -19,25 +19,26 @@
 		}
 	},
 	"config": {
-		"process-timeout":850
+		"process-timeout": 1000
 	},
 	"require": {
 		"php": ">=8.0",
 		"vlucas/phpdotenv": "^5.5",
-		"luthier/luthier": "^1.0",
 		"voku/anti-xss": "^4.1",
-		"eftec/bladeone": "^4.8",
-		"ozdemir/datatables": "^2.3",
-		"phpmailer/phpmailer": "^6.7",
-		"endroid/qr-code": "^4.7",
 		"vectorface/googleauthenticator": "^3.0",
-		"ramsey/uuid": "^4.7",
-		"phpoffice/phpspreadsheet": "^1.27",
-		"google/apiclient": "^2.13",
+		"phpmailer/phpmailer": "^6.8",
+		"endroid/qr-code": "^4.8",
+		"peppeocchi/php-cron-scheduler": "^4.0",
 		"voku/html-min": "^4.5",
-		"peppeocchi/php-cron-scheduler": "4.*",
-		"cboden/ratchet": "^0.4.4",
+		"ramsey/uuid": "^4.7",
+		"phpoffice/phpspreadsheet": "^1.29",
+		"google/apiclient": "2.15.0",
+		"yidas/codeigniter-rest": "^1.7",
+		"ozdemir/datatables": "^2.3",
+		"eftec/bladeone": "^4.9",
+		"luthier/luthier": "^1.0",
+		"firebase/php-jwt": "^6.8",
 		"textalk/websocket": "^1.6",
-		"firebase/php-jwt": "^6.8"
+		"cboden/ratchet": "^0.4.4"
 	}
 }

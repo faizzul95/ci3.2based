@@ -67,15 +67,13 @@ defined('BASEPATH') or exit('No direct script access allowed');
 | The $active_group variable lets you choose which connection group to
 | make active.  By default there is only one group (the 'default' group).
 */
-
 $active_group = 'default';
-
 // $db['default'] = array(
 // 	'dsn'	=> '',
 // 	'hostname' => 'localhost',
-// 	'username' => '',
+// 	'username' => 'root',
 // 	'password' => '',
-// 	'database' => '',
+// 	'database' => 'arca_db',
 // 	'dbdriver' => 'mysqli',
 // 	'dbprefix' => '',
 // 	'pconnect' => FALSE,

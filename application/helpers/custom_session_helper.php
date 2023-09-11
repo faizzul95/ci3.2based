@@ -20,12 +20,19 @@ if (!function_exists('isLoginCheck')) {
 	}
 }
 
+if (!function_exists('isSuperadmin')) {
+	function isSuperadmin()
+	{
+		return in_array(currentUserRoleID(), [1]);
+	}
+}
+
 // CUSTOM FUNCTION (CHANGE ACCORDING YOUR SYSTEM SESSION)
 
 if (!function_exists('currentUserID')) {
 	function currentUserID()
 	{
-		return decodeID(getSession('userID'));
+		return getSession('userID');
 	}
 }
 
@@ -53,7 +60,7 @@ if (!function_exists('currentUserRoleID')) {
 if (!function_exists('currentUserRoleName')) {
 	function currentUserRoleName()
 	{
-		return getSession('profileName');
+		return getSession('roleName');
 	}
 }
 
@@ -81,7 +88,7 @@ if (!function_exists('currentUserEmail')) {
 if (!function_exists('currentUserStaffID')) {
 	function currentUserStaffID()
 	{
-		return getSession('userStaffNo');
+		return getSession('userCode');
 	}
 }
 
@@ -89,6 +96,6 @@ if (!function_exists('getImageSystemLogo')) {
 	function getImageSystemLogo()
 	{
 		$imageLogoPath = 'public/dist/logo.png';
-		return fileExist($imageLogoPath) ? asset($imageLogoPath) : defaultImage('company_logo');
+		return fileExist($imageLogoPath) ? $imageLogoPath : defaultImage('company_logo');
 	}
 }

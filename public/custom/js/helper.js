@@ -1,6 +1,6 @@
 // CODEIGNITER 3 : CSRF must be same as in ENV Files.
-let csrf_token_name = 'cid';
-let csrf_cookie_name = 'ccookie';
+let csrf_token_name = 'csrftokenbased';
+let csrf_cookie_name = 'csrfcookiebased';
 let localeMapCurrency = {
 	USD: {
 		symbol: '$',
