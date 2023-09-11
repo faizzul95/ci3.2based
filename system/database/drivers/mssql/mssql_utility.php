@@ -52,7 +52,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 
 #[\AllowDynamicProperties]
-
 class CI_DB_mssql_utility extends CI_DB_utility
 {
 
