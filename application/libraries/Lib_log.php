@@ -27,6 +27,7 @@ class Lib_log
 	 *
 	 * @param string
 	 */
+	private $_log_enable;
 	private $_log_table_name;
 
 	public $levels = array(
@@ -53,13 +54,14 @@ class Lib_log
 	 */
 	public function __construct()
 	{
-		$this->_ci = ci();
+		$this->_ci = &get_instance();
 		set_error_handler(array($this, 'error_handler'));
 		set_exception_handler(array($this, 'exception_handler'));
 		// Load database driver
 		$this->_ci->load->database();
 		// Load config file
 		$this->_ci->load->config('log');
+		$this->_log_enable = ($this->_ci->config->item('log_enable')) ? $this->_ci->config->item('log_enable') : false;
 		$this->_log_table_name = ($this->_ci->config->item('log_table_name')) ? $this->_ci->config->item('log_table_name') : 'system_logs';
 	}
 
@@ -108,18 +110,21 @@ class Lib_log
 	 */
 	public function exception_handler($exception)
 	{
-		$data = array(
-			'errno' => $exception->getCode(),
-			'errtype' => isset($this->levels[$exception->getCode()]) ? $this->levels[$exception->getCode()] : $exception->getCode(),
-			'errstr' => $exception->getMessage(),
-			'errfile' => $exception->getFile(),
-			'errline' => $exception->getLine(),
-			'user_agent' => $this->_ci->input->user_agent(),
-			'ip_address' => $this->_ci->input->ip_address(),
-			'time' => timestamp()
-		);
+		if($this->_log_enable)
+		{
+			$data = array(
+				'errno' => $exception->getCode(),
+				'errtype' => isset($this->levels[$exception->getCode()]) ? $this->levels[$exception->getCode()] : $exception->getCode(),
+				'errstr' => $exception->getMessage(),
+				'errfile' => $exception->getFile(),
+				'errline' => $exception->getLine(),
+				'user_agent' => $this->_ci->input->user_agent(),
+				'ip_address' => $this->_ci->input->ip_address(),
+				'time' => timestamp()
+			);
 
-		$this->_ci->db->insert($this->_log_table_name, $data);
+			$this->_ci->db->insert($this->_log_table_name, $data);
+		}
 	}
 }
 
