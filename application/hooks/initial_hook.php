@@ -67,25 +67,52 @@ if (!function_exists('env')) {
 
 // DUMPER HELPER
 
+/**
+ * Dump variables to the output in a human-readable format.
+ *
+ * @param mixed ...$args
+ */
 if (!function_exists('d')) {
-	function d()
+	function d(...$args)
 	{
 		array_map(function ($param) {
 			echo '<pre>';
 			print_r($param);
 			echo '</pre>';
-		}, func_get_args());
+		}, $args);
 	}
 }
 
+/**
+ * Dump variables to the output in a human-readable format and terminate the script.
+ *
+ * @param mixed ...$args
+ */
 if (!function_exists('ddd')) {
-	function ddd()
+	function ddd(...$args)
 	{
 		array_map(function ($param) {
 			echo '<pre>';
 			print_r($param);
 			echo '</pre>';
-		}, func_get_args());
+		}, $args);
 		die;
+	}
+}
+
+/**
+ * Log an action related to CRUD operations.
+ *
+ * @param string $type          The type of action (e.g., 'view', 'create', 'update', 'delete').
+ * @param string|null $message  Additional information or description for the log entry.
+ * @param string|null $model    The name of the model associated with the action.
+ * @param string|null $function The name of the function/method where the action is logged.
+ */
+if (!function_exists('Logs')) {
+	function Logs($type = 'view', $message = null, $model_name = null, $function_name = null)
+	{
+		// Call the appropriate log method based on the action type.
+		// This function delegates logging to the Crud_Logs class.
+		Crud_Logs::$type($message, $model_name, $function_name);
 	}
 }
