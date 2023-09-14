@@ -8,9 +8,9 @@ use App\services\generals\traits\QueryTrait;
 
 class SystemAuditTrailsDeleteProcessors
 {
-    use QueryTrait;
+	use QueryTrait;
 
-    protected $model;
+	protected $model;
 
 	public function __construct()
 	{
@@ -35,6 +35,6 @@ class SystemAuditTrailsDeleteProcessors
 			], $code);
 		}
 
-		return returnData(["action" => 'delete', "code" => 400, "message" =>  message(400, 'delete')], 400);
+		return returnData(["action" => 'delete', "code" => 400, "message" =>  message(400, 'remove unsuccessful')], 400);
 	}
 }

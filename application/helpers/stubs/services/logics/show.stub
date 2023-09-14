@@ -19,9 +19,9 @@ class %CLASS_NAME%
         return app(new %CLASS_PROCESSOR_NAME%)->execute(
 			[
 				'fields' => '%FIELD%',
-				'conditions' => array_merge($this->request, ['id' => $request['id']]),
+				'conditions' => array_merge($this->request, ['%PRIMARY_KEY%' => $request['%PRIMARY_KEY%']]),
 			],
 			'get'
-		);
+		);s
     }
 }

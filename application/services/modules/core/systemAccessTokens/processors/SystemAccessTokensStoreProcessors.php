@@ -16,9 +16,9 @@ class SystemAccessTokensStoreProcessors
 	{
 	}
 
-	public function execute($request = NULL)
+	public function execute($request = NULL, $securityXss = true)
 	{
 		$query = $this->newQuery('SystemAccessTokens_model');
-		return $query::save(array_merge($this->request, $request));
+		return $query::save(array_merge($this->request, $request), $securityXss);
 	}
 }

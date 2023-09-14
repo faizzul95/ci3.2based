@@ -16,9 +16,9 @@ class SystemQueueFailedJobStoreProcessors
 	{
 	}
 
-	public function execute($request = NULL)
+	public function execute($request = NULL, $securityXss = true)
 	{
 		$query = $this->newQuery('SystemQueueFailedJob_model');
-		return $query::save(array_merge($this->request, $request));
+		return $query::save(array_merge($this->request, $request), $securityXss);
 	}
 }

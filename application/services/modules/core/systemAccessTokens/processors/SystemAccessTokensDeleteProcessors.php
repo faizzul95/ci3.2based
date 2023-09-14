@@ -35,6 +35,6 @@ class SystemAccessTokensDeleteProcessors
 			], $code);
 		}
 
-		return returnData(["action" => 'delete', "code" => 400, "message" =>  message(400, 'delete')], 400);
+		return returnData(["action" => 'delete', "code" => 400, "message" =>  message(400, 'remove unsuccessful')], 400);
 	}
 }

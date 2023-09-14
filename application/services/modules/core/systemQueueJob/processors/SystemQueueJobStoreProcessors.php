@@ -8,7 +8,7 @@ use App\services\generals\traits\QueryTrait;
 
 class SystemQueueJobStoreProcessors
 {
-    use QueryTrait;
+	use QueryTrait;
 
 	protected $request = [];
 
@@ -16,9 +16,9 @@ class SystemQueueJobStoreProcessors
 	{
 	}
 
-	public function execute($request = NULL)
+	public function execute($request = NULL, $securityXss = true)
 	{
 		$query = $this->newQuery('SystemQueueJob_model');
-		return $query::save(array_merge($this->request, $request));
+		return $query::save(array_merge($this->request, $request), $securityXss);
 	}
 }

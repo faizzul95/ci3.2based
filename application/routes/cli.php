@@ -159,9 +159,11 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 Route::cli('generate/services/{module}/{fileName}/{tableName?}', function ($module = 'default', $name = NULL, $tableName = NULL) {
 
 	$tableField = '';
+	$pkField = 'id';
 	if (!empty($tableName)) {
 		if (isTableExist($tableName)) {
 			$table = $tableName;
+			$pkField = primary_field_name($table);
 			$allColumn = allTableColumn($table);
 			if (!empty($allColumn)) {
 				$keysToRemove = ["created_at", "updated_at", "deleted_at"];
@@ -251,6 +253,7 @@ Route::cli('generate/services/{module}/{fileName}/{tableName?}', function ($modu
 					if ($fileStub == 'show') {
 						$getFieldData = '';
 						$dataServices = str_replace('%FIELD%', $tableField, $dataServices);
+						$dataServices = str_replace('%PRIMARY_KEY%', $pkField, $dataServices);
 					}
 
 					$dataServices = str_replace('%CLASS_PROCESSOR_NAME%', $fileName . $processorMapping[$fileStub], $dataServices);

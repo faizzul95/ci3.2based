@@ -16,9 +16,9 @@ class SystemLoggerStoreProcessors
 	{
 	}
 
-	public function execute($request = NULL)
+	public function execute($request = NULL, $securityXss = true)
 	{
 		$query = $this->newQuery('SystemLogger_model');
-		return $query::save(array_merge($this->request, $request));
+		return $query::save(array_merge($this->request, $request), $securityXss);
 	}
 }
