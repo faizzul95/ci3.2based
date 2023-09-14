@@ -21,63 +21,102 @@ if (!function_exists('money_format')) {
 }
 
 /**
+ * Retrieve a mapping of currency codes to their respective locale settings.
+ * This function returns an array where each currency code is associated with an array
+ * containing symbol, pattern, code, and decimal settings for formatting the currency.
+ * 
+ * @return array An associative array where currency codes are keys and their locale settings are values.
+ */
+if (!function_exists('getCurrencyMapping')) {
+    function getCurrencyMapping()
+    {
+        // Map the country codes to their respective locale codes
+        return array(
+            'USD' => ['symbol' => '$', 'pattern' => '$ #,##0.00', 'code' => 'en_US', 'decimal' => 2], // United States Dollar (USD)
+            'JPY' => ['symbol' => '¥', 'pattern' => '¥ #,##0', 'code' => 'ja_JP', 'decimal' => 2], // Japanese Yen (JPY)
+            'GBP' => ['symbol' => '£', 'pattern' => '£ #,##0.00', 'code' => 'en_GB', 'decimal' => 2], // British Pound Sterling (GBP)
+            'EUR' => ['symbol' => '€', 'pattern' => '€ #,##0.00', 'code' => 'en_GB', 'decimal' => 2], // Euro (EUR) - Using en_GB for Euro
+            'AUD' => ['symbol' => 'A$', 'pattern' => 'A$ #,##0.00', 'code' => 'en_AU', 'decimal' => 2], // Australian Dollar (AUD)
+            'CAD' => ['symbol' => 'C$', 'pattern' => 'C$ #,##0.00', 'code' => 'en_CA', 'decimal' => 2], // Canadian Dollar (CAD)
+            'CHF' => ['symbol' => 'CHF', 'pattern' => 'CHF #,##0.00', 'code' => 'de_CH', 'decimal' => 2], // Swiss Franc (CHF)
+            'CNY' => ['symbol' => '¥', 'pattern' => '¥ #,##0.00', 'code' => 'zh_CN', 'decimal' => 2], // Chinese Yuan (CNY)
+            'SEK' => ['symbol' => 'kr', 'pattern' => 'kr #,##0.00', 'code' => 'sv_SE', 'decimal' => 2], // Swedish Krona (SEK)
+            'MYR' => ['symbol' => 'RM', 'pattern' => 'RM #,##0.00', 'code' => 'ms_MY', 'decimal' => 2], // Malaysian Ringgit (MYR)
+            'SGD' => ['symbol' => 'S$', 'pattern' => 'S$ #,##0.00', 'code' => 'en_SG', 'decimal' => 2], // Singapore Dollar (SGD)
+            'INR' => ['symbol' => '₹', 'pattern' => '₹ #,##0.00', 'code' => 'en_IN', 'decimal' => 2], // Indian Rupee (INR)
+            'IDR' => ['symbol' => 'Rp', 'pattern' => 'Rp #,##0', 'code' => 'id_ID', 'decimal' => 0], // Indonesian Rupiah (IDR)
+        );
+    }
+}
+
+/**
+ * Retrieve the currency symbol for a given currency code.
+ *
+ * This function checks if the provided currency code exists in a currency mapping
+ * and returns the corresponding currency symbol. If the currency code is not found,
+ * it returns an error message indicating an invalid country code.
+ *
+ * @param string|null $currencyCode The currency code for which to retrieve the symbol.
+ * @return string The currency symbol or an error message if the code is invalid.
+ */
+if (!function_exists('currencySymbol')) {
+    function currencySymbol($currencyCode = NULL)
+    {
+        $localeMap = getCurrencyMapping();
+
+        if (!array_key_exists($currencyCode, $localeMap)) {
+            return "Error: Invalid country code.";
+        }
+
+        return $localeMap[$currencyCode]['symbol'];
+    }
+}
+
+/**
  * Format a given numeric value into a localized currency representation using the "intl" extension.
  *
  * @param float $value The numeric value to format as currency.
- * @param bool $includeSymbol (Optional) Whether to include the currency symbol in the formatted output (default is false).
  * @param string|null $code (Optional) The country code to determine the currency format (e.g., 'USD', 'EUR', 'JPY', etc.).
+ * @param bool $includeSymbol (Optional) Whether to include the currency symbol in the formatted output (default is false).
  * @return string The formatted currency value as a string or an error message if the "intl" extension is not installed or enabled.
  */
 if (!function_exists('formatCurrency')) {
-	function formatCurrency($value, $code, $includeSymbol = false)
-	{
-		// Check if the "intl" extension is installed and enabled
-		if (!extension_loaded('intl')) {
-			return 'Error: The "intl" extension is not installed or enabled, which is required for number formatting.';
-		}
+    function formatCurrency($value, $code, $includeSymbol = false)
+    {
+        // Check if the "intl" extension is installed and enabled
+        if (!extension_loaded('intl')) {
+            return 'Error: The "intl" extension is not installed or enabled, which is required for number formatting.';
+        }
 
-		if (empty($value)) {
-			$value = 0.0;
-		}
+        if (empty($value)) {
+            $value = 0.0;
+        }
 
-		// Map the country codes to their respective locale codes
-		$localeMap = array(
-			'USD' => ['pattern' => '$ #,##0.00', 'code' => 'en_US'], // United States Dollar (USD)
-			'JPY' => ['pattern' => '¥ #,##0', 'code' => 'ja_JP'], // Japanese Yen (JPY)
-			'GBP' => ['pattern' => '£ #,##0.00', 'code' => 'en_GB'], // British Pound Sterling (GBP)
-			'EUR' => ['pattern' => '€ #,##0.00', 'code' => 'en_GB'], // Euro (EUR) - Using en_GB for Euro
-			'AUD' => ['pattern' => 'A$ #,##0.00', 'code' => 'en_AU'], // Australian Dollar (AUD)
-			'CAD' => ['pattern' => 'C$ #,##0.00', 'code' => 'en_CA'], // Canadian Dollar (CAD)
-			'CHF' => ['pattern' => 'CHF #,##0.00', 'code' => 'de_CH'], // Swiss Franc (CHF)
-			'CNY' => ['pattern' => '¥ #,##0.00', 'code' => 'zh_CN'], // Chinese Yuan (CNY)
-			'SEK' => ['pattern' => 'kr #,##0.00', 'code' => 'sv_SE'], // Swedish Krona (SEK)
-			'MYR' => ['pattern' => 'RM #,##0.00', 'code' => 'ms_MY'], // Malaysian Ringgit (MYR)
-			'SGD' => ['pattern' => 'S$ #,##0.00', 'code' => 'en_SG'], // Singapore Dollar (SGD)
-			'INR' => ['pattern' => '₹ #,##0.00', 'code' => 'en_IN'], // Indian Rupee (INR) - Using en_IN for Rupee
-			'IDR' => ['pattern' => 'Rp #,##0', 'code' => 'id_ID'], // Indonesian Rupiah (IDR)
-		);
+        // Map the country codes to their respective locale codes
+        $localeMap = getCurrencyMapping();
 
-		if (!array_key_exists($code, $localeMap)) {
-			return "Error: Invalid country code.";
-		}
+        if (!array_key_exists($code, $localeMap)) {
+            return "Error: Invalid country code.";
+        }
 
-		// Validate the $includeSymbol parameter
-		if (!is_bool($includeSymbol)) {
-			return "Error: \$includeSymbol parameter must be a boolean value.";
-		}
+        // Validate the $includeSymbol parameter
+        if (!is_bool($includeSymbol)) {
+            return "Error: \$includeSymbol parameter must be a boolean value.";
+        }
 
-		$currencyData = $localeMap[$code];
+        $currencyData = $localeMap[$code];
 
-		// Create a NumberFormatter instance with the desired locale (country code)
-		$formatter = new NumberFormatter($currencyData['code'], NumberFormatter::DECIMAL);
+        // Create a NumberFormatter instance with the desired locale (country code)
+        $formatter = new NumberFormatter($currencyData['code'], NumberFormatter::DECIMAL);
+        $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, $currencyData['decimal']); // Set fraction digits
 
-		if ($includeSymbol) {
-			$formatter->setPattern($currencyData['pattern']);
-		}
+        if ($includeSymbol) {
+            $formatter->setPattern($currencyData['pattern']);
+        }
 
-		// Format the currency value using the NumberFormatter
-		return $formatter->formatCurrency($value, $currencyData['code']);
-	}
+        // Format the currency value using the NumberFormatter
+        return $formatter->formatCurrency($value, $currencyData['code']);
+    }
 }
 
 // ENCODE & DECODE HELPERS SECTION
@@ -469,10 +508,6 @@ if (!function_exists('deleteFolder')) {
 		}
 	}
 }
-
-// Example usage:
-// deleteFolder('/path/to/folder', ['file1.txt', 'file2.txt']);
-
 
 // PAGE ERROR (NODATA) HELPER
 

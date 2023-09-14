@@ -1,71 +1,84 @@
 // CODEIGNITER 3 : CSRF must be same as in ENV Files.
-let csrf_token_name = 'csrftokenbased';
-let csrf_cookie_name = 'csrfcookiebased';
+let csrf_token_name = 'csrfpmotokenbased';
+let csrf_cookie_name = 'csrfpmocookiebased';
 let localeMapCurrency = {
 	USD: {
 		symbol: '$',
 		pattern: '$ #,##0.00',
-		code: 'en-US'
+		code: 'en-US',
+		decimal: 2
 	}, // United States Dollar (USD)
 	JPY: {
 		symbol: '¥',
 		pattern: '¥ #,##0',
-		code: 'ja-JP'
+		code: 'ja-JP',
+		decimal: 2
 	}, // Japanese Yen (JPY)
 	GBP: {
 		symbol: '£',
 		pattern: '£ #,##0.00',
-		code: 'en-GB'
+		code: 'en-GB',
+		decimal: 2
 	}, // British Pound Sterling (GBP)
 	EUR: {
 		symbol: '€',
 		pattern: '€ #,##0.00',
-		code: 'en-GB'
+		code: 'en-GB',
+		decimal: 2
 	}, // Euro (EUR) - Using en-GB for Euro
 	AUD: {
 		symbol: 'A$',
 		pattern: 'A$ #,##0.00',
-		code: 'en-AU'
+		code: 'en-AU',
+		decimal: 2
 	}, // Australian Dollar (AUD)
 	CAD: {
 		symbol: 'C$',
 		pattern: 'C$ #,##0.00',
-		code: 'en-CA'
+		code: 'en-CA',
+		decimal: 2
 	}, // Canadian Dollar (CAD)
 	CHF: {
 		symbol: 'CHF',
 		pattern: 'CHF #,##0.00',
-		code: 'de-CH'
+		code: 'de-CH',
+		decimal: 2
 	}, // Swiss Franc (CHF)
 	CNY: {
 		symbol: '¥',
 		pattern: '¥ #,##0.00',
-		code: 'zh-CN'
+		code: 'zh-CN',
+		decimal: 2
 	}, // Chinese Yuan (CNY)
 	SEK: {
 		symbol: 'kr',
 		pattern: 'kr #,##0.00',
-		code: 'sv-SE'
+		code: 'sv-SE',
+		decimal: 2
 	}, // Swedish Krona (SEK)
 	MYR: {
 		symbol: 'RM',
 		pattern: 'RM #,##0.00',
-		code: 'ms-MY'
+		code: 'ms-MY',
+		decimal: 2
 	}, // Malaysian Ringgit (MYR)
 	SGD: {
 		symbol: 'S$',
 		pattern: 'S$ #,##0.00',
-		code: 'en-SG'
+		code: 'en-SG',
+		decimal: 2
 	}, // Singapore Dollar (SGD)
 	INR: {
 		symbol: '₹',
 		pattern: '₹ #,##0.00',
-		code: 'en-IN'
+		code: 'en-IN',
+		decimal: 2
 	}, // Indian Rupee (INR)
 	IDR: {
 		symbol: 'Rp',
 		pattern: 'Rp #,##0',
-		code: 'id-ID'
+		code: 'id-ID',
+		decimal: 0
 	}, // Indonesian Rupiah (IDR)
 };
 
@@ -194,25 +207,40 @@ const trimData = (text) => {
  * @returns {boolean | any} - Returns a boolean indicating data existence or the actual data based on `returnData` parameter.
  */
 const hasData = (data = null, arrKey = null, returnData = false, defaultValue = null) => {
-	if (!data || data === '' || data === 'null') {
-		return returnData ? defaultValue : false;
+	// Base case 1: Check if data is not set, empty, or null
+	if (!data || data === null) {
+		return returnData ? (defaultValue ?? data) : false;
 	}
 
-	if (!arrKey) {
-		return true;
+	// Base case 2: If arrKey is not provided, consider data itself as having data
+	if (arrKey === null) {
+		return returnData ? (defaultValue ?? data) : true;
 	}
 
+	// Replace square brackets with dots in arrKey
+	arrKey = arrKey.replace(/\[/g, '.').replace(/\]/g, '');
+
+	// Split the keys into an array
 	const keys = arrKey.split('.');
-	let currentData = data;
 
-	for (const key of keys) {
-		if (!(key in currentData)) {
+	// Helper function to recursively traverse the data
+	const traverse = (keys, currentData) => {
+		if (keys.length === 0) {
+			return returnData ? currentData : true;
+		}
+
+		const key = keys.shift();
+
+		// Check if currentData is an object or an array
+		if (currentData && typeof currentData === 'object' && key in currentData) {
+			return traverse(keys, currentData[key]);
+		} else {
+			// If the key doesn't exist, return the default value or false
 			return returnData ? defaultValue : false;
 		}
-		currentData = currentData[key];
-	}
+	};
 
-	return !returnData ? true : (!currentData || currentData === 'null' ? defaultValue : currentData);
+	return traverse(keys, data);
 };
 
 /**
@@ -1055,6 +1083,16 @@ const closeOffcanvas = (id, timeSet = 250) => {
 
 // CURRENCY HELPER
 
+/**
+ * Function: formatCurrency
+ * Description: This function formats a numerical value as currency, based on the provided country code and options.
+ *
+ * @param {number} value - The numerical value to format as currency.
+ * @param {string|null} code - The country code for the currency (e.g., "USD" for US Dollar). If null, the default locale is used.
+ * @param {boolean} includeSymbol - A boolean indicating whether to include the currency symbol in the formatted output.
+ *
+ * @returns {string} - The formatted currency value as a string.
+ */
 const formatCurrency = (value, code = null, includeSymbol = false) => {
 	// Check if the "Intl" object is available in the browser
 	if (typeof Intl === 'undefined' || typeof Intl.NumberFormat === 'undefined') {
@@ -1075,16 +1113,16 @@ const formatCurrency = (value, code = null, includeSymbol = false) => {
 	const formatter = new Intl.NumberFormat(currencyData.code, {
 		style: 'decimal',
 		useGrouping: true,
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
+		minimumFractionDigits: currencyData.decimal,
+		maximumFractionDigits: currencyData.decimal,
 	});
 
 	if (includeSymbol) {
 		const symbolFormatter = new Intl.NumberFormat(currencyData.code, {
 			style: 'currency',
 			currency: code,
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
+			minimumFractionDigits: currencyData.decimal,
+			maximumFractionDigits: currencyData.decimal,
 		});
 		return symbolFormatter.format(value);
 	}
@@ -1092,6 +1130,15 @@ const formatCurrency = (value, code = null, includeSymbol = false) => {
 	return formatter.format(value);
 };
 
+/**
+ * Function: currencySymbol
+ * Description: Retrieves the currency symbol associated with a given currency code.
+ * 
+ * @param {string|null} currencyCode - The currency code for which to retrieve the symbol.
+ *                                    If not provided or invalid, an error message is returned.
+ * @returns {string} The currency symbol corresponding to the provided currency code,
+ *                   or an error message if the code is invalid.
+ */
 const currencySymbol = (currencyCode = null) => {
 	if (!localeMapCurrency.hasOwnProperty(currencyCode)) {
 		return 'Error: Invalid country code.';

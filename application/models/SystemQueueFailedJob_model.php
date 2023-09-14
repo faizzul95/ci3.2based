@@ -31,7 +31,6 @@ class SystemQueueFailedJob_model extends CT_Model
 		$this->return_as = 'array';
 
 		parent::__construct();
-		// $this->abilities = permission([]);
 	}
 
 	###################################################################
@@ -64,7 +63,7 @@ class SystemQueueFailedJob_model extends CT_Model
 			return purify($data["type"]);
 		});
 
-		$serverside->edit('payload', function ($data) {
+		$serverside->edit("payload", function ($data) {
 			$dataDecode = json_decode($data['payload'], true);
 
 			if (hasData($dataDecode)) {
@@ -87,12 +86,8 @@ class SystemQueueFailedJob_model extends CT_Model
 		});
 
 		$serverside->edit('id', function ($data) {
-			$del = $edit = '';
-
-			// if ($this->abilities[''])
+			$del = $edit = ''; // set default
 			$del = '<button class="btn btn-outline-danger btn-sm waves-effect" onclick="deleteRecord(' . $data[$this->primary_key] . ')" data-id="' . $data[$this->primary_key] . '" title="Delete"> <i class="tf-icons ti ti-trash ti-xs"></i> </button>';
-
-			// if ($this->abilities[''])
 			$edit = '<button class="btn btn-outline-info btn-sm waves-effect" onclick="updateRecord(' . $data[$this->primary_key] . ')" title="Update"><i class="fa fa-edit"></i> </button>';
 
 			return "<center> $del $edit </center>";

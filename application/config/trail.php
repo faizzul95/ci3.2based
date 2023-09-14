@@ -45,6 +45,7 @@ $config['not_allowed_tables'] = [
 	'ci_sessions',
 	'system_logger',
 	'system_backup_db',
+	'system_access_tokens',
 	'system_audit_trails',
 	'system_migrations',
 	'system_queue_job',

@@ -13,7 +13,7 @@ class SystemBackupDB_model extends CT_Model
 	public $fillable = [
 		'backup_name',
 		'backup_storage_type',
-		'backup_location',
+		'backup_location'
 	];
 
 	// the fields that cannot be filled by insert/update
@@ -36,15 +36,24 @@ class SystemBackupDB_model extends CT_Model
 	#                                                                 #
 	###################################################################
 
-	public function getListBackupDbDt()
+	public function getSystemBackupDBListDt()
 	{
 		$serverside = serversideDT();
-		$serverside->query("SELECT backup_name, backup_location, backup_storage_type, created_at, id FROM {$this->table} ORDER BY {$this->primary_key} {$this->order}");
+		$serverside->query("SELECT 
+		`backup_name`,
+		`backup_storage_type`,
+		`backup_location`,
+		`created_at`,
+		`id`
+		FROM {$this->table} 
+		ORDER BY {$this->primary_key} {$this->order}");
 
-		$serverside->edit('backup_name', function ($data) {
-			return purify($data['backup_name']);
+		$serverside->hide('backup_storage_type'); // hides column from the output
+
+		$serverside->edit("backup_name", function ($data) {
+			return purify($data["backup_name"]);
 		});
-
+		
 		$serverside->edit('backup_location', function ($data) {
 			$loc = purify($data['backup_location']);
 			$type = purify($data['backup_storage_type']);
@@ -59,11 +68,11 @@ class SystemBackupDB_model extends CT_Model
 		});
 
 		$serverside->edit('id', function ($data) {
-
+			$del = $edit = ''; // set default
 			$del = '<button class="btn btn-outline-danger btn-sm waves-effect" onclick="deleteRecord(' . $data[$this->primary_key] . ')" data-id="' . $data[$this->primary_key] . '" title="Delete"> <i class="tf-icons ti ti-trash ti-xs"></i> </button>';
-			$email = '<button class="btn btn-outline-info btn-sm waves-effect" onclick="emailBackup(' . $data[$this->primary_key] . ')" data-id="' . $data[$this->primary_key] . '" title="Email"> <i class="tf-icons ti ti-mail-forward ti-xs"></i> </button>';
+			$edit = '<button class="btn btn-outline-info btn-sm waves-effect" onclick="updateRecord(' . $data[$this->primary_key] . ')" title="Update"><i class="fa fa-edit"></i> </button>';
 
-			return "<center> $del $email </center>";
+			return "<center> $del $edit </center>";
 		});
 
 		echo $serverside->generate();

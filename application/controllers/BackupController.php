@@ -6,6 +6,8 @@ use App\services\generals\helpers\BackupSystem as BackupSystem;
 use App\services\generals\helpers\google\GoogleDrive as GD;
 use App\services\generals\helpers\google\GoogleAnalytic as GA;
 
+use App\services\modules\core\systemBackupDB\processors\SystemBackupDBStoreProcessors;
+
 use App\middleware\core\traits\SecurityHeadersTrait;
 
 class BackupController extends CI_Controller
@@ -16,9 +18,6 @@ class BackupController extends CI_Controller
 	{
 		parent::__construct();
 		$this->set_security_headers();
-
-		// model('SystemQueueJob_model', 'queueM');
-		model('SystemBackupDB_model', 'databaseM');
 	}
 
 	public function index()
@@ -31,10 +30,10 @@ class BackupController extends CI_Controller
 		$backup = new BackupSystem();
 		$response = $backup->backup_folder();
 
-		if (isSuccess($response['resCode'])) {
+		if (isSuccess($response['code'])) {
 			if ($uploadDrive) {
 				$drive = $this->BackupDrive($response['path'], 'system');
-				if (isSuccess($drive['resCode'])) {
+				if (isSuccess($drive['code'])) {
 					$response['data'] = [
 						'backup_storage_type' => 'google drive',
 						'backup_location' =>  $drive['data']['webViewLink']
@@ -51,7 +50,7 @@ class BackupController extends CI_Controller
 		$backup = new BackupSystem();
 		$response = $backup->backup_database();
 
-		if (isSuccess($response['resCode'])) {
+		if (isSuccess($response['code'])) {
 
 			$res = [
 				'backup_name' => $response['filename'],
@@ -61,13 +60,13 @@ class BackupController extends CI_Controller
 
 			if ($uploadDrive) {
 				$drive = $this->BackupDrive($response['path'], 'database');
-				if (isSuccess($drive['resCode'])) {
+				if (isSuccess($drive['code'])) {
 					$res['backup_storage_type'] = 'google drive';
 					$res['backup_location'] = $drive['data']['webViewLink'];
 				}
 			}
 
-			$response = $this->databaseM::save($res);
+			$response = app(new SystemBackupDBStoreProcessors)->execute($res);
 		}
 
 		dd($response);

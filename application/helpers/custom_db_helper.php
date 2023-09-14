@@ -47,205 +47,176 @@ if (!function_exists('db_name')) {
 	}
 }
 
-
+/**
+ * Insert data into a database table.
+ *
+ * @param string $table      The name of the table.
+ * @param array  $data       The data to insert.
+ * @param bool   $enableXss  Enable cross-site scripting (XSS) protection.
+ *
+ * @return array             An array containing the result and response data.
+ */
 if (!function_exists('insert')) {
 	function insert($table = NULL, $data = NULL, $enableXss = true)
 	{
-		if (!$enableXss) {
+		// Protection against XSS activated
+		if ($enableXss && antiXss($data) !== false) {
+			return handleReturn('insert', 422, 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!', NULL, $data);
+		}
+
+		$ci = ci();
+		$db = $ci->db;
+		$isAuditEnable = $ci->config->item('audit_enable');
+		$isTrackInsertEnable = $ci->config->item('track_insert');
+
+		try {
+			$db->trans_start(); // Start a database transaction
 
 			$data['created_at'] = timestamp();
 			$filterData = sanitizeInput($data, $table, $enableXss);
 
-			try {
-				$ci = ci();
-				$isAuditEnable = $ci->config->item('audit_enable'); // get config audit trail
-				$isTrackInsertEnable = $ci->config->item('track_insert'); // get config track insert
+			$resultInsert = $db->insert($table, $filterData);
+			$code = ($resultInsert) ? 201 : 400;
 
-				$resultInsert = $ci->db->insert($table, $filterData);
-				$code = ($resultInsert['status']) ? 201 : 400;
+			$db->trans_complete(); // Complete the transaction
 
-				return returnData([
-					"action" => 'insert',
-					"code" => $code,
-					"message" =>  message($code, 'insert'),
-					"id" => $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $ci->db->insert_id(),
-					"data" => $filterData
-				], $code);
-			} catch (Exception $e) {
-				log_message('error', "INSERT ERROR : " . $e->getMessage());
-				return returnData([
-					'action' => 'insert',
-					'code' => 422,
-					'message' => 'Something when wrong.',
-					'id' => NULL,
-					'data' => $e->getMessage(),
-				], 422);
+			// Check if the operation was successful
+			if ($db->trans_status() === FALSE) {
+				throw new Exception($db->error());
 			}
-		} else if (antiXss($data) === false) {
 
-			$data['created_at'] = timestamp();
-			$filterData = sanitizeInput($data, $table);
+			$db->trans_commit(); // Commit the transaction
+			$id = $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $db->insert_id();
 
-			try {
-				$ci = ci();
-				$isAuditEnable = $ci->config->item('audit_enable'); // get config audit trail
-				$isTrackInsertEnable = $ci->config->item('track_insert'); // get config track insert
-
-				$resultInsert = $ci->db->insert($table, $filterData);
-				$code = ($resultInsert['status']) ? 201 : 400;
-
-				return returnData([
-					"action" => 'insert',
-					"code" => $code,
-					"message" =>  message($code, 'insert'),
-					"id" => $isAuditEnable && $isTrackInsertEnable ? $resultInsert['lastID'] : $ci->db->insert_id(),
-					"data" => $filterData
-				], $code);
-			} catch (Exception $e) {
-				log_message('error', "INSERT ERROR : " . $e->getMessage());
-				return returnData([
-					'action' => 'insert',
-					'code' => 422,
-					'message' => 'Something when wrong.',
-					'id' => NULL,
-					'data' => $e->getMessage(),
-				], 422);
-			}
-		} else {
-			return returnData([
-				'action' => 'insert',
-				'code' => 422,
-				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
-				'id' => NULL,
-				'data' => $data,
-			], 422);
+			return handleReturn('insert', $code, message($code, 'insert' . ($resultInsert ? ' successfully' : ' failed')), $id, $filterData);
+		} catch (Exception $e) {
+			log_message('error', "INSERT ERROR : " . $e->getMessage());
+			$db->trans_rollback(); // Rollback the transaction
+			return handleReturn('insert', 422, 'insert failed', $id, $e->getMessage());
 		}
 	}
 }
 
+/**
+ * Update a record in the database table.
+ *
+ * @param string $table       The name of the table to update.
+ * @param array  $data        An associative array of data to update.
+ * @param mixed  $pkValue     The primary key value of the record to update.
+ * @param string $pkTableCT   The name of the primary key column (optional).
+ * @param bool   $enableXss   Enable or disable XSS filtering (optional, default is true).
+ *
+ * @return array An array containing the update result.
+ */
 if (!function_exists('update')) {
 	function update($table = NULL, $data = NULL, $pkValue = NULL, $pkTableCT = NULL, $enableXss = true)
 	{
-		if (!$enableXss) {
-			$pkTable = (empty($pkTableCT)) ? primary_field_name($table) : $pkTableCT;
+		// Protection against XSS activated
+		if ($enableXss && antiXss($data) !== false) {
+			return handleReturn('update', 422, 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!', $pkValue, $data);
+		}
 
-			$data['updated_at'] = timestamp();
-			$filterData = sanitizeInput($data, $table, $enableXss);
+		$data['updated_at'] = timestamp();
+		$filterData = sanitizeInput($data, $table, $enableXss);
 
-			if (isset($filterData[$pkTable])) {
-				unset($filterData[$pkTable]); // auto increment, no need to update or insert
+		$pkTable = (empty($pkTableCT)) ? primary_field_name($table) : $pkTableCT;
+		if (isset($filterData[$pkTable])) {
+			unset($filterData[$pkTable]); // auto increment, no need to update or insert
+		}
+
+		$db = ci()->db;
+
+		try {
+			$db->trans_start(); // Start a transaction
+
+			$code = ($db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
+
+			$db->trans_complete(); // Complete the transaction
+
+			// Check if the operation was successful
+			if ($db->trans_status() === FALSE) {
+				throw new Exception($db->error());
 			}
 
-			try {
-				$ci = ci();
-				$code = ($ci->db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
-
-				return returnData([
-					"action" => 'update',
-					"code" => $code,
-					"message" =>  message($code, 'update'),
-					"id" => $pkValue,
-					"data" => $filterData
-				], $code);
-			} catch (Exception $e) {
-				log_message('error', "UPDATE ERROR : " . $e->getMessage());
-				return returnData([
-					"action" => 'update',
-					'code' => 422,
-					'message' => 'Something when wrong.',
-					'id' => NULL,
-					'data' => $e->getMessage(),
-				], 422);
-			}
-		} else if (antiXss($data) === false) {
-			$pkTable = (empty($pkTableCT)) ? primary_field_name($table) : $pkTableCT;
-
-			$data['updated_at'] = timestamp();
-			$filterData = sanitizeInput($data, $table);
-
-			if (isset($filterData[$pkTable])) {
-				unset($filterData[$pkTable]); // auto increment, no need to update or insert
-			}
-
-			try {
-				$ci = ci();
-				$code = ($ci->db->update($table, $filterData, [$pkTable => $pkValue])) ? 200 : 400;
-
-				return returnData([
-					"action" => 'update',
-					"code" => $code,
-					"message" =>  message($code, 'update'),
-					"id" => $pkValue,
-					"data" => $filterData
-				], $code);
-			} catch (Exception $e) {
-				log_message('error', "UPDATE ERROR : " . $e->getMessage());
-				return returnData([
-					"action" => 'update',
-					'code' => 422,
-					'message' => 'Something when wrong.',
-					'id' => NULL,
-					'data' => $e->getMessage(),
-				], 422);
-			}
-		} else {
-			return returnData([
-				'action' => 'update',
-				'code' => 422,
-				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
-				'id' => NULL,
-				'data' => $data,
-			], 422);
+			$db->trans_commit(); // Commit the transaction
+			return handleReturn('update', $code, message($code, 'update' . ($code === 200 ? ' successfully' : ' failed')), $pkValue, $filterData);
+		} catch (Exception $e) {
+			log_message('error', "UPDATE ERROR: " . $e->getMessage());
+			$db->trans_rollback(); // Rollback the transaction if there's an error
+			return handleReturn('update', 422, "update failed", $pkValue, $e->getMessage());
 		}
 	}
 }
 
+/**
+ * Deletes records from a table or truncates the entire table.
+ *
+ * @param string $table The name of the table.
+ * @param mixed $pkValue The primary key value for deletion (optional).
+ * @param string|null $pkTableCT Custom primary key column name (optional).
+ * @return array An array containing the result of the delete operation.
+ */
 if (!function_exists('delete')) {
 	function delete($table, $pkValue = NULL, $pkTableCT = NULL)
 	{
-		if (antiXss($pkValue) === false) {
-
-			try {
-				$ci = ci();
-
-				$previous_values = NULL;
-
-				if (!empty($pkValue)) {
-					$pkTable = (empty($pkTableCT)) ? primary_field_name($table) : $pkTableCT;
-					$previous_values = find($table, [$pkTable => $pkValue], 'row_array');
-					$code = ($ci->db->delete($table, [$pkTable => $pkValue])) ? 200 : 400;
-					$typeAction = 'delete';
-				} else {
-					$code = $ci->db->truncate($table) ? 200 : 400;
-					$typeAction = 'truncate';
-				}
-
-				return returnData([
-					'action' => $typeAction,
-					"code" => $code,
-					"message" =>  message($code, $typeAction),
-					"id" => $pkValue,
-					"data" => $previous_values
-				], $code);
-			} catch (Exception $e) {
-				log_message('error', "REMOVE ERROR : " . $e->getMessage());
-				return returnData([
-					'action' => 'delete',
-					'code' => 422,
-					'message' => 'Something when wrong.',
-					'id' => NULL,
-					'data' => $e->getMessage(),
-				], 422);
-			}
-		} else {
-			return returnData([
-				'action' => 'delete',
-				'code' => 422,
-				'message' => 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!',
-				'id' => NULL,
-				'data' => [],
-			], 422);
+		// Protection against XSS activated
+		if (antiXss($pkValue) !== false) {
+			return handleReturn('delete', 422, 'Protection against <b><i> Cross-site scripting (XSS) </i></b> activated!', $pkValue);
 		}
+
+		$db = ci()->db;
+
+		try {
+			$previous_values = NULL;
+
+			// Determine the primary key column name
+			$pkTable = (empty($pkTableCT)) ? primary_field_name($table) : $pkTableCT;
+
+			// Start a database transaction
+			$db->trans_start();
+
+			if (!empty($pkValue)) {
+				// Get the previous values before deleting
+				$previous_values = find($table, [$pkTable => $pkValue], 'row_array');
+
+				// Delete the record
+				$deleted = $db->delete($table, [$pkTable => $pkValue]);
+			} else {
+				// Truncate the table
+				$deleted = $db->truncate($table);
+			}
+
+			$db->trans_complete(); // Complete the transaction
+
+			// Check if the operation was successful
+			if ($db->trans_status() === FALSE) {
+				throw new Exception($db->error());
+			}
+
+			$db->trans_commit(); // Commit the transaction
+			$code = $deleted ? 200 : 400;
+			$typeAction = ($pkValue) ? 'delete successfully' : 'truncate successfully';
+
+			// Return the result
+			return handleReturn($typeAction, $code, message($code, $typeAction), $pkValue, $previous_values);
+		} catch (Exception $e) {
+			log_message('error', 'REMOVE ERROR: ' . $e->getMessage());
+			$db->trans_rollback(); // Rollback the transaction
+			return handleReturn('delete', 422, "delete failed", NULL, $e->getMessage());
+		}
+	}
+}
+
+if (!function_exists('handleReturn')) {
+	function handleReturn($action, $code = 400, $message =  NULL, $id = NULL, $data = NULL)
+	{
+		return returnData([
+			'action' => $action,
+			'code' => $code,
+			'message' => $message,
+			'id' => $id,
+			'data' => $data,
+		], $code);
 	}
 }
 

@@ -16,9 +16,11 @@ class SystemAuditTrails_model extends CT_Model
 		'user_fullname',
 		'event',
 		'table_name',
-		'created_at',
 		'old_values',
-		'new_values'
+		'new_values',
+		'url',
+		'ip_address',
+		'user_agent'
 	];
 
 	// the fields that cannot be filled by insert/update
@@ -41,67 +43,72 @@ class SystemAuditTrails_model extends CT_Model
 	#                                                                 #
 	###################################################################
 
-	public function getAuditTrailsListDt($dateSearch = NULL, $eventType = NULL)
+	public function getSystemAuditTrailsListDt()
 	{
-		date_default_timezone_set("Asia/Kuala_Lumpur");
-
-		$eventQuery = NULL;
-		if (!empty($eventType)) {
-			$eventQuery = !empty($dateSearch) ? " AND `event` = " . escape($eventType) : " WHERE `event` = " . escape($eventType);
-		}
-
-		$searchQuery = !empty($dateSearch) ? " WHERE `audit`.`created_at` BETWEEN " . escape($dateSearch . ' 00:00:00') . " AND " . escape($dateSearch . ' 23:59:59') . " $eventQuery" : $eventQuery;
-
 		$serverside = serversideDT();
 		$serverside->query("SELECT 
-        `audit`.`user_id`,
-        `audit`.`role_id`,
-        `roles`.`role_name`,
-        `audit`.`user_fullname`, 
-        `audit`.`event`, 
-        `audit`.`table_name`, 
-        `audit`.`created_at`, 
-        `audit`.`old_values`, 
-        `audit`.`new_values`, 
-        `audit`.`id`
-        FROM {$this->table} `audit`
-        LEFT JOIN master_roles roles ON `audit`.role_id = `roles`.role_id
-        $searchQuery
-        ORDER BY {$this->primary_key} {$this->order}");
+		`user_id`,
+		`role_id`,
+		`user_fullname`,
+		`event`,
+		`table_name`,
+		`old_values`,
+		`new_values`,
+		`url`,
+		`ip_address`,
+		`user_agent`,
+		`id`
+		FROM {$this->table} 
+		ORDER BY {$this->primary_key} {$this->order}");
 
-		$serverside->hide('user_id'); // hides column from the output
-		$serverside->hide('role_id'); // hides column from the output
-		$serverside->hide('role_name'); // hides column from the output
-		$serverside->hide('table_name'); // hides column from the output
-		$serverside->hide('old_values'); // hides column from the output
-		$serverside->hide('new_values'); // hides column from the output
+		// $serverside->hide(''); // hides column from the output
 
-		$serverside->edit('user_fullname', function ($data) {
-			return purify($data['user_fullname']) . '<br> <b> Profile </b> : <small> ' . purify($data['role_name']) . '</small>';
+		$serverside->edit("user_id", function ($data) {
+			return purify($data["user_id"]);
 		});
 
-		$serverside->edit('event', function ($data) {
-			$badge = [
-				'insert' => '<span class="badge bg-info"> ' . $data['event'] . ' </span>',
-				'update' => '<span class="badge bg-success"> ' . $data['event'] . ' </span>',
-				'delete' => '<span class="badge bg-danger"> ' . $data['event'] . ' </span>',
-			];
-
-			return "<ul>
-                        <li> <b> Type </b> : <small> " . $badge[$data['event']] . " </small> </li>
-                        <li> <b> Table </b> : <small> " . $data['table_name'] . "  </small> </li>
-                    </ul>";
+		$serverside->edit("role_id", function ($data) {
+			return purify($data["role_id"]);
 		});
 
-		$serverside->edit('created_at', function ($data) {
-			return formatDate($data['created_at'], 'd.m.Y h:i A');
+		$serverside->edit("user_fullname", function ($data) {
+			return purify($data["user_fullname"]);
+		});
+
+		$serverside->edit("event", function ($data) {
+			return purify($data["event"]);
+		});
+
+		$serverside->edit("table_name", function ($data) {
+			return purify($data["table_name"]);
+		});
+
+		$serverside->edit("old_values", function ($data) {
+			return purify($data["old_values"]);
+		});
+
+		$serverside->edit("new_values", function ($data) {
+			return purify($data["new_values"]);
+		});
+
+		$serverside->edit("url", function ($data) {
+			return purify($data["url"]);
+		});
+
+		$serverside->edit("ip_address", function ($data) {
+			return purify($data["ip_address"]);
+		});
+
+		$serverside->edit("user_agent", function ($data) {
+			return purify($data["user_agent"]);
 		});
 
 		$serverside->edit('id', function ($data) {
-			$del = $view = '';
+			$del = $edit = ''; // set default
 			$del = '<button class="btn btn-outline-danger btn-sm waves-effect" onclick="deleteRecord(' . $data[$this->primary_key] . ')" data-id="' . $data[$this->primary_key] . '" title="Delete"> <i class="tf-icons ti ti-trash ti-xs"></i> </button>';
-			$view = '<button class="btn btn-outline-success btn-sm waves-effect" onclick="viewRecord(' . $data[$this->primary_key] . ')" data-id="' . $data[$this->primary_key] . '" title="View"> <i class="tf-icons ti ti-eye ti-xs"></i> </button>';
-			return "<center> $del $view </center>";
+			$edit = '<button class="btn btn-outline-info btn-sm waves-effect" onclick="updateRecord(' . $data[$this->primary_key] . ')" title="Update"><i class="fa fa-edit"></i> </button>';
+
+			return "<center> $del $edit </center>";
 		});
 
 		echo $serverside->generate();

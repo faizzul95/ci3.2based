@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('BASEPATH')) {
-	exit('No direct script access allowed');
+    exit('No direct script access allowed');
 }
 
 /**
@@ -17,37 +17,42 @@ if (!defined('BASEPATH')) {
 if (!function_exists('hasData')) {
     function hasData($data = NULL, $arrKey = NULL, $returnData = false, $defaultValue = NULL)
     {
-        // Check if data is not set, empty, or null
+        // Base case 1: Check if data is not set, empty, or null
         if (!isset($data) || empty($data) || is_null($data)) {
             return $returnData ? ($defaultValue ?? $data) : false;
         }
 
-        // If arrKey is not provided, consider data itself as having data
+        // Base case 2: If arrKey is not provided, consider data itself as having data
         if (is_null($arrKey)) {
             return $returnData ? ($defaultValue ?? $data) : true;
         }
 
+        // Replace square brackets with dots in arrKey
+        $arrKey = str_replace(['[', ']'], ['.', ''], $arrKey);
+
         // Split the keys into an array
         $keys = explode('.', $arrKey);
-        $currentKey = array_shift($keys);
 
-        // Check if $data is an array or an object
-        if (is_array($data) || is_object($data)) {
-            // If it's an array and the key exists, or it's an object and the property exists
-            if ((is_array($data) && array_key_exists($currentKey, $data)) || (is_object($data) && isset($data->$currentKey))) {
-
-                // If no more keys left, return the data or true based on returnData flag
-                if (empty($keys)) {
-                    return $returnData ? ($data instanceof ArrayAccess ? $data[$currentKey] ?? $defaultValue : $data->$currentKey ?? $defaultValue) : true;
-                }
-
-                // Recursively call hasData for the nested key
-                return hasData(is_array($data) ? ($data[$currentKey] ?? null) : ($data->$currentKey ?? null), implode('.', $keys), $returnData, $defaultValue);
+        // Helper function to recursively traverse the data
+        $traverse = function ($keys, $currentData) use (&$traverse, $returnData, $defaultValue) {
+            if (empty($keys)) {
+                return $returnData ? $currentData : true;
             }
-        }
 
-        // No match found, return false or return default value
-        return $returnData ? $defaultValue : false;
+            $key = array_shift($keys);
+
+            // Check if $currentData is an array or an object
+            if (is_array($currentData) && array_key_exists($key, $currentData)) {
+                return $traverse($keys, $currentData[$key]);
+            } elseif (is_object($currentData) && isset($currentData->$key)) {
+                return $traverse($keys, $currentData->$key);
+            } else {
+                // If the key doesn't exist, return the default value or false
+                return $returnData ? $defaultValue : false;
+            }
+        };
+
+        return $traverse($keys, $data);
     }
 }
 

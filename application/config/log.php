@@ -16,7 +16,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 /*
  * Config to enable or disabled
  */
-$config['log_enable'] = false;
+$config['log_enable'] = true;
 
 /*
  * Database log table name

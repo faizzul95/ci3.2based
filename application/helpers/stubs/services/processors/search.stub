@@ -21,11 +21,6 @@ class %CLASS_NAME%
             }
         }
 
-        if (hasData($cache_files_name)) {
-            if ($fetchType != 'toSql')
-                $query->set_cache($cache_files_name);
-        }
-
-        return $fetchType == 'toSql' ? $query->$fetchType($query) : $query->$fetchType();
+        return $this->collectionRecord($query, $filter, $fetchType, $cache_files_name);
     }
 }

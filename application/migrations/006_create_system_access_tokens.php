@@ -2,25 +2,25 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Migration_create_abilities extends CI_Migration
+class Migration_create_system_access_tokens extends CI_Migration
 {
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->dbforge();
-		$this->table_name = 'abilities';
+		$this->table_name = 'system_access_tokens';
 	}
 
 	public function up()
 	{
 		$this->dbforge->add_field([
 			'id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'auto_increment' => TRUE],
-			'title' => ['type' => 'VARCHAR', 'constraint' => '50', 'null' => TRUE, 'comment' => ''],
-			'slug' => ['type' => 'VARCHAR', 'constraint' => '100', 'null' => TRUE, 'comment' => ''],
-			'roles_group_id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'null' => TRUE, 'comment' => 'Refer constant MasterGroupRoles'],
-			'company_id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'null' => TRUE, 'comment' => 'Refer table company'],
-			'created_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
-			'updated_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
+			'tokenable_type' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'null' => TRUE, 'comment' => ''],
+			'tokenable_id' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
+			'name' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
+			'token' => ['type' => 'VARCHAR', 'constraint' => '64', 'null' => TRUE, 'comment' => ''],
+			'abilities' => ['type' => 'LONGTEXT', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
+			'last_used_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
 		]);
 
 		$this->dbforge->add_key('id', TRUE);

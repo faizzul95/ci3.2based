@@ -1488,6 +1488,51 @@ class MY_Model extends CI_Model
 	}
 
 	/**
+	 * Lock the selected rows in the table for updating.
+	 * 
+	 * sharedLock locks only for write, lockForUpdate also prevents them from being selected
+	 *
+	 * @example 
+	 *  $this->Model->find()->where('id', 123)
+	 *  $result = $this->Model->lockForUpdate()->row_array();
+	 * @example
+	 *  // This transaction block will lock selected rows for next same selected
+	 *  // rows with `FOR UPDATE` lock:
+	 *  $this->Model->getDB()->trans_start();
+	 *  $this->Model->find()->where('id', 123)
+	 *  $result = $this->Model->lockForUpdate()->row_array();
+	 *  $this->Model->getDB()->trans_complete();  
+	 * 
+	 * @return object CI_DB_result
+	 */
+	public function lockForUpdate($sql = NULL)
+	{
+		// Pack query then move it to write DB from read DB for transaction
+		$sqlCompile = empty($sql) ? $this->_database->get_compiled_select() : $sql;
+		$this->_database->reset_query();
+
+		return $this->_database->query("{$sqlCompile} FOR UPDATE");
+	}
+
+	/**
+	 * Share lock the selected rows in the table.
+	 * 
+	 * @example 
+	 *  $this->Model->find()->where('id', 123)
+	 *  $result = $this->Model->sharedLock()->row_array();'
+	 * 
+	 * @return object CI_DB_result
+	 */
+	public function sharedLock($sql = NULL)
+	{
+		// Pack query then move it to write DB from read DB for transaction
+		$sqlCompile = empty($sql) ? $this->_database->get_compiled_select() : $sql;
+		$this->_database->reset_query();
+
+		return $this->_db->query("{$sqlCompile} LOCK IN SHARE MODE");
+	}
+
+	/**
 	 * Return the next call as an array rather than an object
 	 */
 	public function as_array()
@@ -1878,8 +1923,7 @@ class MY_Model extends CI_Model
 
 	public function purifyData($data)
 	{
-		// return purify($data);
-		return $data;
+		return purify($data);
 	}
 
 	public function toSql($query, $index = 0)

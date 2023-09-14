@@ -220,7 +220,7 @@ class UserSessionProcessor
 									<td style="width:70%">&nbsp; ' . timestamp('h:i A') . ' </td>
 								</tr>
 							  </table>',
-						'url' => baseURL()
+						'url' => base_url()
 					]);
 
 					// Testing Using trait (use phpmailer)

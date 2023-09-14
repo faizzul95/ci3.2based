@@ -90,4 +90,23 @@ trait QueryTrait
 
 		return $query;
 	}
+
+	public function collectionRecord($query, $filter, $fetchType, $cache_files_name = NULL)
+	{
+		if (hasData($filter)) {
+			if (hasData($filter, 'locked')) {
+				$methodName = $filter['locked'];
+				if (method_exists($query, $methodName)) {
+					$query->$methodName($query->$fetchType($query));
+				}
+			}
+		}
+
+		if (hasData($cache_files_name)) {
+			if ($fetchType != 'toSql')
+				$query->set_cache($cache_files_name);
+		}
+
+		return $fetchType == 'toSql' ? $query->$fetchType($query) : $query->$fetchType();;
+	}
 }
