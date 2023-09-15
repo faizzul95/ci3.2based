@@ -8,7 +8,7 @@ use App\services\generals\traits\QueryTrait;
 
 class SystemQueueFailedJobStoreProcessors
 {
-    use QueryTrait;
+	use QueryTrait;
 
 	protected $request = [];
 

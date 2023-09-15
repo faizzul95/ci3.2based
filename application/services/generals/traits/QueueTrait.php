@@ -3,6 +3,12 @@
 namespace App\services\generals\traits;
 
 use App\services\generals\traits\EmailTrait;
+use App\services\modules\core\systemQueueJob\logics\SystemQueueJobDeleteLogic;
+use App\services\modules\core\systemQueueFailedJob\processors\SystemQueueFailedJobStoreProcessors;
+use App\services\modules\core\systemQueueFailedJob\processors\SystemQueueFailedJobSearchProcessors;
+use App\services\modules\core\systemQueueFailedJob\logics\SystemQueueFailedJobDeleteLogic;
+use App\services\modules\core\systemQueueJob\processors\SystemQueueJobSearchProcessors;
+use App\services\modules\core\systemQueueJob\processors\SystemQueueJobStoreProcessors;
 
 trait QueueTrait
 {
@@ -15,17 +21,12 @@ trait QueueTrait
 	 */
 	public function addQueue($dataQueue, $type = 'email')
 	{
-		// initialize model.
-		model('SystemQueueJob_model', 'queueM');
-
 		$defaultData = [
 			'uuid' => uuid(),
 			'type' => $type,
 		];
 
-		$saveData = array_merge($defaultData, $dataQueue);
-
-		return ci()->queueM::save($saveData, false);
+		return app(new SystemQueueJobStoreProcessors)->execute(array_merge($defaultData, $dataQueue), false);
 	}
 
 	/**
@@ -36,8 +37,7 @@ trait QueueTrait
 	public function updateQueue($dataQueue)
 	{
 		// initialize model.
-		model('SystemQueueJob_model', 'queueM');
-		return ci()->queueM::save($dataQueue, false);
+		return app(new SystemQueueJobStoreProcessors)->execute($dataQueue, false);
 	}
 
 	/**
@@ -47,9 +47,14 @@ trait QueueTrait
 	 */
 	public function getQueue()
 	{
-		// initialize model.
-		model('SystemQueueJob_model', 'queueM');
-		return ci()->queueM->getJob();
+		return app(new SystemQueueJobSearchProcessors)->execute(
+			[
+				'conditions' => [
+					'status' => ['IN', [1, 2, 4]],
+				]
+			],
+			'get'
+		);
 	}
 
 	/**
@@ -60,10 +65,6 @@ trait QueueTrait
 	 */
 	public function processQueue($job)
 	{
-		// initialize model.
-		model('SystemQueueJob_model', 'queueM');
-		model('SystemQueueFailedJob_model', 'failedM');
-
 		$jobID = $job['id'];
 		$attempt = $job['attempt'];
 		$message = $job['message'];
@@ -112,10 +113,10 @@ trait QueueTrait
 			unset($job['id']); // remove id
 			$job['exception'] = $message;
 			$job['failed_at'] = timestamp();
-			$addFailed = ci()->failedM::save($job, false);
+			$addFailed = app(new SystemQueueFailedJobStoreProcessors)->execute($job, false);
 
 			if (isSuccess($addFailed['code'])) {
-				ci()->queueM::remove($jobID);
+				app(new SystemQueueJobDeleteLogic)->logic(['id' => $jobID]);
 			}
 
 			return $addFailed;
@@ -130,11 +131,7 @@ trait QueueTrait
 	 */
 	public function processAllFailedQueue()
 	{
-		// initialize model.
-		model('SystemQueueJob_model', 'queueM');
-		model('SystemQueueFailedJob_model', 'failedM');
-
-		$getRequeueData = ci()->failedM::all();
+		$getRequeueData = app(new SystemQueueFailedJobSearchProcessors)->execute();
 
 		if (hasData($getRequeueData)) {
 			foreach ($getRequeueData as $queue) {
@@ -144,19 +141,19 @@ trait QueueTrait
 
 				unset($queue['id']);
 
-				$dataSave = ci()->queueM::save($queue, false);
+				$dataSave = app(new SystemQueueJobStoreProcessors)->execute($queue, false);
 
 				if (isSuccess($dataSave['code'])) {
-					ci()->failedM::remove($id);
-					echo "{$uuid} has successfully re-queue.\n";
+					app(new SystemQueueFailedJobDeleteLogic)->logic(['id' => $id]);
+					output('success', "{$uuid} has successfully re-queue");
 				} else {
-					echo "{$uuid} failed to re-queue.\n";
+					output('error', "{$uuid} failed to re-queue");
 				}
 			}
 
 			echo "\n";
 		} else {
-			echo "No failed jobs found.\n\n";
+			output('info', "No failed jobs found");
 		}
 	}
 
@@ -168,27 +165,23 @@ trait QueueTrait
 	 */
 	public function processFailedQueueByUUID($uuid)
 	{
-		// initialize model.
-		model('SystemQueueJob_model', 'queueM');
-		model('SystemQueueFailedJob_model', 'failedM');
-
 		$getRequeueData = ci()->failedM::find($uuid, 'uuid');
 
 		if (hasData($getRequeueData)) {
 			$id = $getRequeueData['id'];
 
 			unset($getRequeueData['id']);
-			$dataSave = ci()->queueM::save($getRequeueData, false);
+			$dataSave = app(new SystemQueueJobStoreProcessors)->execute($getRequeueData, false);
 
 			if (isSuccess($dataSave['code'])) {
-				ci()->failedM::remove($id);
-				echo "{$uuid} has successfully re-queue.\n";
+				app(new SystemQueueFailedJobDeleteLogic)->logic(['id' => $id]);
+				output('success', "{$uuid} has successfully re-queue");
 			} else {
-				echo "{$uuid} failed to re-queue.\n";
+				output('error', "{$uuid} failed to re-queue");
 			}
 			echo "\n";
 		} else {
-			echo "No UUID ({$uuid}) found on failed jobs.\n\n";
+			output('warning', "No UUID ({$uuid}) found on failed jobs.");
 		}
 	}
 }

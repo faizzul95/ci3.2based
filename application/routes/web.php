@@ -75,7 +75,7 @@ Route::set('404_override', function () {
 	view('errors/custom/error_404');
 });
 
-require __DIR__ . '/PAGES/RedirectPages.php';
-require __DIR__ . '/PAGES/SuperadminPages.php';
+// require __DIR__ . '/PAGES/RedirectPages.php';
+// require __DIR__ . '/PAGES/SuperadminPages.php';
 
 Route::set('translate_uri_dashes', FALSE);

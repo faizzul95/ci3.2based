@@ -161,7 +161,7 @@ Notes :
 Command to run using terminal or cmd (without $) :
 - php struck create $type $fileName $tableName
 - php struck structure $fileName $tableName
-- php struck generate services $moduleName $fileName $modelName
+- php struck generate services $moduleName $fileName $modelName $tableName
 
 Example :
 <ol type="A">
@@ -184,7 +184,7 @@ Example :
 	<br>
 	<li> Services </li> 
 		<ol type="1">
-			<li> php struck generate services core userProfile users_profile </li>
+			<li> php struck generate services core profile usersProfile users_profile </li>
 		</ol> 
 	<br>
 </ol>

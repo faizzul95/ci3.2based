@@ -156,7 +156,7 @@ Route::cli('create/{type}/{fileName}/{tableName?}', function ($type, $name = NUL
 		die(output('error', "The type only support for 'controller' or 'model', Your have enter : {$type}"));
 });
 
-Route::cli('generate/services/{module}/{fileName}/{tableName?}', function ($module = 'default', $name = NULL, $tableName = NULL) {
+Route::cli('generate/services/{module}/{fileName}/{modelName?}/{tableName?}', function ($module = 'default', $name = NULL, $modelName = NULL, $tableName = NULL) {
 
 	$tableField = '';
 	$pkField = 'id';
@@ -177,7 +177,7 @@ Route::cli('generate/services/{module}/{fileName}/{tableName?}', function ($modu
 	}
 
 	$fileName = isset($name) ? ucfirst(trim($name)) : 'Default';
-	$tableName = isset($tableName) ? ucfirst(trim($tableName . '_model')) : NULL;
+	$modelName = isset($modelName) ? ucfirst(trim($modelName . '_model')) : NULL;
 	$filePath = '';
 	$folder = $name;
 
@@ -260,7 +260,7 @@ Route::cli('generate/services/{module}/{fileName}/{tableName?}', function ($modu
 				}
 				$dataServices = str_replace('%FOLDER%', $folder, $dataServices);
 				$dataServices = str_replace('%CLASS_NAME%', $className, $dataServices);
-				$dataServices = str_replace('%MODEL_NAME%', $tableName, $dataServices);
+				$dataServices = str_replace('%MODEL_NAME%', $modelName, $dataServices);
 
 				// Generate the filename for the new service
 				$filePath = $directoryPath[$category] . $className . '.php';

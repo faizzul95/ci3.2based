@@ -16,8 +16,8 @@ class SystemQueueJobSearchProcessors
 
         if (hasData($filter)) {
             if (hasData($filter, 'searchQuery')) {
-                $query->where('', 'like', $filter['searchQuery'])         // this will be LIKE $search
-                      ->where('', 'like', $filter['searchQuery'], true);  // if put true, will be OR LIKE $search. else will be AND LIKE $search
+                $query->where('uuid', 'like', $filter['searchQuery'])         // this will be LIKE $search
+                    ->where('type', 'like', $filter['searchQuery'], true);    // if put true, will be OR LIKE $search. else will be AND LIKE $search
             }
         }
 

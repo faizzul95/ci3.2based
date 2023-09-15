@@ -22,6 +22,6 @@ class %CLASS_NAME%
 				'conditions' => array_merge($this->request, ['%PRIMARY_KEY%' => $request['%PRIMARY_KEY%']]),
 			],
 			'get'
-		);s
+		);
     }
 }

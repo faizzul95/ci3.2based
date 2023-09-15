@@ -9,6 +9,7 @@ final class GeneralErrorMessage
 	public const LOGIN_ATTEMPT = 'ATTEMPT';
 	public const LOGIN_VERIFY2FA = 'VERIFY2FA';
 	public const LOGIN_INACTIVE = 'INACTIVE';
+	public const LOGIN_DELETED = 'DELETED';
 	public const FORGOT_PASSWORD = 'FORGOT';
 	public const TOKEN_RESET_PASSWORD = 'TOKEN_RESET';
 	public const EMAIL_NOT_VALID = 'EMAIL_NOT_VALID';
@@ -46,6 +47,11 @@ final class GeneralErrorMessage
 			self::LOGIN_INACTIVE => [
 				'code' => 400,
 				'message' => "Your account is inactive, Please contact system support via ticket",
+				'redirectUrl' => NULL,
+			],
+			self::LOGIN_DELETED => [
+				'code' => 400,
+				'message' => "Your account has been removed, Please contact system support via ticket",
 				'redirectUrl' => NULL,
 			],
 			self::FORGOT_PASSWORD => [

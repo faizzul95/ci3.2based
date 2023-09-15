@@ -2104,6 +2104,10 @@ class MY_Model extends CI_Model
 						$_temp['where'] = $withCon['where'];
 					}
 
+					if (hasData($withCon, 'conditions')) {
+						$_temp['where'] = $withCon['conditions'];
+					}
+
 					array_push($result, $_temp);
 				}
 			}
