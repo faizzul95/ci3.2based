@@ -16,6 +16,7 @@ class SystemQueueJob_model extends CT_Model
 		'attempt',
 		'status',
 		'message',
+		'branch_id'
 	];
 
 	// the fields that cannot be filled by insert/update
@@ -37,9 +38,4 @@ class SystemQueueJob_model extends CT_Model
 	#               Start custom function below                       #
 	#                                                                 #
 	###################################################################
-
-	public function getJob()
-	{
-		return $this->db->where_in('status', [1, 2, 4])->get($this->table)->row_array();
-	}
 }

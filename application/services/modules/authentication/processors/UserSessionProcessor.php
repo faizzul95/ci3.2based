@@ -7,8 +7,12 @@ use App\services\generals\constants\GeneralStatus;
 use App\services\generals\constants\GeneralErrorMessage;
 use App\services\generals\traits\QueueTrait;
 
-use App\services\modules\core\users\processors\UserSearchProcessors;
-use App\services\modules\core\companies\processors\CompaniesSearchProcessors;
+use App\services\modules\user\users\processors\UsersSearchProcessors;
+use App\services\modules\user\users\processors\UsersStoreProcessors;
+use App\services\modules\user\usersLoginHistory\processors\UsersLoginHistoryStoreProcessors;
+
+use App\services\modules\master\masterEmailTemplates\processors\MasterEmailTemplatesSearchProcessors;
+use App\services\modules\core\systemAccessTokens\processors\SystemAccessTokensStoreProcessors;
 
 class UserSessionProcessor
 {
@@ -16,62 +20,47 @@ class UserSessionProcessor
 
 	public function __construct()
 	{
-		model('User_model', 'userM');
-		model('Company_model', 'companyM');
-		model('CompanyConfigEmailTemplate_model', 'templateM');
-		model('UserAuthHistory_model', 'authHistoryM');
-
 		library('user_agent');
 	}
 
 	public function execute($userID, $loginType, $remember = false, $profileID = NULL, $impersonateID = NULL)
 	{
-		// $whereCondition = hasData($profileID) ? 'where:`id`=' . $profileID : 'where:`is_main`=1';
-		// $dataUser = ci()->userM->with_main_profile('fields:id,user_id,roles_id,is_main,department_id,profile_status', $whereCondition, [
-		// 	'with' => [
-		// 		[
-		// 			'relation' => 'roles',
-		// 			'fields' => 'role_name,role_code,role_group,abilities_json'
-		// 		],
-		// 		[
-		// 			'relation' => 'department',
-		// 			'fields' => 'department_name,department_code'
-		// 		],
-		// 		[
-		// 			'relation' => 'avatar',
-		// 			'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
-		// 			'where' => '`entity_file_type`=\'PROFILE_PHOTO\'',
-		// 		],
-		// 		[
-		// 			'relation' => 'profileHeader',
-		// 			'fields' => 'files_compression,files_path,files_path_is_url,entity_file_type',
-		// 			'where' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
-		// 		],
-		// 	]
-		// ])->where('id', $userID)->get();
-
-		$dataUser = app(new UserSearchProcessors)->execute([
-			'fields' => 'id,name,user_preferred_name,user_staff_no,user_nric_visa,email,user_contact_no,user_gender,user_dob,username,password,user_marital_status,user_status,company_id',
+		$dataUser = app(new UsersSearchProcessors)->execute([
+			'fields' => 'id,name,user_preferred_name,user_nric,email,user_contact_no,user_gender,user_matric_code,program_id,edu_level_id,user_intake,user_dob,user_status,user_marital_status,branch_id,is_deleted',
 			'conditions' => [
 				'id' => hasData($impersonateID) ? $impersonateID : $userID,
 			],
 			'with' => [
+				'accessToken' => 'id,tokenable_id,name,token',
 				'main_profile' => [
-					'fields' => 'id,user_id,roles_id,is_main,department_id,profile_status',
+					'fields' => 'id,user_id,role_id,college_id,profile_status,is_main,is_special,has_position,branch_id',
 					'conditions' => hasData($profileID) ? '`id`=' . $profileID : '`is_main`=1',
 					'with' => [
-						'roles' => ['fields' => 'role_name,role_code,role_group,abilities_json'],
-						'department' => ['fields' => 'department_name,department_code'],
+						'roles' => ['fields' => 'role_name,role_code'],
+						// 'branch' => ['fields' => 'id,branch_name,branch_code'],
+						'branch' => [
+							'fields' => 'id,branch_name,branch_code',
+							'with' => [
+								'address' => [
+									'fields' => 'id,address_1,address_2,city_name,state_name,postcode,country_name,entity_address_type',
+									'conditions' => '`entity_address_type`=\'BRANCH_ADDRESS\''
+								],
+								'logo' => [
+									'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
+									'conditions' => '`entity_file_type`=\'BRANCH_LOGO_PHOTO\''
+								],
+							]
+						],
 						'avatar' => [
-							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type,branch_id',
 							'conditions' => '`entity_file_type`=\'PROFILE_PHOTO\'',
 						],
 						'profileHeader' => [
-							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type,branch_id',
 							'conditions' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
-						]
+						],
 					]
-				]
+				],
 			]
 		], 'get');
 
@@ -79,115 +68,82 @@ class UserSessionProcessor
 		$userNickName = $dataUser['user_preferred_name'];
 		$userEmail = $dataUser['email'];
 		$userStatus = $dataUser['user_status'];
-		$userStaffNo = $dataUser['user_staff_no'];
-		$companyID = $dataUser['company_id'];
+		$userStaffNo = $dataUser['user_matric_code'];
+		$branchID = $dataUser['branch_id'];
 
 		if ($userStatus == GeneralStatus::ACTIVE) {
-			$dataUserProfile = $dataUser['main_profile'];
-			$userAvatar = fileExist($dataUserProfile['avatar']['files_path']) ? asset($dataUserProfile['avatar']['files_path'], false) : defaultImage('user');
-			$userProfileHeader = hasData($dataUserProfile['profileHeader']) ? asset($dataUserProfile['profileHeader']['files_path']) : defaultImage('banner');
-
-			$profileID = $dataUserProfile['id'];
-			$roleID = $dataUserProfile['roles']['id'];
-			$roleGroupID = $dataUserProfile['roles']['role_group'];
-			$profileName = $dataUserProfile['roles']['role_name'];
-
-			// default session data
-			$defaultSession = [
-				'userID'              	=> hasData($impersonateID) ? encodeID($impersonateID) : encodeID($userID),
-				'userFullName'      	=> purify($userFullName),
-				'userNickName'      	=> purify($userNickName),
-				'userStaffNo'          	=> encodeID($userStaffNo),
-				'userEmail'          	=> purify($userEmail),
-				'userAvatar'          	=> purify($userAvatar),
-				'userProfileHeader' 	=> purify($userProfileHeader),
-				'profileID'          	=> encodeID($profileID),
-				'profileName'         	=> purify($profileName),
-				'roleID'             	=> encodeID($roleID),
-				'roleGroupID'           => encodeID($roleGroupID),
-				'companyID'         	=> encodeID($companyID),
-				'impersonatorID'        => hasData($impersonateID) ? $userID : NULL,
-				'isLoggedInSession' 	=> TRUE
-			];
-
-			// $dataCompany = ci()->companyM
-			// 	->fields('id,company_name,company_nickname,company_no,company_tel_no,company_email,company_status')
-			// 	->with_active_subcription('fields:id,package_id,company_id,subscription_status|order_inside:subscription_order_no asc', [
-			// 		'with' => [
-			// 			[
-			// 				'relation' => 'package',
-			// 				'fields' => 'package_name,package_code,package_module_plan,package_status'
-			// 			]
-			// 		]
-			// 	])
-			// 	->with_logo_company('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_LOGO_PHOTO\'')
-			// 	->with_qr_code('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_QR_CODE\'')
-			// 	->with_company_header('fields:files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder', 'where:`entity_file_type`=\'COMPANY_HEADER_PHOTO\'')
-			// 	->with_address('fields:id,address_1,address_2,city_name,state_name,postcode,country_name', 'where:`entity_address_type`=\'COMPANY_ADDRESS\'')
-			// 	->where('id', $companyID)
-			// 	->get();
-
-			$dataCompany = app(new CompaniesSearchProcessors)->execute([
-				'fields' => 'id,company_name,company_nickname,company_no,company_tel_no,company_email,company_status',
-				'conditions' => [
-					'id' => $companyID,
-				],
-				'with' => [
-					'active_subcription' => [
-						'fields' => 'id,package_id,company_id,subscription_status|order_inside:subscription_order_no asc',
-						'with' => [
-							'package' => ['fields' => 'package_name,package_code,package_module_plan,package_status']
-						]
-					],
-					'logo_company' => [
-						'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
-						'conditions' => '`entity_file_type`=\'COMPANY_LOGO_PHOTO\''
-					],
-					'qr_code' => [
-						'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
-						'conditions' => '`entity_file_type`=\'COMPANY_QR_CODE\''
-					],
-					'company_header' => [
-						'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
-						'conditions' => '`entity_file_type`=\'COMPANY_HEADER_PHOTO\''
-					],
-					'address' => [
-						'fields' => 'id,address_1,address_2,city_name,state_name,postcode,country_name',
-						'conditions' => '`entity_address_type`=\'COMPANY_ADDRESS\''
-					],
-				]
-			], 'get');
-
-			$logoPath = hasData($dataCompany, 'logo_company') ? fileImage($dataCompany['logo_company'], 'company_logo') : NULL;
-
-			// company session data
-			$companySession = [
-				'companyName'         => hasData($dataCompany) ? purify($dataCompany['company_name']) : NULL,
-				'companyNickName'     => hasData($dataCompany) ? purify($dataCompany['company_nickname']) : NULL,
-				'companyCode'         => hasData($dataCompany) ? purify($dataCompany['company_no']) : NULL,
-				'companyLogo'         => purify($logoPath),
-			];
-
-			// subscription session data
-			$subscriptionSession = [
-				'subscriptionID' => hasData($dataCompany, 'active_subcription') ? encodeID($dataCompany['active_subcription']['package_id']) : NULL,
-				'subscriptionName' => hasData($dataCompany, 'active_subcription') ? (hasData($dataCompany['active_subcription'], 'package') ? $dataCompany['active_subcription']['package']['package_name'] : NULL) : NULL,
-			];
-
-			$startSession = array_merge($defaultSession, $companySession, $subscriptionSession);
-
-			setSession($startSession);
 
 			// Sent email secure login
-			$template = ci()->templateM->where('email_type', 'SECURE_LOGIN')->where('email_status', '1')->where('company_id', $companyID)->get();
+			$template = app(new MasterEmailTemplatesSearchProcessors)->execute([
+				'fields' => 'id,email_type,email_subject,email_body,email_footer,email_cc,email_bcc,email_status,branch_id',
+				'conditions' => [
+					'email_status' => 1,
+					'email_type' => 'SECURE_LOGIN',
+					'branch_id' => $branchID,
+				]
+			], 'get');
 
 			$browsers = ci()->agent->browser();
 			$os = ci()->agent->platform();
 			$iplogin = ci()->input->ip_address();
+			$agent = ci()->input->user_agent();
 
-			if (hasData($loginType)) {
-				// if template email is exist and active && login type is not using token
-				if (hasData($template) && $loginType != LoginType::TOKEN) {
+			if ($loginType == LoginType::TOKEN) {
+
+				$accessToken = $dataUser['accessToken'];
+				$dataUserProfile = $dataUser['main_profile'];
+
+				$generateToken = $this->createToken($userID, ["user_id" => $userID, "branch_id" => $branchID, "profile_id" => $dataUserProfile['id']]);
+
+				if (hasData($generateToken)) {
+					$generateToken['id'] = hasData($accessToken, 'id', true);
+					app(new SystemAccessTokensStoreProcessors)->execute($generateToken);
+				}
+
+				$responseData = ['code' => 200, 'message' => 'Login successfully', 'token' => $generateToken['token']];
+				
+			} else if (in_array($loginType, [LoginType::CREDENTIAL, LoginType::SOCIALITE])) {
+
+				$dataUserProfile = $dataUser['main_profile'];
+				$dataBranch = $dataUserProfile['branch'];
+				$userAvatar = fileExist($dataUserProfile['avatar']['files_path']) ? asset($dataUserProfile['avatar']['files_path'], false) : defaultImage('user');
+				$userProfileHeader = hasData($dataUserProfile['profileHeader']) ? asset($dataUserProfile['profileHeader']['files_path']) : defaultImage('banner');
+
+				$profileID = $dataUserProfile['id'];
+				$roleID = $dataUserProfile['roles']['id'];
+				$profileName = $dataUserProfile['roles']['role_name'];
+
+				// default session data
+				$defaultSession = [
+					'userID'              	=> hasData($impersonateID) ? encodeID($impersonateID) : encodeID($userID),
+					'userFullName'      	=> purify($userFullName),
+					'userNickName'      	=> purify($userNickName),
+					'userStaffNo'          	=> encodeID($userStaffNo),
+					'userEmail'          	=> purify($userEmail),
+					'userAvatar'          	=> purify($userAvatar),
+					'userProfileHeader' 	=> purify($userProfileHeader),
+					'profileID'          	=> encodeID($profileID),
+					'profileName'         	=> purify($profileName),
+					'roleID'             	=> encodeID($roleID),
+					'branchID'         		=> encodeID($branchID),
+					'impersonatorID'        => hasData($impersonateID) ? $userID : NULL,
+					'isLoggedInSession' 	=> TRUE
+				];
+
+				$logoPath = hasData($dataBranch, 'logo') ? fileImage($dataBranch['logo'], 'branch_logo') : NULL;
+
+				// branch session data
+				$branchSession = [
+					'branchName'         => purify(hasData($dataBranch, 'branch_name', true)),
+					'branchCode'         => purify(hasData($dataBranch, 'branch_code', true)),
+					'branchLogo'         => purify($logoPath),
+				];
+
+				$startSession = array_merge($defaultSession, $branchSession);
+
+				setSession($startSession);
+
+				if (hasData($template)) {
 
 					$bodyMessage = replaceTextWithData($template['email_body'], [
 						'name' => purify($userFullName),
@@ -224,9 +180,8 @@ class UserSessionProcessor
 					]);
 
 					// Testing Using trait (use phpmailer)
-					// $this->testSentEmail($dataUser, $bodyMessage, $template);
+					// $debug = $this->testSentEmail($dataUser, $bodyMessage, $template);
 
-					// if ($sentMail['success']) {
 					// add to queue
 					$this->addQueue([
 						'payload' => json_encode([
@@ -238,29 +193,28 @@ class UserSessionProcessor
 							'body' => $bodyMessage,
 							'attachment' => NULL,
 						]),
-						'company_id' => $companyID,
+						'branch_id' => $branchID,
 					]);
-					// }
 				}
-
-				// Add to login history
-				ci()->authHistoryM::save([
-					'ip_address' => $iplogin,
-					'user_id' => $userID,
-					'time' => timestamp(),
-					'operating_system' => $os,
-					'browsers' => $browsers,
-					'user_agent' => ci()->input->user_agent(),
-					'login_type' => $loginType,
-				]);
 			}
+
+			// Add to login history
+			app(new UsersLoginHistoryStoreProcessors)->execute([
+				'user_id' => $userID,
+				'ip_address' => $iplogin,
+				'login_type' => $loginType,
+				'operating_system' => $os,
+				'browsers' => $browsers,
+				'time' => timestamp(),
+				'user_agent' => $agent,
+			]);
 
 			// set remember token
 			if ($remember) {
 				// Refresh the token in the database and cookie
-				$new_token = $userID . bin2hex(random_bytes(16));
-				ci()->userM::save(['id' => $userID, 'remember_token' => $new_token]);
-				set_cookie('remember_me_token_ciarcav5', $new_token, strtotime('+4 week'));
+				$new_token = $userID . bin2hex(random_bytes(16)) . timestamp('Ymd');
+				app(new UsersStoreProcessors)->execute(['id' => $userID, 'remember_token' => $new_token]);
+				set_cookie(env('REMEMBER_COOKIE_NAME'), $new_token, strtotime('+4 week'));
 			}
 
 			$responseData = [
@@ -268,10 +222,29 @@ class UserSessionProcessor
 				'message' => 'Login',
 				'redirectUrl' => 'dashboard',
 			];
+
 		} else {
-			$responseData = GeneralErrorMessage::LIST['AUTH']['INACTIVE'];
+			$responseData = $dataUser['is_deleted'] == 1 ?  GeneralErrorMessage::LIST['AUTH']['DELETED'] : GeneralErrorMessage::LIST['AUTH']['INACTIVE'];
 		}
 
 		return $responseData;
+	}
+
+	private function createToken($userID, $payload = [], $token_name = "Auth Token")
+	{
+		// Generate a random token
+		$token = bin2hex(random_bytes(32)); // You can adjust the token length as needed
+
+		// Store the token in the database
+		$data = [
+			'tokenable_type' => 'Users_model',
+			'tokenable_id' => $userID,
+			'name' => $token_name,
+			'token' => $token,
+			'abilities' => json_encode($payload),
+			'created_at' => timestamp()
+		];
+
+		return $data;
 	}
 }

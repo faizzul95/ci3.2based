@@ -2108,6 +2108,10 @@ class MY_Model extends CI_Model
 						$_temp['where'] = $withCon['conditions'];
 					}
 
+					if (hasData($withCon, 'with')) {
+						$_temp['with'] = $this->scopeWithSubQuery($withCon['with']);
+					}
+
 					array_push($result, $_temp);
 				}
 			}

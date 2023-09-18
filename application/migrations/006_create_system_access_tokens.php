@@ -15,12 +15,14 @@ class Migration_create_system_access_tokens extends CI_Migration
 	{
 		$this->dbforge->add_field([
 			'id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'auto_increment' => TRUE],
-			'tokenable_type' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'null' => TRUE, 'comment' => ''],
-			'tokenable_id' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
+			'tokenable_type' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
+			'tokenable_id' => ['type' => 'BIGINT', 'unsigned' => TRUE, 'null' => TRUE, 'comment' => ''],
 			'name' => ['type' => 'VARCHAR', 'constraint' => '250', 'null' => TRUE, 'comment' => ''],
 			'token' => ['type' => 'VARCHAR', 'constraint' => '64', 'null' => TRUE, 'comment' => ''],
 			'abilities' => ['type' => 'LONGTEXT', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
 			'last_used_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
+			'created_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
+			'updated_at' => ['type' => 'TIMESTAMP', 'constraint' => NULL, 'null' => TRUE, 'comment' => ''],
 		]);
 
 		$this->dbforge->add_key('id', TRUE);

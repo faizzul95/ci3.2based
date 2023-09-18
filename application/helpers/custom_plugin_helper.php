@@ -31,11 +31,15 @@ if (!defined('BASEPATH')) {
 // SECURITY PLUGIN 
 
 if (!function_exists('purify')) {
-	function purify($post)
+	function purify($post = NULL)
 	{
-		$antiXss = new AntiXSS();
-		$antiXss->removeEvilAttributes(array('style')); // allow style-attributes
-		return $antiXss->xss_clean($post);
+		if (!empty($post)) {
+			$antiXss = new AntiXSS();
+			$antiXss->removeEvilAttributes(array('style')); // allow style-attributes
+			return $antiXss->xss_clean($post);
+		}
+
+		return $post;
 	}
 }
 
