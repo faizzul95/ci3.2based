@@ -18,7 +18,7 @@ class MasterEmailTemplatesShowLogic
     {
         return app(new MasterEmailTemplatesSearchProcessors)->execute(
 			[
-				'fields' => 'email_type,email_subject,email_body,email_footer,email_cc,email_bcc,email_status,branch_id',
+				'fields' => 'email_type,email_subject,email_body,email_footer,email_cc,email_bcc,email_status,company_id',
 				'conditions' => array_merge($this->request, ['id' => $request['id']]),
 			],
 			'get'

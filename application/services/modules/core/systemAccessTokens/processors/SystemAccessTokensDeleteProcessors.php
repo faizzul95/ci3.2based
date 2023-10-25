@@ -29,7 +29,7 @@ class SystemAccessTokensDeleteProcessors
 			return returnData([
 				"action" => 'delete',
 				"code" => $code,
-				"message" =>  message($code, 'delete'),
+				"message" =>  message($code, 'delete successfully'),
 				"id" => $count == 1 ? $data[$query->primary_key] : NULL,
 				"data" => $data
 			], $code);

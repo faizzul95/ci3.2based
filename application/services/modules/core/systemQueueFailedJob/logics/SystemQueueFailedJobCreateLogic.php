@@ -14,6 +14,6 @@ class SystemQueueFailedJobCreateLogic
 
     public function logic($request)
     {
-        return app(new SystemQueueFailedJobStoreProcessors)->execute($request);
+       	return app(new SystemQueueFailedJobStoreProcessors)->execute($request);
     }
 }

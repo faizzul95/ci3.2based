@@ -18,7 +18,7 @@ class SystemQueueFailedJobShowLogic
     {
         return app(new SystemQueueFailedJobSearchProcessors)->execute(
 			[
-				'fields' => '',
+				'fields' => 'uuid,type,payload,exception,failed_at,company_id',
 				'conditions' => array_merge($this->request, ['id' => $request['id']]),
 			],
 			'get'

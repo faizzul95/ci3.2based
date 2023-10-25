@@ -160,6 +160,8 @@ Route::cli('generate/services/{module}/{fileName}/{modelName?}/{tableName?}', fu
 
 	$tableField = '';
 	$pkField = 'id';
+	$dataValidation = [];
+
 	if (!empty($tableName)) {
 		if (isTableExist($tableName)) {
 			$table = $tableName;
@@ -172,6 +174,47 @@ Route::cli('generate/services/{module}/{fileName}/{modelName?}/{tableName?}', fu
 					unset($allColumn[$key]);
 				}
 				$tableField = implode(',', $allColumn);
+			}
+
+			// VALIDATION 
+			$columnInfo = tableFieldInfo($tableName);
+
+			foreach ($columnInfo as $field) {
+				$fieldName = $field->name;
+
+				if (in_array($fieldName, ['created_at', 'updated_at', 'deleted_at'])) {
+					continue;
+				}
+
+				$label = ucwords(str_replace('_', ' ', $fieldName));
+				$rules = ['trim'];
+
+				// Check if the column is not nullable or is a primary key
+				$is_nullable = $field->null ? 'No' : 'Yes';
+				if ($is_nullable == 'No' || $field->primary_key) {
+					$rules[] = 'required';
+				}
+
+				// Check column type and add appropriate validation rule
+				if (in_array($field->type, ['tinyint', 'smallint', 'int', 'bigint'])) {
+					$rules[] = 'integer';
+				} else if (in_array($field->type, ['decimal'])) {
+					$rules[] = 'decimal';
+				} else if (in_array($field->type, ['float', 'double'])) {
+					$rules[] = 'numeric';
+				}
+
+				// Check if the column has a max length
+				if (!empty($field->max_length)) {
+					$rules[] = 'min_length[1]';
+					$rules[] = 'max_length[' . $field->max_length . ']';
+				}
+
+				// Generate the rules string
+				$rulesString = implode('|', $rules);
+
+				// Add to data validation if not in the ignore list
+				$dataValidation[] = "\$this->ci->form_validation->set_rules('$fieldName', '$label', '$rulesString');";
 			}
 		}
 	}
@@ -199,9 +242,9 @@ Route::cli('generate/services/{module}/{fileName}/{modelName?}/{tableName?}', fu
 	$stubPath = [
 		'logics' => [
 			'show' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'show.stub',
-			'create' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'create_update_delete.stub',
-			'update' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'create_update_delete.stub',
-			'delete' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'create_update_delete.stub',
+			'create' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'create_update.stub',
+			'update' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'create_update.stub',
+			'delete' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'logics' . DIRECTORY_SEPARATOR  . 'delete.stub',
 		],
 		'processors' => [
 			'search' => APPPATH . 'helpers' . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . 'services' .  DIRECTORY_SEPARATOR . 'processors' . DIRECTORY_SEPARATOR  . 'search.stub',
@@ -251,9 +294,11 @@ Route::cli('generate/services/{module}/{fileName}/{modelName?}/{tableName?}', fu
 					];
 
 					if ($fileStub == 'show') {
-						$getFieldData = '';
 						$dataServices = str_replace('%FIELD%', $tableField, $dataServices);
 						$dataServices = str_replace('%PRIMARY_KEY%', $pkField, $dataServices);
+					} else if ($category == 'logics' && in_array($fileStub, ['create', 'update'])) {
+						$validationArr = !empty($dataValidation) ? implode("\n\t\t", $dataValidation) : '';
+						$dataServices = str_replace('%VALIDATION%', $validationArr, $dataServices);
 					}
 
 					$dataServices = str_replace('%CLASS_PROCESSOR_NAME%', $fileName . $processorMapping[$fileStub], $dataServices);
@@ -524,17 +569,7 @@ Route::cli('maintenance/{type}', function ($type = 'on') {
 	}
 });
 
-Route::cli('websocket', function () {
+Route::cli('websocket:serve', function () {
 	output('success', "Websocket is running..");
 	app('App\services\generals\helpers\WebSocketRunner')->init();
-});
-
-
-// SECTION FOR TESTING GLOBAL FUNCTION
-
-Route::cli('jwt', function () {
-	$dataEncode = generate_jwt_token(['user_id' => 3000, 'profile_id' => 3]);
-	$dataDecode = validate_jwt_token($dataEncode);
-	output('info', $dataEncode);
-	output('info', print_r($dataDecode));
 });

@@ -14,6 +14,6 @@ class SystemQueueFailedJobDeleteLogic
 
     public function logic($request)
     {
-        return app(new SystemQueueFailedJobDeleteProcessors)->execute($request);
+       	return app(new SystemQueueFailedJobDeleteProcessors)->execute($request);
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('BASEPATH')) {
-	exit('No direct script access allowed');
+    exit('No direct script access allowed');
 }
 
 /**
@@ -279,5 +279,21 @@ if (!function_exists('stringToNestedArray')) {
         }
 
         return $result;
+    }
+}
+
+/**
+ * Removes null or empty values from an associative array in place.
+ *
+ * @param array $array The input array from which to remove null or empty values.
+ */
+if (!function_exists('removeNullorEmptyValues')) {
+    function removeNullorEmptyValues(array &$array)
+    {
+        foreach ($array as $key => $value) {
+            if (is_null($value) || $value === '' || $value == 'null') {
+                unset($array[$key]);
+            }
+        }
     }
 }

@@ -19,14 +19,14 @@ trait QueueTrait
 	 *
 	 * @return array
 	 */
-	public function addQueue($dataQueue, $type = 'email')
+	public function addQueue($dataQueue, $type = 'email', $securityXss = false)
 	{
 		$defaultData = [
 			'uuid' => uuid(),
 			'type' => $type,
 		];
 
-		return app(new SystemQueueJobStoreProcessors)->execute(array_merge($defaultData, $dataQueue), false);
+		return app(new SystemQueueJobStoreProcessors)->execute(array_merge($defaultData, $dataQueue), $securityXss);
 	}
 
 	/**
@@ -34,10 +34,10 @@ trait QueueTrait
 	 *
 	 * @return array
 	 */
-	public function updateQueue($dataQueue)
+	public function updateQueue($dataQueue, $securityXss = false)
 	{
 		// initialize model.
-		return app(new SystemQueueJobStoreProcessors)->execute($dataQueue, false);
+		return app(new SystemQueueJobStoreProcessors)->execute($dataQueue, $securityXss);
 	}
 
 	/**

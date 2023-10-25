@@ -18,7 +18,7 @@ class SystemQueueJobShowLogic
     {
         return app(new SystemQueueJobSearchProcessors)->execute(
 			[
-				'fields' => '',
+				'fields' => 'uuid,type,payload,attempt,status,message,company_id',
 				'conditions' => array_merge($this->request, ['id' => $request['id']]),
 			],
 			'get'

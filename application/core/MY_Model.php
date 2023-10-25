@@ -1976,7 +1976,7 @@ class MY_Model extends CI_Model
 						}
 
 						if (hasData($with, 'conditions')) {
-							$conditionWhere = 'where:' . $with['conditions'];
+							$conditionWhere = 'where:' . $this->convertArrayToString($with['conditions']);
 						}
 
 						if (hasData($with, 'with')) {
@@ -2105,7 +2105,18 @@ class MY_Model extends CI_Model
 					}
 
 					if (hasData($withCon, 'conditions')) {
-						$_temp['where'] = $withCon['conditions'];
+
+						$dataArray = $withCon['conditions'];
+
+						if (is_array($withCon['conditions'])) {
+							foreach ($dataArray as $key => $value) {
+								if (is_string($value)) {
+									$dataArray[$key] = "'$value'";
+								}
+							}
+						}
+
+						$_temp['where'] = $dataArray;
 					}
 
 					if (hasData($withCon, 'with')) {
@@ -2179,6 +2190,70 @@ class MY_Model extends CI_Model
 		}
 
 		return $resultQuery;
+	}
+
+	public function convertArrayToString($condition)
+	{
+		if (is_array($condition)) {
+			$stringCondition = [];
+			foreach ($condition as $columnName => $value) {
+				if (is_array($value)) {
+
+					$operator = strtoupper($value[0]);
+
+					if (in_array($operator, ['IN', 'NOT IN'])) {
+						$values = $value[1];
+
+						if (is_array($values)) {
+							$values = '(' . implode(', ', array_map(function ($item) {
+								return "'$item'";
+							}, $values)) . ')';
+						}
+
+						array_push($stringCondition, "`$columnName` $operator $values");
+					} else if (in_array($operator, ['BETWEEN', 'NOT BETWEEN'])) {
+						$values = is_array($value[1]) ? $value[1] : [$value[1]];
+
+						$valueFrom = $values[0];
+						$valueTo = count($values) == 1 ? $values[0] : $values[1];
+
+						$minValueFrom = min([$valueFrom, $valueTo]);
+						$maxValueTo = max([$valueFrom, $valueTo]);
+						array_push($stringCondition, "`$columnName` $operator '$minValueFrom' AND '$maxValueTo'");
+					} else if (in_array($operator, ['LIKE', 'NOT LIKE'])) {
+						$valueToSearch = $value[1];
+						if (count($value) <= 2) {
+							array_push($stringCondition, "`$columnName` $operator '$valueToSearch'");
+						} else {
+							$pattern = $value[2];
+
+							if (strpos($pattern, '%a%') !== false) {
+								$likeValue = str_replace('%a%', '%' . $valueToSearch . '%', $pattern);
+							} elseif (strpos($pattern, '%a') !== false) {
+								$likeValue = str_replace('%a', '%' . $valueToSearch, $pattern);
+							} elseif (strpos($pattern, 'a%') !== false) {
+								$likeValue = str_replace('a%',  $valueToSearch . '%', $pattern);
+							} else {
+								$likeValue = $pattern;
+							}
+
+							array_push($stringCondition, "`$columnName` $operator '$likeValue'");
+						}
+					} else {
+						if (is_array($value[1])) {
+							array_push($stringCondition, "`$columnName` $operator '$value[1]'");
+						} else {
+							array_push($stringCondition, "`$columnName` $value[1] '$value[0]'");
+						}
+					}
+				} else {
+					array_push($stringCondition, "`$columnName`='$value'");
+				}
+			}
+			return implode(' AND ', $stringCondition);
+		} else {
+			return $condition;
+		}
 	}
 
 	/*

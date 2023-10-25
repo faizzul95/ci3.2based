@@ -99,12 +99,12 @@ if (!function_exists('gapiConfig')) {
 		$ci = ci();
 		$ci->load->config('google');
 
-		return json_encode([
+		return [
 			'client_id' => $ci->config->item('client_id_auth'),
 			'cookiepolicy' => $ci->config->item('cookie_policy'),
 			'fetch_basic_profile' => true,
 			'redirect_uri' => $ci->config->item('redirect_uri_auth'),
-		]);
+		];
 	}
 }
 
@@ -123,7 +123,13 @@ if (!function_exists('readExcel')) {
 			'application/vnd.ms-excel',
 			'text/xls',
 			'text/xlsx',
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'text/csv', // Add support for CSV files
+			'application/csv', // Add support for CSV files
+			'application/excel', // Add support for CSV files
+			'application/vnd.ms-excel', // Add support for CSV files
+			'application/vnd.msexcel', // Add support for CSV files
+			// 'text/plain', // Add support for CSV files
 		];
 
 		// 1st : check files type, only excel file are accepted
@@ -287,7 +293,7 @@ if (!function_exists('loadBladeTemplate')) {
 			// $blade->setAuth(currentUserID(), currentUserRoleID(), permission());
 			$blade->setBaseUrl(base_url() . 'public/'); // with or without trail slash
 			// echo $blade->run($fileName, $data);
-			echo minifyHtml($blade->run($fileName, $data));
+			echo $blade->run($fileName, $data);
 		} catch (Exception $e) {
 			log_message('error', $e->getMessage());
 			echo "<b> ERROR FOUND : </b> <br><br>" . $e->getMessage() . "<br><br><br>" . $e->getTraceAsString();
@@ -312,11 +318,11 @@ if (!function_exists('minifyHtml')) {
 	{
 		$htmlMin = new HtmlMin();
 
-		$htmlMin->doOptimizeViaHtmlDomParser(true);               // optimize html via "HtmlDomParser()"
-		$htmlMin->doRemoveComments();                     			// remove default HTML comments (depends on "doOptimizeViaHtmlDomParser(true)")
-		$htmlMin->doSumUpWhitespace();                    			// sum-up extra whitespace from the Dom (depends on "doOptimizeViaHtmlDomParser(true)")
-		$htmlMin->doRemoveWhitespaceAroundTags();         			// remove whitespace around tags (depends on "doOptimizeViaHtmlDomParser(true)")
-		$htmlMin->doOptimizeAttributes();                 		// optimize html attributes (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doOptimizeViaHtmlDomParser(true);           // optimize html via "HtmlDomParser()"
+		$htmlMin->doRemoveComments();                     	  // remove default HTML comments (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doSumUpWhitespace();                    	  // sum-up extra whitespace from the Dom (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doRemoveWhitespaceAroundTags();         	  // remove whitespace around tags (depends on "doOptimizeViaHtmlDomParser(true)")
+		$htmlMin->doOptimizeAttributes();                 	  // optimize html attributes (depends on "doOptimizeViaHtmlDomParser(true)")
 		$htmlMin->doRemoveHttpPrefixFromAttributes();         // remove optional "http:"-prefix from attributes (depends on "doOptimizeAttributes(true)")
 		$htmlMin->doRemoveHttpsPrefixFromAttributes();        // remove optional "https:"-prefix from attributes (depends on "doOptimizeAttributes(true)")
 		$htmlMin->doKeepHttpAndHttpsPrefixOnExternalAttributes(); // keep "http:"- and "https:"-prefix for all external links 
@@ -326,7 +332,7 @@ if (!function_exists('minifyHtml')) {
 		$htmlMin->doRemoveDeprecatedScriptCharsetAttribute(); // remove deprecated charset-attribute - the browser will use the charset from the HTTP-Header, anyway (depends on "doOptimizeAttributes(true)")
 		$htmlMin->doRemoveDeprecatedTypeFromScriptTag();      // remove deprecated script-mime-types (depends on "doOptimizeAttributes(true)")
 		$htmlMin->doRemoveDeprecatedTypeFromStylesheetLink(); // remove "type=text/css" for css links (depends on "doOptimizeAttributes(true)")
-		$htmlMin->doRemoveDeprecatedTypeFromStyleAndLinkTag(); // remove "type=text/css" from all links and styles
+		$htmlMin->doRemoveDeprecatedTypeFromStyleAndLinkTag();// remove "type=text/css" from all links and styles
 		$htmlMin->doRemoveDefaultMediaTypeFromStyleAndLinkTag(); // remove "media="all" from all links and styles
 		$htmlMin->doRemoveEmptyAttributes();                  // remove some empty attributes (depends on "doOptimizeAttributes(true)")
 		$htmlMin->doRemoveValueFromEmptyInput();              // remove 'value=""' from empty <input> (depends on "doOptimizeAttributes(true)")

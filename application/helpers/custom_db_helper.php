@@ -419,6 +419,16 @@ if (!function_exists('allTableColumn')) {
 	}
 }
 
+if (!function_exists('tableFieldInfo')) {
+	function tableFieldInfo($table)
+	{
+		if (isTableExist($table))
+			return ci()->db->field_data($table);
+		else
+			return [];
+	}
+}
+
 if (!function_exists('primary_field_name')) {
 	function primary_field_name($table)
 	{

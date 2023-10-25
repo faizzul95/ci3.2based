@@ -5,10 +5,11 @@ namespace App\services\modules\authentication\processors;
 use App\services\generals\constants\LoginType;
 use App\services\generals\constants\GeneralStatus;
 use App\services\generals\constants\GeneralErrorMessage;
+use  App\services\generals\constants\DefaultEmailTemplate;
 use App\services\generals\traits\QueueTrait;
 
-use App\services\modules\user\users\processors\UsersSearchProcessors;
 use App\services\modules\user\users\processors\UsersStoreProcessors;
+use App\services\modules\user\users\processors\UsersSearchProcessors;
 use App\services\modules\user\usersLoginHistory\processors\UsersLoginHistoryStoreProcessors;
 
 use App\services\modules\master\masterEmailTemplates\processors\MasterEmailTemplatesSearchProcessors;
@@ -26,38 +27,37 @@ class UserSessionProcessor
 	public function execute($userID, $loginType, $remember = false, $profileID = NULL, $impersonateID = NULL)
 	{
 		$dataUser = app(new UsersSearchProcessors)->execute([
-			'fields' => 'id,name,user_preferred_name,user_nric,email,user_contact_no,user_gender,user_matric_code,program_id,edu_level_id,user_intake,user_dob,user_status,user_marital_status,branch_id,is_deleted',
+			'fields' => 'id,name,user_preferred_name,user_nric,email,user_contact_no,user_gender,user_status,is_deleted',
 			'conditions' => [
 				'id' => hasData($impersonateID) ? $impersonateID : $userID,
 			],
 			'with' => [
 				'accessToken' => 'id,tokenable_id,name,token',
 				'main_profile' => [
-					'fields' => 'id,user_id,role_id,college_id,profile_status,is_main,is_special,has_position,branch_id',
-					'conditions' => hasData($profileID) ? '`id`=' . $profileID : '`is_main`=1',
+					'fields' => 'id,user_id,role_id,profile_status,is_main,company_id',
+					'conditions' => ['is_main' => 1, 'profile_status' => 1],
 					'with' => [
 						'roles' => ['fields' => 'role_name,role_code'],
-						// 'branch' => ['fields' => 'id,branch_name,branch_code'],
-						'branch' => [
-							'fields' => 'id,branch_name,branch_code',
+						'company' => [
+							'fields' => 'id,company_name,company_code,company_status',
 							'with' => [
 								'address' => [
 									'fields' => 'id,address_1,address_2,city_name,state_name,postcode,country_name,entity_address_type',
-									'conditions' => '`entity_address_type`=\'BRANCH_ADDRESS\''
+									'conditions' => ['entity_address_type' => 'COMPANY_ADDRESS']
 								],
 								'logo' => [
 									'fields' => 'files_compression,files_path,files_path_is_url,files_type,entity_file_type,files_folder',
-									'conditions' => '`entity_file_type`=\'BRANCH_LOGO_PHOTO\''
+									'conditions' => ['entity_file_type' => 'COMPANY_LOGO_PHOTO']
 								],
 							]
 						],
 						'avatar' => [
-							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type,branch_id',
-							'conditions' => '`entity_file_type`=\'PROFILE_PHOTO\'',
+							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type,company_id',
+							'conditions' => ['entity_file_type' => 'PROFILE_PHOTO']
 						],
 						'profileHeader' => [
-							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type,branch_id',
-							'conditions' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
+							'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type,company_id',
+							'conditions' => ['entity_file_type' => 'PROFILE_HEADER_PHOTO']
 						],
 					]
 				],
@@ -68,32 +68,38 @@ class UserSessionProcessor
 		$userNickName = $dataUser['user_preferred_name'];
 		$userEmail = $dataUser['email'];
 		$userStatus = $dataUser['user_status'];
-		$userStaffNo = $dataUser['user_matric_code'];
-		$branchID = $dataUser['branch_id'];
+		$companyID = hasData($dataUser, 'main_profile.company.id', true);
 
 		if ($userStatus == GeneralStatus::ACTIVE) {
 
 			// Sent email secure login
-			$template = app(new MasterEmailTemplatesSearchProcessors)->execute([
-				'fields' => 'id,email_type,email_subject,email_body,email_footer,email_cc,email_bcc,email_status,branch_id',
+			$getTemplate = app(new MasterEmailTemplatesSearchProcessors)->execute([
+				'fields' => 'id,email_type,email_subject,email_body,email_footer,email_cc,email_bcc,email_status,company_id',
 				'conditions' => [
-					'email_status' => 1,
+					'email_status' => GeneralStatus::ACTIVE,
 					'email_type' => 'SECURE_LOGIN',
-					'branch_id' => $branchID,
+					'company_id' => $companyID,
 				]
 			], 'get');
+
+			$template = $getTemplate ? $getTemplate : DefaultEmailTemplate::TEMPLATE['LOGIN']['SECURE_LOGIN'];
 
 			$browsers = ci()->agent->browser();
 			$os = ci()->agent->platform();
 			$iplogin = ci()->input->ip_address();
 			$agent = ci()->input->user_agent();
 
+			// check if current device use for login is mobile. then generate token
+			if ($loginType == LoginType::SOCIALITE) {
+				// $loginType = isMobileDevice() ? LoginType::TOKEN : $loginType;
+			}
+
 			if ($loginType == LoginType::TOKEN) {
 
 				$accessToken = $dataUser['accessToken'];
 				$dataUserProfile = $dataUser['main_profile'];
 
-				$generateToken = $this->createToken($userID, ["user_id" => $userID, "branch_id" => $branchID, "profile_id" => $dataUserProfile['id']]);
+				$generateToken = $this->createToken($userID, ["user_id" => $userID, "company_id" => $companyID, "profile_id" => $dataUserProfile['id']]);
 
 				if (hasData($generateToken)) {
 					$generateToken['id'] = hasData($accessToken, 'id', true);
@@ -101,13 +107,12 @@ class UserSessionProcessor
 				}
 
 				$responseData = ['code' => 200, 'message' => 'Login successfully', 'token' => $generateToken['token']];
-				
-			} else if (in_array($loginType, [LoginType::CREDENTIAL, LoginType::SOCIALITE])) {
+			} else if (in_array($loginType, [LoginType::CREDENTIAL, LoginType::SOCIALITE, LoginType::REMEMBER_ME])) {
 
 				$dataUserProfile = $dataUser['main_profile'];
-				$dataBranch = $dataUserProfile['branch'];
+				$dataCompany = $dataUserProfile['company'];
 				$userAvatar = fileExist($dataUserProfile['avatar']['files_path']) ? asset($dataUserProfile['avatar']['files_path'], false) : defaultImage('user');
-				$userProfileHeader = hasData($dataUserProfile['profileHeader']) ? asset($dataUserProfile['profileHeader']['files_path']) : defaultImage('banner');
+				$userProfileHeader = hasData($dataUserProfile['profileHeader']) ? asset($dataUserProfile['profileHeader']['files_path']) : defaultImage('user_profile_header');
 
 				$profileID = $dataUserProfile['id'];
 				$roleID = $dataUserProfile['roles']['id'];
@@ -118,28 +123,27 @@ class UserSessionProcessor
 					'userID'              	=> hasData($impersonateID) ? encodeID($impersonateID) : encodeID($userID),
 					'userFullName'      	=> purify($userFullName),
 					'userNickName'      	=> purify($userNickName),
-					'userStaffNo'          	=> encodeID($userStaffNo),
 					'userEmail'          	=> purify($userEmail),
 					'userAvatar'          	=> purify($userAvatar),
 					'userProfileHeader' 	=> purify($userProfileHeader),
 					'profileID'          	=> encodeID($profileID),
 					'profileName'         	=> purify($profileName),
 					'roleID'             	=> encodeID($roleID),
-					'branchID'         		=> encodeID($branchID),
+					'companyID'         	=> encodeID($companyID),
 					'impersonatorID'        => hasData($impersonateID) ? $userID : NULL,
 					'isLoggedInSession' 	=> TRUE
 				];
 
-				$logoPath = hasData($dataBranch, 'logo') ? fileImage($dataBranch['logo'], 'branch_logo') : NULL;
+				$logoPath = hasData($dataCompany, 'logo') ? fileImage($dataCompany['logo'], 'company_logo') : NULL;
 
-				// branch session data
-				$branchSession = [
-					'branchName'         => purify(hasData($dataBranch, 'branch_name', true)),
-					'branchCode'         => purify(hasData($dataBranch, 'branch_code', true)),
-					'branchLogo'         => purify($logoPath),
+				// company session data
+				$companySession = [
+					'companyName'         => purify(hasData($dataCompany, 'company_name', true)),
+					'companyCode'         => purify(hasData($dataCompany, 'company_code', true)),
+					'companyLogo'         => purify($logoPath),
 				];
 
-				$startSession = array_merge($defaultSession, $branchSession);
+				$startSession = array_merge($defaultSession, $companySession);
 
 				setSession($startSession);
 
@@ -183,19 +187,35 @@ class UserSessionProcessor
 					// $debug = $this->testSentEmail($dataUser, $bodyMessage, $template);
 
 					// add to queue
-					$this->addQueue([
-						'payload' => json_encode([
-							'name' => $userFullName,
-							'to' => $userEmail,
-							'cc' => $template['email_cc'],
-							'bcc' => $template['email_bcc'],
-							'subject' => $template['email_subject'],
-							'body' => $bodyMessage,
-							'attachment' => NULL,
-						]),
-						'branch_id' => $branchID,
-					]);
+					if ($loginType != LoginType::REMEMBER_ME) {
+						$this->addQueue([
+							'payload' => json_encode([
+								'name' => $userFullName,
+								'to' => $userEmail,
+								'cc' => $template['email_cc'],
+								'bcc' => $template['email_bcc'],
+								'subject' => $template['email_subject'],
+								'body' => $bodyMessage,
+								'attachment' => NULL,
+							]),
+							'company_id' => $companyID,
+						]);
+					}
 				}
+
+				// set remember token
+				if ($remember) {
+					// Refresh the token in the database and cookie
+					$new_token = $userID . bin2hex(random_bytes(16)) . timestamp('Ymd');
+					app(new UsersStoreProcessors)->execute(['id' => $userID, 'remember_token' => $new_token]);
+					set_cookie(env('REMEMBER_COOKIE_NAME'), $new_token, strtotime('+4 week'));
+				}
+
+				$responseData = [
+					'code' => 200,
+					'message' => 'Login',
+					'redirectUrl' => 'dashboard',
+				];
 			}
 
 			// Add to login history
@@ -208,21 +228,6 @@ class UserSessionProcessor
 				'time' => timestamp(),
 				'user_agent' => $agent,
 			]);
-
-			// set remember token
-			if ($remember) {
-				// Refresh the token in the database and cookie
-				$new_token = $userID . bin2hex(random_bytes(16)) . timestamp('Ymd');
-				app(new UsersStoreProcessors)->execute(['id' => $userID, 'remember_token' => $new_token]);
-				set_cookie(env('REMEMBER_COOKIE_NAME'), $new_token, strtotime('+4 week'));
-			}
-
-			$responseData = [
-				'code' => 200,
-				'message' => 'Login',
-				'redirectUrl' => 'dashboard',
-			];
-
 		} else {
 			$responseData = $dataUser['is_deleted'] == 1 ?  GeneralErrorMessage::LIST['AUTH']['DELETED'] : GeneralErrorMessage::LIST['AUTH']['INACTIVE'];
 		}
@@ -242,7 +247,7 @@ class UserSessionProcessor
 			'name' => $token_name,
 			'token' => $token,
 			'abilities' => json_encode($payload),
-			'created_at' => timestamp()
+			'last_used_at' => timestamp()
 		];
 
 		return $data;

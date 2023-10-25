@@ -5,7 +5,7 @@ namespace App\services\modules\authentication\logics;
 use App\services\generals\constants\LoginType;
 use App\services\generals\constants\GeneralErrorMessage;
 
-use App\services\modules\core\users\processors\UserSearchProcessors;
+use App\services\modules\user\users\processors\UsersSearchProcessors;
 use App\services\modules\authentication\processors\UserSessionProcessor;
 
 class TwoFactorAuthenticateLogic
@@ -20,7 +20,7 @@ class TwoFactorAuthenticateLogic
 		$codeEnter  = purify($request['code']);
 		$rememberme  = purify($request['rememberme']);
 
-		$dataUser = app(new UserSearchProcessors)->execute([
+		$dataUser = app(new UsersSearchProcessors)->execute([
 			'fields' => 'id,name,email,two_factor_secret',
 			'whereQuery' => $username,
 		], 'get');

@@ -18,7 +18,7 @@ class SystemBackupDBShowLogic
     {
         return app(new SystemBackupDBSearchProcessors)->execute(
 			[
-				'fields' => '',
+				'fields' => 'backup_name,backup_storage_type,backup_location',
 				'conditions' => array_merge($this->request, ['id' => $request['id']]),
 			],
 			'get'

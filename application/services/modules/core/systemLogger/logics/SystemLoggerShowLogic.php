@@ -18,7 +18,7 @@ class SystemLoggerShowLogic
     {
         return app(new SystemLoggerSearchProcessors)->execute(
 			[
-				'fields' => '',
+				'fields' => 'errno,errtype,errstr,errfile,errline,user_agent,ip_address,time',
 				'conditions' => array_merge($this->request, ['id' => $request['id']]),
 			],
 			'get'

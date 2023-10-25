@@ -29,13 +29,3 @@ if (!function_exists('isCookieRememberExists')) {
 // }
 
 // PERMISSION CONTROLL
-
-if (!function_exists('userJWTCredentials')) {
-	function userJWTCredentials($jwtData)
-	{
-		// model('');
-
-		$data = ['status' => false, 'data' => []];
-		return $data;
-	}
-}

@@ -18,7 +18,7 @@ class SystemAccessTokensShowLogic
     {
         return app(new SystemAccessTokensSearchProcessors)->execute(
 			[
-				'fields' => '',
+				'fields' => 'tokenable_type,tokenable_id,name,token,abilities,last_used_at',
 				'conditions' => array_merge($this->request, ['id' => $request['id']]),
 			],
 			'get'

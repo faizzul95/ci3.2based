@@ -9,6 +9,8 @@ final class GeneralErrorMessage
 	public const LOGIN_ATTEMPT = 'ATTEMPT';
 	public const LOGIN_VERIFY2FA = 'VERIFY2FA';
 	public const LOGIN_INACTIVE = 'INACTIVE';
+	public const LOGIN_COMPANY_INACTIVE = 'UNSUBSCRIBE';
+	public const LOGIN_PROFILE_USER = 'PROFILE';
 	public const LOGIN_DELETED = 'DELETED';
 	public const FORGOT_PASSWORD = 'FORGOT';
 	public const TOKEN_RESET_PASSWORD = 'TOKEN_RESET';
@@ -47,6 +49,16 @@ final class GeneralErrorMessage
 			self::LOGIN_INACTIVE => [
 				'code' => 400,
 				'message' => "Your account is inactive, Please contact system support via ticket",
+				'redirectUrl' => NULL,
+			],
+			self::LOGIN_COMPANY_INACTIVE => [
+				'code' => 400,
+				'message' => "Your company may not have any subscription information with us. Please contact us for more details",
+				'redirectUrl' => NULL,
+			],
+			self::LOGIN_PROFILE_USER => [
+				'code' => 400,
+				'message' => "This account does not have an active profile",
 				'redirectUrl' => NULL,
 			],
 			self::LOGIN_DELETED => [

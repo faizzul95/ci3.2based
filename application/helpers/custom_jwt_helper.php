@@ -3,6 +3,8 @@
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
+use App\libraries\AuthToken;
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
@@ -48,9 +50,8 @@ if (!function_exists('validate_jwt_token')) {
             $decodedToken = JWT::decode($token, new Key($ci->config->item('jwt_key'), $ci->config->item('jwt_algorithm')));
 
             if ($decodedToken->exp > time()) {
-                
-                // check user data
-                $verify = userJWTCredentials($decodedToken->data);
+
+                $verify = AuthToken::verification($token);  // check user data token with database
 
                 $code = $verify['status'] ? 200 : 401;
                 $message = $verify['status'] ? 'Token verified' : 'Unauthorized token credentials';

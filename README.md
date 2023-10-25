@@ -106,8 +106,8 @@ Command (Terminal / Command Prompt):-
 		<ol type="1">
 			<li> php struck clear view (remove blade cache)  </li>
 			<li> php struck clear cache (remove ci session cache)  </li>
-      <li> php struck clear all (remove ci session cache, blade cache & logs file)  </li>
-      <li> php struck optimize (remove blade cache & logs file)  </li>
+			<li> php struck clear all (remove ci session cache, blade cache & logs file)  </li>
+			<li> php struck optimize (remove blade cache & logs file)  </li>
 		</ol> 
 	<br>
 	<li> Backup (use as an ordinary cron job) </li> 
