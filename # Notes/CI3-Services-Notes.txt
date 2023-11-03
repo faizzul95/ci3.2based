@@ -1,0 +1,401 @@
+CODEIGNITER 3.20 (BASED) SERVICES - DOCUMENTATION
+
+Description : 
+
+This documentation is meant to provide a better understanding of the new approach for creating logic, which replaces the original method in CodeIgniter 3.
+
+The original approach used in CodeIgniter 3 involved creating every CRUD logic within the Controller and handling all data operations within the Model. 
+This resulted in the necessity of creating different functions in either the model or the controller for each required query to retrieve data.
+
+However, with the introduction of the CRUD isolation method as services, developers can now utilize the same functionality across various contexts. 
+This not only enables consistency but also simplifies the task of maintaining the code.
+
+==============================================================================================
+
+Requirement : Remember to create MODEL first! (refer readme to create model using command/cli) 
+
+==============================================================================================
+
+1. Folder: Logics
+	a) Used for business logic:
+		i) ShowLogic - used to create logic for query single result by ID or primary key conditions.
+		ii) StoreLogic - used to create logic for inserting and updating data.
+		iii) DeleteLogic - used to create logic for deleting data.
+
+2. Folder: Processors
+	a) Used for processing database operations: saving, deleting, and updating.
+	b) Use the following prefixes:
+		i) StoreProcessor - used to save (insert/update) data.
+		ii) DeleteProcessor - used to destroy data.
+		iii) SearchProcessor - used for advanced querying based on specific columns (defined by filters). Refer to the example below:
+
+				$filter = [
+					'fields' => '', // Built-in: a string with commas (,) as separators.
+					'conditions' => '', // Built-in: a string or array for specifying conditions.
+					'limit' => '', // Built-in: a string to specify the limit.
+					'hidden' => [], // Built-in: a boolean. Set to TRUE to return all data, including hidden fields, or FALSE to exclude hidden fields (model-related).
+					'with' => [], // Built-in: an array for specifying relationships.
+					'min' => '', // Built-in: a string or array for specifying minimum values.
+					'max' => '', // Built-in: a string or array for specifying maximum values.
+					'sum' => '', // Built-in: a string or array for specifying sum operations.
+					'order' => '', // Built-in: a string or array for specifying order operations.
+					'searchQuery' => '', // Self-defined in searchProcessors (required).
+					'whereQuery' => '', // Self-defined in searchProcessors.
+				];
+
+                ----------------------------------------------------------------------
+
+                EXAMPLE FOR USING CONDITION (BASIC)
+
+                1) Conditions using ARRAY
+
+					$filter = [
+						......
+						'conditions' => [
+							'id' => 2,
+							'user_age >=' => '30',
+							'user_register <' => '2023-08-14',
+						],
+						......
+					];
+
+                2) Conditions using STRING (RAW QUERY)
+				
+					$filter = [
+						......
+						'conditions' => "id = 2 AND user_age >= '30' AND user_register < '2023-08-14'",
+						......
+					];
+
+                ----------------------------------------------------------------------
+
+				EXAMPLE OF USING CONDITIONS SUCH AS "!=", ">", ">=", "<", "<=" OR ANY SQL CONDITION EXCEPT "=": 
+
+                1) Using "!=" conditions
+
+					$filter = [
+						......
+						'conditions' => [
+							'id !=' => 2,
+						],
+						......
+					];
+
+                2) Using ">=" & "<" conditions simultaneous
+
+					$filter = [
+						......
+						'conditions' => [
+							'date_start >=' => '2023-08-10',
+							'date_completed <' => '2023-08-14',
+						],
+						......
+					];
+
+                ----------------------------------------------------------------------
+
+				EXAMPLE OF USING CONDITION: "IN", "NOT IN", "BETWEEN", "LIKE"
+
+                1) IN conditions
+
+					a) 1st param is IN - required
+                    b) 2nd param is value to be searched in array - required
+
+					$filter = [
+						......
+						'conditions' => [
+							'id' => ['IN', [1,2,3,4,5]],
+						],
+						......
+					];
+
+                2) NOT IN conditions
+
+					a) 1st param is NOT IN - required 
+                    b) 2nd param is value to be searched in array - required
+
+					$filter = [
+						......
+						'conditions' => [
+							'user_status' => ['NOT IN', [1,2,3,4]],
+						],
+						......
+					];
+
+                3) BETWEEN conditions
+
+				 	a) 1st param is BETWEEN - required 
+                    b) 2nd param is value to be searched in array (only 2 value max) - required 
+
+                	ADDITINAL NOTES : VALUE 1 & VALUE 2 will auto detect which is min and max.
+
+					$filter = [
+						......
+						'conditions' => [
+							'register_date' => ['BETWEEN', ['VALUE 1', 'VALUE 2']],
+						],
+						......
+					];
+
+                4) LIKE conditions
+                	 
+                    a) 1st param is LIKE - required, 
+                    b) 2nd param is value to be searched - required, 
+                    c) 3rd param is pattern (only accepts %a, %a%, a%) - optional, default is %a% if not set
+
+					$filter = [
+						......
+						'conditions' => [
+							'username' => ['LIKE', $value, '%a'],
+						],
+						......
+					];
+
+                ----------------------------------------------------------------------
+
+                EXAMPLE 1 (SIMPLE WITH - WITHOUT CONDITION) :
+
+                    $filter = [
+                        'fields' => 'id,name,user_preferred_name,email,user_contact_no',
+                        'conditions' => [
+                            'id' => hasData($impersonateID) ? $impersonateID : $userID,
+                        ],
+                        'with' => ['main_profile'],
+                    ]
+
+
+                EXAMPLE 2 (SIMPLE WITH - INCLUDE CONDITION) :
+
+                    $filter = [
+                        'fields' => 'id,name,user_preferred_name,email,user_contact_no',
+                        'conditions' => [
+                            'id' => hasData($impersonateID) ? $impersonateID : $userID,
+                        ],
+                        'with' => [
+                            'main_profile' => [
+                                'fields' => 'id,user_id,roles_id,is_main,department_id,profile_status',
+                                'conditions' => hasData($profileID) ? 'id=' . $profileID : 'is_main=1',
+                            ]
+                        ],
+                    ]
+
+
+                EXAMPLE 3 (ADVANCED WITH - INCLUDE CONDITION) :
+
+                    $filter = [
+                        'fields' => 'id,name,user_preferred_name,email,user_contact_no',
+                        'conditions' => [
+                            'id' => hasData($impersonateID) ? $impersonateID : $userID,
+                        ],
+                        'with' => [
+                            'main_profile' => [
+                                'fields' => 'id,user_id,roles_id,is_main,department_id,profile_status',
+                                'conditions' => hasData($profileID) ? 'id=' . $profileID : 'is_main=1',
+                                'with' => [
+                                    'roles' => ['fields' => 'role_name,role_code,role_group,abilities_json'],
+                                    'department' => ['fields' => 'department_name,department_code'],
+                                    'avatar' => [
+                                        'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+                                        'conditions' => '`entity_file_type`=\'PROFILE_PHOTO\'',
+                                    ],
+                                    'profileHeader' => [
+                                        'fields' => 'files_compression,files_path,files_path_is_url,files_folder,entity_file_type',
+                                        'conditions' => '`entity_file_type`=\'PROFILE_HEADER_PHOTO\'',
+                                    ]
+                                ]
+                            ]
+                        ],
+                    ]
+
+                ----------------------------------------------------------------------
+
+				Notes: This example can be used for MAX, MIN, ORDER & SUM operations.
+				EXTRA : For ORDER operation, 2nd params in array should be DESC or ASC only.
+
+				EXAMPLE USING MAX (STRING):
+
+					$filter = [
+						......
+						'max' => 'user_gender', // This is the column name, used for a single column.
+						......
+					]
+
+				EXAMPLE USING MAX (ARRAY - param1: column name, param2: alias_name):
+
+					$filter = [
+						......
+						'max' => ['user_gender', 'gender'], // This is the column name and alias for the column.
+						......
+					]
+
+				EXAMPLE USING MAX (MULTI-DIMENSIONAL ARRAY - param1: column name, param2: alias_name):
+
+					$filter = [
+						......
+						'max' => [['user_gender', 'DESC'], ['user_wages', 'ASC']], // If there are multiple columns, use this format (including aliases).
+						......
+					] 
+
+				EXAMPLE USING ORDER (ARRAY - param1: column name, param2: order type):
+
+					$filter = [
+						......
+						'order' => ['user_gender', 'DESC'],
+						......
+					]
+
+
+==============================================================================================
+
+
+// BASIC STRUCTURE FOR Logics (Show, Store [Insert/Update], Delete/Destroy)
+
+
+<?php
+
+namespace App\services\modules\users\logics; <--- change
+
+class UserShowLogic  <--- change
+{
+    public function __construct()
+    {
+    }
+
+    public function logic($request)
+    {
+        // any business logic
+    }
+}
+
+==============================================================================================
+
+// BASIC STRUCTURE FOR Store Processors
+
+<?php
+
+namespace App\services\modules\core\users\processors; <--- change
+
+use App\services\generals\traits\QueryTrait;
+
+class UserStoreProcessors <--- change
+{
+	use QueryTrait;
+
+	public function execute($request = NULL)
+	{
+		$query = $this->newQuery(<--- CHANGE TO MODEL CLASS NAME --->);
+		return $query::save($request);
+	}
+}
+
+
+==============================================================================================
+
+
+// BASIC STRUCTURE FOR Delete Processors
+
+<?php
+
+namespace App\services\modules\users\processors; <--- change
+
+use App\services\generals\traits\QueryTrait;
+
+class UserDeleteProcessors  <--- change
+{
+	use QueryTrait;
+
+	protected $model;
+
+	public function __construct()
+	{
+		$this->model = '<--- CHANGE TO MODEL CLASS NAME --->';
+	}
+
+	public function execute($request = NULL)
+	{
+		$query = $this->newQuery($this->model, ['conditions' => $request]);
+		$count = $query->count_rows();
+
+		if ($count > 0) {
+			$getType = $count == 1 ? 'get' : 'get_all';
+			$data = $this->newQuery($this->model, ['conditions' => $request])->$getType();
+			$resCode = $this->newQuery($this->model, ['conditions' => $request])->delete() ? 200 : 400;
+			return returnData([
+				"action" => 'delete',
+				"resCode" => $resCode,
+				"message" =>  message($resCode, 'delete'),
+				"id" => $count == 1 ? $data[$query->primary_key] : NULL,
+				"data" => $data
+			], $resCode);
+		}
+
+		return returnData(["action" => 'delete', "resCode" => 400, "message" =>  message(400, 'delete')], 400);
+	}
+}
+
+
+==============================================================================================
+
+
+// BASIC STRUCTURE FOR Search Processors
+
+<?php
+
+namespace App\services\modules\users\processors; <--- change
+
+use App\services\generals\traits\QueryTrait;
+
+class UserSearchProcessors <--- change
+{
+    use QueryTrait;
+
+    public function execute($filter = NULL, $fetchType = 'get_all', $cache_files_name = NULL)
+    {
+        $query = $this->newQuery('<--- CHANGE TO MODEL CLASS NAME --->', $filter);
+
+        if (hasData($filter)) {
+            if (hasData($filter, 'searchQuery')) {
+                $query->where('<--- CHANGE TO COLUMN NAME --->', 'like', $filter['searchQuery'])         // this will be LIKE $search
+                    ->where('<--- CHANGE TO COLUMN NAME --->', 'like', $filter['searchQuery'], true);    // if put true, will be OR LIKE $search. else will be AND LIKE $search
+            }
+        }
+
+        if (hasData($cache_files_name)) {
+			if ($fetchType != 'toSql')
+				$query->set_cache($cache_files_name);
+		}
+
+        return $fetchType == 'toSql' ? $query->$fetchType($query) : $query->$fetchType();
+    }
+}
+
+
+==============================================================================================
+
+// EXAMPLE USAGE OF SEARCH PROCESSOR (in Controller or Any files)
+
+1) IMPORTING THE CLASS
+
+	use App\services\modules\core\users\processors\UserSearchProcessors;
+
+	$data = app(new UserSearchProcessors)->execute($filter, 'get');
+
+2) DIRECT USAGE
+
+	$data = app('App\services\modules\core\users\processors\UserSearchProcessors')->execute($filter, 'get');
+
+..............................................................................................
+
+ADDITIONAL NOTES FOR SearchProcessors:
+
+Function Structure:
+
+execute($filter = NULL, $fetchType = 'get_all', $cache_file_name = NULL)
+
+	1) Parameter 1 ($filter)	: Receives an array for the query. The default value is NULL.
+	2) Parameter 2 ($fetchType)	: Can only accept the following values:
+		a) get_all (default) - Retrieves all data.
+		b) get 				 - Retrieves a single data.
+		c) count_rows 		 - Returns the total number of rows.
+		d) toSql 			 - Returns the query string.
+	3) Parameter 3 ($cache_file_name): Caches the result. This enhances data retrieval speed when the cache exists. The default value is NULL.

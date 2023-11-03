@@ -1,0 +1,50 @@
+# CORE models
+php struck create model SystemQueueJob system_queue_job
+php struck create model SystemQueueFailedJob system_queue_failed_job
+php struck create model SystemLogger system_logger
+php struck create model SystemBackupDB system_backup_db
+php struck create model SystemAuditTrails system_audit_trails
+php struck create model SystemAccessTokens system_access_tokens
+
+# CORE services
+php struck generate services core systemQueueJob SystemQueueJob system_queue_job
+php struck generate services core systemQueueFailedJob SystemQueueFailedJob system_queue_failed_job
+php struck generate services core systemLogger SystemLogger system_logger
+php struck generate services core systemBackupDB SystemBackupDB system_backup_db
+php struck generate services core systemAuditTrails SystemAuditTrails system_audit_trails
+php struck generate services core systemAccessTokens SystemAccessTokens system_access_tokens
+
+=======================================================================
+
+# Module : Users @ Directory models
+php struck create model users users
+php struck create model usersProfile users_profile
+php struck create model usersLoginAttempt users_login_attempt
+php struck create model usersLoginHistory users_login_history
+php struck create model usersPasswordReset users_password_reset
+
+# Module : Users @ Directory services
+php struck generate services user users users users
+php struck generate services user usersLoginAttempt usersLoginAttempt users_login_attempt
+php struck generate services user usersLoginHistory usersLoginHistory users_login_history
+php struck generate services user usersProfile usersProfile users_profile
+php struck generate services user usersPasswordReset usersPasswordReset users_password_reset
+
+=======================================================================
+
+# Module : Master models
+php struck create model MasterRole master_role
+php struck create model EntityFiles entity_files - no services for this!
+php struck create model MasterEmailTemplates master_email_templates
+php struck create model masterRole master_role
+php struck create model masterCompany master_company
+
+# Module : Master services
+php struck generate services master masterRole MasterRole master_role
+php struck generate services master masterEmailTemplates MasterEmailTemplates master_email_templates
+php struck generate services master masterCompany MasterCompany master_company
+
+
+
+
+

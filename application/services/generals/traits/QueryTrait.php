@@ -86,6 +86,32 @@ trait QueryTrait
 			if (hasData($filter, 'limit')) {
 				$query->limit($filter['limit'], 0);
 			}
+
+			if (hasData($filter, 'order')) {
+				if(is_array($filter['order']))
+					$query->order_by($filter['order'][0], $filter['order'][1]);
+				else
+					$query->order_by($filter['order']);
+			}
+
+			if (hasData($filter, 'order')) {
+				if (is_array($filter['order'])) {
+					if (isMultidimension($filter['order'])) {
+						foreach ($filter['order'] as $order) {
+							if (is_array($order)) {
+								$query->order_by($order[0], $order[1]);
+							} else {
+								$query->order_by($order);
+							}
+						}
+					} else {
+						$query->order_by($filter['order'][0], $filter['order'][1]);
+					}
+				} else {
+					$query->order_by($filter['order']);
+				}
+			}
+			
 		}
 
 		return $query;
