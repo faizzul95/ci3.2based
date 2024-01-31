@@ -397,16 +397,18 @@ const str_replace = (find, replace, string) => {
  * 
  * @example
  * const result = in_array(42, [1, 42, 3]); // result is true
+ * const result2 = in_array(45, [1, 42, 3]); // result is false
  */
 const in_array = (needle, data) => {
-	if (!Array.isArray(data)) {
-		throw new Error("An error occurred in in_array(): data should be an array");
-	}
-
 	try {
+		if (!Array.isArray(data)) {
+			throw new Error("An error occurred in in_array(): data should be an array");
+		}
+	
 		return data.includes(needle);
 	} catch (error) {
-		throw new Error(`An error occurred in in_array(): ${error.message}`);
+		console.error(`An error occurred in in_array(): ${error.message}`);
+		return false;
 	}
 }
 
@@ -423,14 +425,15 @@ const in_array = (needle, data) => {
  * const newLength = array_push(myArray, 3, 4); // myArray is now [1, 2, 3, 4], newLength is 4
  */
 const array_push = (data, ...elements) => {
-	if (!Array.isArray(data)) {
-		throw new Error("An error occurred in array_push(): data should be an array");
-	}
-
 	try {
+		if (!Array.isArray(data)) {
+			throw new Error("An error occurred in array_push(): data should be an array");
+		}
+	
 		return data.push(...elements);
 	} catch (error) {
-		throw new Error(`An error occurred in array_push(): ${error.message}`);
+		console.error(`An error occurred in array_push(): ${error.message}`);
+		return [];
 	}
 }
 
@@ -445,62 +448,17 @@ const array_push = (data, ...elements) => {
  * const mergedArray = array_merge([1, 2], [3, 4], [5, 6]); // mergedArray is [1, 2, 3, 4, 5, 6]
  */
 const array_merge = (...arrays) => {
-	for (const array of arrays) {
-		if (!Array.isArray(array)) {
-			throw new Error("All arguments should be arrays");
-		}
-	}
-
 	try {
+		for (const array of arrays) {
+			if (!Array.isArray(array)) {
+				throw new Error("All arguments should be arrays");
+			}
+		}
+	
 		return [].concat(...arrays);
 	} catch (error) {
-		throw new Error(`An error occurred in array_merge(): ${error.message}`);
-	}
-}
-
-/**
- * Function: implode
- * Description: Joins elements of an array into a string using a specified separator.
- *
- * @param {string} separator - The separator string used between array elements.
- * @param {Array} data - The array whose elements will be joined.
- * @returns {string} - The joined string.
- * 
- * @example
- * const result = implode(', ', ['apple', 'banana', 'orange']); // result is "apple, banana, orange"
- */
-const implode = (separator = ',', data) => {
-	if (data !== null && !Array.isArray(data)) {
-		throw new Error(`An error occurred in implode(): data should be an array`);
-	}
-
-	try {
-		return data.join(separator);
-	} catch (error) {
-		throw new Error(`An error occurred in implode(): ${error.message}`);
-	}
-}
-
-/**
- * Function: explode
- * Description: Splits a string into an array of substrings based on a specified delimiter.
- *
- * @param {string} delimiter - The delimiter to use for splitting the string.
- * @param {string} data - The string to be split.
- * @returns {Array} - An array of substrings.
- * 
- * @example
- * const result = explode(' ', 'Hello world'); // result is ["Hello", "world"]
- */
-const explode = (delimiter = ',', data) => {
-	if (typeof data !== 'string') {
-		throw new Error("An error occurred in explode(): data should be a string");
-	}
-
-	try {
-		return data.split(delimiter);
-	} catch (error) {
-		throw new Error(`An error occurred in explode(): ${error.message}`);
+		console.error(`An error occurred in array_merge(): ${error.message}`);
+		return [];
 	}
 }
 
@@ -519,18 +477,107 @@ const explode = (delimiter = ',', data) => {
  * // result is true
  */
 const array_key_exists = (arrKey, data) => {
-	if (typeof data !== 'object' || data === null) {
-		throw new Error("An error occurred in array_key_exists(): data should be an object");
-	}
-
 	try {
+
+		if (typeof data !== 'object' || data === null) {
+			throw new Error("An error occurred in array_key_exists(): data should be an object");
+		}
+
 		if (data.hasOwnProperty(arrKey)) {
 			return true;
 		}
 
 		return false;
 	} catch (error) {
-		throw new Error(`An error occurred in array_key_exists(): ${error.message}`);
+		console.error(`An error occurred in array_key_exists(): ${error.message}`);
+		return false;
+	}
+}
+
+/**
+ * Function: array_search
+ * Description: Searches for a value in an array and returns the corresponding key if found.
+ *
+ * @param {*} needle - The value to search for in the array.
+ * @param {Array} haystack - The array to search in.
+ * 
+ * @throws Will throw an error if the needle is empty or if the haystack is not an array.
+ *
+ * @return {number|string|false} - The key of the found element or false if not found.
+ *
+ * @example
+ * const arr = ['apple', 'banana', 'orange'];
+ * const result = array_search('banana', arr);
+ * // result is 1
+ */
+const array_search = (needle, haystack) => {
+	try {
+		if (!Array.isArray(haystack)) {
+		throw new Error('The second parameter must be an array.');
+		}
+
+		if (needle === '') {
+		throw new Error('The search value cannot be empty.');
+		}
+
+		for (const [key, value] of Object.entries(haystack)) {
+		if (value === needle) {
+			return key;
+		}
+		}
+
+		return false;
+	} catch (error) {
+		console.error(`An error occurred in array_search(): ${error.message}`);
+		return false;
+	}
+};
+
+/**
+ * Function: implode
+ * Description: Joins elements of an array into a string using a specified separator.
+ *
+ * @param {string} separator - The separator string used between array elements.
+ * @param {Array} data - The array whose elements will be joined.
+ * @returns {string} - The joined string.
+ * 
+ * @example
+ * const result = implode(', ', ['apple', 'banana', 'orange']); // result is "apple, banana, orange"
+ */
+const implode = (separator = ',', data) => {
+	try {
+		if (data !== null && !Array.isArray(data)) {
+			throw new Error(`An error occurred in implode(): data should be an array`);
+		}
+
+		return data.join(separator);
+	} catch (error) {
+		console.error(`An error occurred in implode(): ${error.message}`);
+		return '';
+	}
+}
+
+/**
+ * Function: explode
+ * Description: Splits a string into an array of substrings based on a specified delimiter.
+ *
+ * @param {string} delimiter - The delimiter to use for splitting the string.
+ * @param {string} data - The string to be split.
+ * @returns {Array} - An array of substrings.
+ * 
+ * @example
+ * const result = explode(' ', 'Hello world'); // result is ["Hello", "world"]
+ */
+const explode = (delimiter = ',', data) => {
+	try {
+		if (typeof data !== 'string') {
+			throw new Error("An error occurred in explode(): data should be a string");
+		}
+
+		return data.split(delimiter);
+	} catch (error) {
+		console.error(`An error occurred in explode(): ${error.message}`);
+		return [];
 	}
 }
 
@@ -544,7 +591,7 @@ const array_key_exists = (arrKey, data) => {
  * 
  * @example
  * const myArray = [1, 2, 3, 4];
- * const removedItem = remove(myArray, 2); // myArray is now [1, 3, 4], removedItem is 2
+ * const removedItem = remove_item_array(myArray, 2); // myArray is now [1, 3, 4], removedItem is 2
  */
 const remove_item_array = (data, item) => {
 	if (!Array.isArray(data)) {
@@ -731,44 +778,292 @@ const getClock = (format = '24', lang = 'en', showSeconds = true) => {
 };
 
 /**
- * Function: isWeekend
- * Description: Checks if the given date falls on a weekend (Saturday or Sunday).
+ * Function: date
+ * Description: Formats a date based on the provided format string.
  *
- * @param {Date} date - The date to check. Defaults to the current date if not provided.
+ * @param {string} format - The format string specifying how the date should be formatted.
+ * @param {string | number | Date} [timestamp=null] - The timestamp to format. Defaults to the current date and time.
+ * @returns {string} The formatted date string.
+ * 
+ * @example
+ * const formattedDate = date("Y-m-d"); - Return current date. e.g : 2024-02-29
+ * const formattedDate2 = date("d.M/Y"); - Return current date. e.g : 29-Feb/2024
+ * const formattedDate3 = date("d.m.Y, l"); - Return current date. e.g : 29.02.2024, Thursday
+ * 
+ * @throws {Error} Throws an error if there is an issue during date formatting.
+ */
+
+/**
+ * Function: date
+ * Description: Returns the current date and time formatted according to the specified format.
+ *
+ * @param {string} - formatted (optional) The format string used to format the date and time. If not provided, the function will use the default format.
+ * @param {string | number | Date} [timestamp=null] - The timestamp to format. Defaults to the current date and time.
+ * 
+ * @return {string} Returns a formatted date string.
+ * 
+ * @example
+ * const date1 = date('Y-m-d H:i:s'); // Outputs something like "2024-02-01 15:30:00"
+ * const date2 = date('l, F j, Y');   // Outputs something like "Wednesday, February 1, 2024"
+ * 
+ * @throws {Error} Throws an error if there is an issue during date formatting.
+ */
+const date = (formatted = null, timestamp = null) => {
+	try {
+		const format = formatted === null ? 'Y-m-d' : formatted;
+
+		// Convert the timestamp to a Date object if it is provided
+		const currentDate = timestamp === null ? new Date() : (timestamp instanceof Date ? timestamp : new Date(timestamp));
+
+		// Get various date components
+		const year = currentDate.getFullYear().toString();
+		const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+		const day = currentDate.getDate().toString().padStart(2, '0');
+		const hours24 = currentDate.getHours().toString().padStart(2, '0');
+		const hours12 = ((hours24 % 12) || 12).toString().padStart(2, '0');
+		const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+		const seconds = currentDate.getSeconds().toString().padStart(2, '0');
+		const ampm = hours24 >= 12 ? 'PM' : 'AM';
+
+		// Define arrays for days of the week and months
+		const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+		// Replace placeholders in the format string
+		return format.replace(/[a-zA-Z]/g, (match) => {
+            switch (match) {
+                case 'd': return day; // Day of the month, two digits with leading zeros (01 to 31)
+                case 'D': return daysOfWeek[currentDate.getDay()].slice(0, 3); // A textual representation of a day, three letters (Mon through Sun)
+                case 'j': return currentDate.getDate().toString(); // Day of the month without leading zeros (1 to 31)
+                case 'l': return daysOfWeek[currentDate.getDay()]; // A full textual representation of the day of the week (Sunday through Saturday)
+                case 'F': return months[currentDate.getMonth()]; // A full textual representation of a month (January through December)
+                case 'm': return month; // Numeric representation of a month, with leading zeros (01 to 12)
+                case 'M': return months[currentDate.getMonth()].slice(0, 3); // A short textual representation of a month, three letters (Jan through Dec)
+                case 'n':  return (currentDate.getMonth() + 1).toString(); // Numeric representation of a month, without leading zeros (1 to 12)
+                case 'Y': return year; //  A four-digit representation of a year (e.g., 2024)
+                case 'y': return year.slice(-2); // A two-digit representation of a year (e.g., 24)
+                case 'H': return hours24; // 24-hour format of an hour with leading zeros (00 to 23)
+                case 'h': return hours12; // 12-hour format of an hour with leading zeros (01 to 12)
+                case 'i': return minutes; // Minutes with leading zeros (00 to 59)
+                case 's': return seconds; // Seconds with leading zeros (00 to 59)
+                case 'a': return ampm.toLowerCase(); // Lowercase Ante meridiem and Post meridiem (am or pm)
+                case 'A': return ampm; // Uppercase Ante meridiem and Post meridiem (AM or PM)
+                default: return match;
+            }
+        });
+
+	} catch (error) {
+        console.error(`An error occurred in date() while formatting date: ${error.message}`);
+		return ''; // Return an empty string in case of an error
+	}
+};
+
+/**
+ * Function: formatDate
+ * Description: Format a date with a specified format (default is 'd.m.Y').
+ *
+ * @param {string} dateToFormat - The date to be formatted.
+ * @param {string} format - The format string for the date (default is 'd.m.Y').
+ * @param {*} defaultValue - The default value to return if the date is empty.
+ * @returns {string} Formatted date string or defaultValue if date is empty.
+ */
+const formatDate = (dateToFormat, format = 'd.m.Y', defaultValue = null) => {
+	return hasData(dateToFormat) ? date(format, dateToFormat) : defaultValue;
+};
+
+/**
+ * Function: isWeekend
+ * Description: Checks if the given date falls on a weekend based on the specified weekend days.
+ *
+ * @param {Date|string} date - The date to check. Defaults to the current date if not provided.
+ * @param {string[]} weekendDays - An optional array specifying weekend days ('SUN', 'MON', ..., 'SAT').
  * @returns {boolean} - Returns true if the date is a weekend, otherwise false.
  * 
  * @example
  * const result = isWeekend(new Date(2023, 8, 17)); // result is false
+ * const result2 = isWeekend('2023-08-17'); // result is false
+ * const customWeekendResult = isWeekend(new Date(2023, 8, 17), ['FRI', 'SAT']); // result is true, as Friday is considered a weekend day
+ * const customWeekendResult2 = isWeekend('2023-08-17', ['FRI', 'SAT']); // result is true, as Friday is considered a weekend day
  */
-const isWeekend = (date = new Date()) => {
-	try {
-		const day = date.getDay();
-		return day === 0 || day === 6;
-	} catch (error) {
-		console.error(`An error occurred in isWeekend(): ${error.message}`);
-		return false;
-	}
-}
+const isWeekend = (date = new Date(), weekendDays = ['SUN', 'SAT']) => {
+    try {
+		const dateData = typeof date === 'string' ? new Date(date) : date;
+
+        if (!(dateData instanceof Date) || isNaN(dateData)) {
+            throw new Error("Invalid date input");
+        }
+
+        if (!Array.isArray(weekendDays) || weekendDays.some(day => typeof day !== 'string')) {
+            throw new Error("Invalid weekendDays input");
+        }
+
+        const dayAbbreviation = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const day = dayAbbreviation[dateData.getDay()].toUpperCase();
+
+        return weekendDays.map(d => d.toUpperCase()).includes(day);
+    } catch (error) {
+        console.error(`An error occurred in isWeekend(): ${error.message}`);
+        return false;
+    }
+};
 
 /**
  * Function: isWeekday
  * Description: Checks if the given date is a weekday (Monday to Friday).
  *
  * @param {Date} date - The date to be checked. Default is the current date.
+ * @param {string[]} weekendDays - An optional array specifying weekend days ('SUN', 'MON', ..., 'SAT').
  * @returns {boolean} True if the date is a weekday, otherwise false.
  *
  * @example
  * const result = isWeekday(new Date('2023-08-19')); // Returns true if '2023-08-19' is a weekday.
+ * const result2 = isWeekday('2023-08-19'); // Returns true if '2023-08-19' is a weekday.
+ * const customWeekendResult = isWeekday('2023-08-19', ['FRI', 'SAT']); // Returns false if '2023-08-19' is a Friday.
  */
-const isWeekday = (date = new Date()) => {
+const isWeekday = (date = new Date(), weekendDays = ['SUN', 'SAT']) => {
+    try {
+		const dateData = typeof date === 'string' ? new Date(date) : date;
+
+        if (!(dateData instanceof Date) || isNaN(dateData)) {
+            throw new Error("Invalid date input");
+        }
+
+        if (!Array.isArray(weekendDays) || weekendDays.some(day => typeof day !== 'string')) {
+            throw new Error("Invalid weekendDays input");
+        }
+
+        const dayAbbreviation = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const day = dayAbbreviation[dateData.getDay()].toUpperCase();
+
+        return !weekendDays.map(d => d.toUpperCase()).includes(day);
+    } catch (error) {
+        console.error(`An error occurred in isWeekday(): ${error.message}`);
+        return false;
+    }
+};
+
+/**
+ * Function: calculateDays
+ * Description: Calculate days between two date strings or date objects, excluding specified dates or days.
+ *
+ * @param {Date|string} date1 - The first date (as a Date object or date string).
+ * @param {Date|string} date2 - The second date (as a Date object or date string).
+ * @param {Array} exception - An array of dates (as Date objects or date strings) or day names (e.g., 'MON', 'TUE').
+ * @returns {number} Count of the days between the two dates after excluding specified dates or days.
+ *
+ * @example
+ * const result = calculateDays('2022-01-10', '2023-04-21', ['FRI', 'SAT']);
+ * const result2 = calculateDays('2022-01-10', '2023-04-21', ['2022-11-10', '2022-11-23', 'FRI']);
+ * // Returns the number of days between the two dates excluding Fridays and Saturdays.
+ */
+const calculateDays = (date1, date2, exception = []) => { 
 	try {
-		const day = date.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
-		return day >= 1 && day <= 5; // Weekdays are from Monday (1) to Friday (5)
+		// Convert date strings to Date objects
+		const date1Obj = typeof date1 === 'string' ? new Date(date1) : date1;
+		const date2Obj = typeof date2 === 'string' ? new Date(date2) : date2;
+
+		// Check if both parameters are valid dates
+		if (!(date1Obj instanceof Date) || isNaN(date1Obj) || !(date2Obj instanceof Date) || isNaN(date2Obj)) {
+			throw new Error("Invalid date input");
+		}
+
+		// Check if the dates are the same
+		if (date1Obj.getTime() === date2Obj.getTime()) {
+			return 0; // Dates are the same, 0 days difference
+		}
+
+		// Determine the maximum and minimum dates
+		const maxDate = date1Obj > date2Obj ? date1Obj : date2Obj;
+		const minDate = date1Obj > date2Obj ? date2Obj : date1Obj;
+
+		// Calculate the difference in days
+		const timeDifference = maxDate.getTime() - minDate.getTime();
+		let daysDifference = Math.floor(timeDifference / (1000 * 3600 * 24));
+
+		// Remove specified dates or days
+		exception.forEach(excludeItem => {
+			if (excludeItem instanceof Date || !isNaN(new Date(excludeItem))) {
+				// Exclude specific dates
+				const excludeDate = new Date(excludeItem);
+				if (excludeDate >= minDate && excludeDate <= maxDate) {
+					daysDifference--;
+				}
+			} else if (typeof excludeItem === 'string') {
+				const excludedDays = getDatesByDay(minDate, maxDate, excludeItem.toUpperCase().substring(0, 3));
+				daysDifference -= excludedDays.length;
+			}
+		});
+
+		return daysDifference;
 	} catch (error) {
-		console.error(`An error occurred in isWeekday(): ${error.message}`);
+		console.error(`An error occurred in calculateDays(): ${error.message}`);
+		return false;
+	}
+}
+
+/**
+ * Function: getDatesByDay
+ * Description: Get dates within a specific date range that match the specified day of the week.
+ *
+ * @param {Date|string} startDate - The start date (as a Date object or date string).
+ * @param {Date|string} endDate - The end date (as a Date object or date string).
+ * @param {string} dayOfWeek - The day of the week to match (e.g., 'MON', 'TUE').
+ * @returns {Array} Array of dates (in 'Y-m-d' format) matching the specified day of the week within the date range.
+ *
+ * @example
+ * const result = getDatesByDay('2024-01-01', '2024-01-31', 'TUE');
+ * // Returns an array of all Tuesdays between January 1, 2024, and January 31, 2024.
+ */
+const getDatesByDay = (startDate, endDate, dayOfWeek) => {
+	try {
+		const result = [];
+
+		// Convert date strings to Date objects
+		const startDateObj = typeof startDate === 'string' ? new Date(startDate) : startDate;
+		const endDateObj = typeof endDate === 'string' ? new Date(endDate) : endDate;
+
+		// Check if both parameters are valid dates
+		if (!(startDateObj instanceof Date) || isNaN(startDateObj) || !(endDateObj instanceof Date) || isNaN(endDateObj)) {
+			throw new Error("Invalid date input");
+		}
+
+		// Determine the maximum and minimum dates
+		const maxDate = startDateObj > endDateObj ? startDateObj : endDateObj;
+		const minDate = startDateObj > endDateObj ? endDateObj : startDateObj;
+
+		// Find the first occurrence of the specified day of the week within the date range
+		let currentDate = new Date(minDate);
+		while (currentDate <= maxDate) {
+			if (currentDate.getDay() === getDayIndex(dayOfWeek)) {
+				result.push(formatDate(currentDate, 'Y-m-d'));
+			}
+			currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
+		}
+
+		return result;
+	} catch (error) {
+		console.error(`An error occurred in getDatesByDay(): ${error.message}`);
 		return false;
 	}
 };
+
+/**
+ * Function: getDayIndex
+ * Description: Get the index of the specified day of the week (0 for Sunday, 1 for Monday, etc.).
+ *
+ * @param {string} dayOfWeek - The day of the week (case-insensitive, abbreviated to three letters).
+ * @returns {number} The index of the specified day of the week.
+ * 
+ * @example
+ * const index = getDayIndex('Mon'); // Returns 1
+ * const index2 = getDayIndex('saturday'); // Returns 6
+ */
+const getDayIndex = (dayOfWeek) => {
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const upperCaseDay = dayOfWeek.toUpperCase().substring(0, 3);
+    return days.indexOf(upperCaseDay);
+};
+
 
 // INPUT VALIDATOR HELPER
 
