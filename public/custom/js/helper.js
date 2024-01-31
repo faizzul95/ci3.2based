@@ -119,45 +119,71 @@ const dd = (...args) => {
 }
 
 /**
- * Function: jsonHtmlHighlight
+ * Function: jsonHtmlDisplay
  * Description: Converts a JSON object or string into HTML-highlighted syntax.
  *
  * @param {string | object} json - The JSON object or string to be highlighted.
- * 
+ * @param {string} [type='basic'] - The type of highlighting ('basic' or 'bullet').
+ * @returns {string} - HTML-formatted string with syntax highlighting for JSON.
+ *
  * @example
- * const highlightedJson = jsonHtmlHighlight({"key": "value"}); // highlightedJson is an HTML-formatted string with syntax highlighting for JSON.
+ * const highlightedJson = jsonHtmlDisplay('{"key": "value"}', 'basic');
+ * // highlightedJson is an HTML-formatted string with syntax highlighting for JSON.
  */
-const jsonHtmlHighlight = (json) => {
-	try {
-		// Convert to string if not already a string
-		if (typeof json !== 'string') {
-			json = JSON.stringify(json, undefined, 2);
-		}
+const jsonHtmlDisplay = (json, type = 'basic') => {
+	if (type === 'bullet') {
+		// Convert JSON string to a JavaScript object
+		const obj = JSON.parse(json);
 
-		// Replace special characters for HTML display
-		json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-		// Apply syntax highlighting using regex
-		return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-			var cls = 'number';
-			if (/^"/.test(match)) {
-				if (/:$/.test(match)) {
-					cls = 'key';
-				} else {
-					cls = 'string';
+		// Recursive function to create HTML for each element
+		const createHtml = (element) => {
+			let html = '';
+			if (typeof element === 'object' && element !== null) {
+				html += '<ul>';
+				for (const key in element) {
+					html += `<li><span class="key">${key}:</span>${createHtml(element[key])}</li>`;
 				}
-			} else if (/true|false/.test(match)) {
-				cls = 'boolean';
-			} else if (/null/.test(match)) {
-				cls = 'null';
+				html += '</ul>';
+			} else if (typeof element === 'string') {
+				html += `<span class="string">"${element}"</span>`;
+			} else if (typeof element === 'number') {
+				html += `<span class="number">${element}</span>`;
+			} else if (typeof element === 'boolean') {
+				html += `<span class="boolean">${element}</span>`;
+			} else if (element === null) {
+				html += '<span class="null">null</span>';
 			}
-			return '<span class="' + cls + '">' + match + '</span>';
-		});
-	} catch (error) {
-		console.error(`An error occurred in jsonHtmlHighlight(): ${error.message}`);
-		return ''; // Return empty string in case of an error
+			return html;
+		};
+
+		// Generate HTML and wrap it in a <pre> element
+		const html = `<pre>${createHtml(obj)}</pre>`;
+		return html;
+	} else {
+		json = JSON.stringify(JSON.parse(json), null, 2);
+		json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		const html = json.replace(
+			/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(-?\d+(\.\d*)?(e-?\d+)?|null|true|false)\b)/g,
+			(match) => {
+				let cls = 'number';
+				if (/^"/.test(match)) {
+					if (/:$/.test(match)) {
+						cls = 'key';
+					} else {
+						cls = 'string';
+					}
+				} else if (/true|false/.test(match)) {
+					cls = 'boolean';
+				} else if (/null/.test(match)) {
+					cls = 'null';
+				}
+				return `<span class="${cls}">${match}</span>`;
+			}
+		);
+
+		return `<pre>${html}</pre>`;
 	}
-}
+};
 
 // DATA HELPER
 
@@ -233,7 +259,7 @@ const hasData = (data = null, arrKey = null, returnData = false, defaultValue = 
 
 		// Check if currentData is an object or an array
 		if (currentData && typeof currentData === 'object' && key in currentData) {
-			return traverse(keys, currentData[key]);
+			return currentData[key] != null ? traverse(keys, currentData[key]) : (returnData ? (defaultValue ?? null) : false);
 		} else {
 			// If the key doesn't exist, return the default value or false
 			return returnData ? defaultValue : false;
@@ -404,7 +430,7 @@ const in_array = (needle, data) => {
 		if (!Array.isArray(data)) {
 			throw new Error("An error occurred in in_array(): data should be an array");
 		}
-	
+
 		return data.includes(needle);
 	} catch (error) {
 		console.error(`An error occurred in in_array(): ${error.message}`);
@@ -429,7 +455,7 @@ const array_push = (data, ...elements) => {
 		if (!Array.isArray(data)) {
 			throw new Error("An error occurred in array_push(): data should be an array");
 		}
-	
+
 		return data.push(...elements);
 	} catch (error) {
 		console.error(`An error occurred in array_push(): ${error.message}`);
@@ -454,7 +480,7 @@ const array_merge = (...arrays) => {
 				throw new Error("All arguments should be arrays");
 			}
 		}
-	
+
 		return [].concat(...arrays);
 	} catch (error) {
 		console.error(`An error occurred in array_merge(): ${error.message}`);
@@ -513,17 +539,17 @@ const array_key_exists = (arrKey, data) => {
 const array_search = (needle, haystack) => {
 	try {
 		if (!Array.isArray(haystack)) {
-		throw new Error('The second parameter must be an array.');
+			throw new Error('The second parameter must be an array.');
 		}
 
 		if (needle === '') {
-		throw new Error('The search value cannot be empty.');
+			throw new Error('The search value cannot be empty.');
 		}
 
 		for (const [key, value] of Object.entries(haystack)) {
-		if (value === needle) {
-			return key;
-		}
+			if (value === needle) {
+				return key;
+			}
 		}
 
 		return false;
@@ -831,29 +857,29 @@ const date = (formatted = null, timestamp = null) => {
 
 		// Replace placeholders in the format string
 		return format.replace(/[a-zA-Z]/g, (match) => {
-            switch (match) {
-                case 'd': return day; // Day of the month, two digits with leading zeros (01 to 31)
-                case 'D': return daysOfWeek[currentDate.getDay()].slice(0, 3); // A textual representation of a day, three letters (Mon through Sun)
-                case 'j': return currentDate.getDate().toString(); // Day of the month without leading zeros (1 to 31)
-                case 'l': return daysOfWeek[currentDate.getDay()]; // A full textual representation of the day of the week (Sunday through Saturday)
-                case 'F': return months[currentDate.getMonth()]; // A full textual representation of a month (January through December)
-                case 'm': return month; // Numeric representation of a month, with leading zeros (01 to 12)
-                case 'M': return months[currentDate.getMonth()].slice(0, 3); // A short textual representation of a month, three letters (Jan through Dec)
-                case 'n':  return (currentDate.getMonth() + 1).toString(); // Numeric representation of a month, without leading zeros (1 to 12)
-                case 'Y': return year; //  A four-digit representation of a year (e.g., 2024)
-                case 'y': return year.slice(-2); // A two-digit representation of a year (e.g., 24)
-                case 'H': return hours24; // 24-hour format of an hour with leading zeros (00 to 23)
-                case 'h': return hours12; // 12-hour format of an hour with leading zeros (01 to 12)
-                case 'i': return minutes; // Minutes with leading zeros (00 to 59)
-                case 's': return seconds; // Seconds with leading zeros (00 to 59)
-                case 'a': return ampm.toLowerCase(); // Lowercase Ante meridiem and Post meridiem (am or pm)
-                case 'A': return ampm; // Uppercase Ante meridiem and Post meridiem (AM or PM)
-                default: return match;
-            }
-        });
+			switch (match) {
+				case 'd': return day; // Day of the month, two digits with leading zeros (01 to 31)
+				case 'D': return daysOfWeek[currentDate.getDay()].slice(0, 3); // A textual representation of a day, three letters (Mon through Sun)
+				case 'j': return currentDate.getDate().toString(); // Day of the month without leading zeros (1 to 31)
+				case 'l': return daysOfWeek[currentDate.getDay()]; // A full textual representation of the day of the week (Sunday through Saturday)
+				case 'F': return months[currentDate.getMonth()]; // A full textual representation of a month (January through December)
+				case 'm': return month; // Numeric representation of a month, with leading zeros (01 to 12)
+				case 'M': return months[currentDate.getMonth()].slice(0, 3); // A short textual representation of a month, three letters (Jan through Dec)
+				case 'n': return (currentDate.getMonth() + 1).toString(); // Numeric representation of a month, without leading zeros (1 to 12)
+				case 'Y': return year; //  A four-digit representation of a year (e.g., 2024)
+				case 'y': return year.slice(-2); // A two-digit representation of a year (e.g., 24)
+				case 'H': return hours24; // 24-hour format of an hour with leading zeros (00 to 23)
+				case 'h': return hours12; // 12-hour format of an hour with leading zeros (01 to 12)
+				case 'i': return minutes; // Minutes with leading zeros (00 to 59)
+				case 's': return seconds; // Seconds with leading zeros (00 to 59)
+				case 'a': return ampm.toLowerCase(); // Lowercase Ante meridiem and Post meridiem (am or pm)
+				case 'A': return ampm; // Uppercase Ante meridiem and Post meridiem (AM or PM)
+				default: return match;
+			}
+		});
 
 	} catch (error) {
-        console.error(`An error occurred in date() while formatting date: ${error.message}`);
+		console.error(`An error occurred in date() while formatting date: ${error.message}`);
 		return ''; // Return an empty string in case of an error
 	}
 };
@@ -886,25 +912,25 @@ const formatDate = (dateToFormat, format = 'd.m.Y', defaultValue = null) => {
  * const customWeekendResult2 = isWeekend('2023-08-17', ['FRI', 'SAT']); // result is true, as Friday is considered a weekend day
  */
 const isWeekend = (date = new Date(), weekendDays = ['SUN', 'SAT']) => {
-    try {
+	try {
 		const dateData = typeof date === 'string' ? new Date(date) : date;
 
-        if (!(dateData instanceof Date) || isNaN(dateData)) {
-            throw new Error("Invalid date input");
-        }
+		if (!(dateData instanceof Date) || isNaN(dateData)) {
+			throw new Error("Invalid date input");
+		}
 
-        if (!Array.isArray(weekendDays) || weekendDays.some(day => typeof day !== 'string')) {
-            throw new Error("Invalid weekendDays input");
-        }
+		if (!Array.isArray(weekendDays) || weekendDays.some(day => typeof day !== 'string')) {
+			throw new Error("Invalid weekendDays input");
+		}
 
-        const dayAbbreviation = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-        const day = dayAbbreviation[dateData.getDay()].toUpperCase();
+		const dayAbbreviation = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+		const day = dayAbbreviation[dateData.getDay()].toUpperCase();
 
-        return weekendDays.map(d => d.toUpperCase()).includes(day);
-    } catch (error) {
-        console.error(`An error occurred in isWeekend(): ${error.message}`);
-        return false;
-    }
+		return weekendDays.map(d => d.toUpperCase()).includes(day);
+	} catch (error) {
+		console.error(`An error occurred in isWeekend(): ${error.message}`);
+		return false;
+	}
 };
 
 /**
@@ -921,25 +947,25 @@ const isWeekend = (date = new Date(), weekendDays = ['SUN', 'SAT']) => {
  * const customWeekendResult = isWeekday('2023-08-19', ['FRI', 'SAT']); // Returns false if '2023-08-19' is a Friday.
  */
 const isWeekday = (date = new Date(), weekendDays = ['SUN', 'SAT']) => {
-    try {
+	try {
 		const dateData = typeof date === 'string' ? new Date(date) : date;
 
-        if (!(dateData instanceof Date) || isNaN(dateData)) {
-            throw new Error("Invalid date input");
-        }
+		if (!(dateData instanceof Date) || isNaN(dateData)) {
+			throw new Error("Invalid date input");
+		}
 
-        if (!Array.isArray(weekendDays) || weekendDays.some(day => typeof day !== 'string')) {
-            throw new Error("Invalid weekendDays input");
-        }
+		if (!Array.isArray(weekendDays) || weekendDays.some(day => typeof day !== 'string')) {
+			throw new Error("Invalid weekendDays input");
+		}
 
-        const dayAbbreviation = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-        const day = dayAbbreviation[dateData.getDay()].toUpperCase();
+		const dayAbbreviation = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+		const day = dayAbbreviation[dateData.getDay()].toUpperCase();
 
-        return !weekendDays.map(d => d.toUpperCase()).includes(day);
-    } catch (error) {
-        console.error(`An error occurred in isWeekday(): ${error.message}`);
-        return false;
-    }
+		return !weekendDays.map(d => d.toUpperCase()).includes(day);
+	} catch (error) {
+		console.error(`An error occurred in isWeekday(): ${error.message}`);
+		return false;
+	}
 };
 
 /**
@@ -956,7 +982,7 @@ const isWeekday = (date = new Date(), weekendDays = ['SUN', 'SAT']) => {
  * const result2 = calculateDays('2022-01-10', '2023-04-21', ['2022-11-10', '2022-11-23', 'FRI']);
  * // Returns the number of days between the two dates excluding Fridays and Saturdays.
  */
-const calculateDays = (date1, date2, exception = []) => { 
+const calculateDays = (date1, date2, exception = []) => {
 	try {
 		// Convert date strings to Date objects
 		const date1Obj = typeof date1 === 'string' ? new Date(date1) : date1;
@@ -1059,11 +1085,10 @@ const getDatesByDay = (startDate, endDate, dayOfWeek) => {
  * const index2 = getDayIndex('saturday'); // Returns 6
  */
 const getDayIndex = (dayOfWeek) => {
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    const upperCaseDay = dayOfWeek.toUpperCase().substring(0, 3);
-    return days.indexOf(upperCaseDay);
+	const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+	const upperCaseDay = dayOfWeek.toUpperCase().substring(0, 3);
+	return days.indexOf(upperCaseDay);
 };
-
 
 // INPUT VALIDATOR HELPER
 
