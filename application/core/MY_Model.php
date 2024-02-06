@@ -5,20 +5,20 @@ defined('BASEPATH') or exit('No direct script access allowed');
 // reff : https://github.com/avenirer/CodeIgniter-MY_Model
 
 /*
-* Copyright (C) 2014 @avenirer [avenir.ro@gmail.com]
-* Everyone is permitted to copy and distribute verbatim or modified copies of this license document,
-* and changing it is allowed as long as the name is changed.
-* DON'T BE A DICK PUBLIC LICENSE TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-*
-***** Do whatever you like with the original work, just don't be a dick.
-***** Being a dick includes - but is not limited to - the following instances:
-********* 1a. Outright copyright infringement - Don't just copy this and change the name.
-********* 1b. Selling the unmodified original with no work done what-so-ever, that's REALLY being a dick.
-********* 1c. Modifying the original work to contain hidden harmful content. That would make you a PROPER dick.
-***** If you become rich through modifications, related works/services, or supporting the original work, share the love. Only a dick would make loads off this work and not buy the original works creator(s) a pint.
-***** Code is provided with no warranty.
-*********** Using somebody else's code and bitching when it goes wrong makes you a DONKEY dick.
-*********** Fix the problem yourself. A non-dick would submit the fix back.
+ * Copyright (C) 2014 @avenirer [avenir.ro@gmail.com]
+ * Everyone is permitted to copy and distribute verbatim or modified copies of this license document,
+ * and changing it is allowed as long as the name is changed.
+ * DON'T BE A DICK PUBLIC LICENSE TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+ *
+ ***** Do whatever you like with the original work, just don't be a dick.
+ ***** Being a dick includes - but is not limited to - the following instances:
+ ********* 1a. Outright copyright infringement - Don't just copy this and change the name.
+ ********* 1b. Selling the unmodified original with no work done what-so-ever, that's REALLY being a dick.
+ ********* 1c. Modifying the original work to contain hidden harmful content. That would make you a PROPER dick.
+ ***** If you become rich through modifications, related works/services, or supporting the original work, share the love. Only a dick would make loads off this work and not buy the original works creator(s) a pint.
+ ***** Code is provided with no warranty.
+ *********** Using somebody else's code and bitching when it goes wrong makes you a DONKEY dick.
+ *********** Fix the problem yourself. A non-dick would submit the fix back.
  *
  */
 
@@ -123,11 +123,26 @@ class MY_Model extends CI_Model
 
 	/**
 	 * @var null|array
-	 * Sets hidden fields.
-	 * If value is set as null, the $hidden will be set as an array.
-	 * If value is set as an array, there won't be any changes done to it 
+	 * Specifies additional attributes to be appended to the model's array.
+	 * If the value is set to null, the $appends property will be initialized as an empty array.
+	 * If the value is set to an array, no changes will be made to the existing $appends array.
 	 */
 	public $appends = null;
+
+	/**
+	 * @var array
+	 * Specifies the data types to which specific attributes should be cast when retrieved from or stored in the database.
+	 * The $casts array should be an associative array where the keys are attribute names and the values are the desired data types.
+	 * Example:
+	 * ```
+	 * public $casts = [
+	 *     'is_admin' => 'boolean',
+	 *     'settings' => 'array',
+	 *     'birth_date' => 'date',
+	 * ];
+	 * ```
+	 */
+	public $casts = array();
 
 	/** @var bool | array
 	 * Enables created_at and updated_at fields
@@ -204,11 +219,11 @@ class MY_Model extends CI_Model
 		$this->pagination_delimiters = (isset($this->pagination_delimiters)) ? $this->pagination_delimiters : array('<span>', '</span>');
 		$this->pagination_arrows = (isset($this->pagination_arrows)) ? $this->pagination_arrows : array('&lt;', '&gt;');
 		/* These below are implementation examples for before_create and before_update triggers.
-        Their respective functions - add_creator() and add_updater() - can be found at the end of the model.
-        They add user id on create and update. If you comment this out don't forget to do the same for the methods()
-        $this->before_create[]='add_creator';
-        $this->before_update[]='add_updater';
-        */
+		Their respective functions - add_creator() and add_updater() - can be found at the end of the model.
+		They add user id on create and update. If you comment this out don't forget to do the same for the methods()
+		$this->before_create[]='add_creator';
+		$this->before_update[]='add_updater';
+		*/
 
 		$this->before_create[] = 'purifyData';
 		$this->before_update[] = 'purifyData';
@@ -217,12 +232,12 @@ class MY_Model extends CI_Model
 	}
 
 	/*
-     * public function _get_rules($action=NULL)
-     * This function returns the rules. If action is given and rules are
-     * stored in an associative array, only the rules for this action are
-     * returned, all otherwise.
-     * This should be used by any method utilizing the rules.
-     */
+	 * public function _get_rules($action=NULL)
+	 * This function returns the rules. If action is given and rules are
+	 * stored in an associative array, only the rules for this action are
+	 * returned, all otherwise.
+	 * This should be used by any method utilizing the rules.
+	 */
 	public function _get_rules($action = NULL)
 	{
 		if (isset($action) && $this->is_assoc($this->rules)) {
@@ -234,7 +249,7 @@ class MY_Model extends CI_Model
 	public function _prep_before_write($data)
 	{
 		// Let's make sure we receive an array...
-		$data_as_array = (is_object($data)) ? (array)$data : $data;
+		$data_as_array = (is_object($data)) ? (array) $data : $data;
 
 		$new_data = array();
 		$multi = $this->is_multidimensional($data);
@@ -270,10 +285,10 @@ class MY_Model extends CI_Model
 	}
 
 	/*
-     * public function _prep_after_write()
-     * this function simply deletes the cache related to the model's table if $this->delete_cache_on_save is set to TRUE
-     * It should be called by any "save" method
-     */
+	 * public function _prep_after_write()
+	 * this function simply deletes the cache related to the model's table if $this->delete_cache_on_save is set to TRUE
+	 * It should be called by any "save" method
+	 */
 	public function _prep_after_write()
 	{
 		if ($this->delete_cache_on_save === TRUE) {
@@ -419,11 +434,11 @@ class MY_Model extends CI_Model
 	}
 
 	/*
-     * public function is_multidimensional($array)
-     * Verifies if an array is multidimensional or not;
-     * @param array $array
-     * @return bool return TRUE if the array is a multidimensional one
-     */
+	 * public function is_multidimensional($array)
+	 * Verifies if an array is multidimensional or not;
+	 * @param array $array
+	 * @return bool return TRUE if the array is a multidimensional one
+	 */
 	public function is_multidimensional($array)
 	{
 		if (is_array($array)) {
@@ -624,7 +639,7 @@ class MY_Model extends CI_Model
 	public function whereJsonContains($field = NULL, $value = NULL)
 	{
 		if (is_array($value) && !empty($value)) {
-			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, FALSE,  FALSE, TRUE);
+			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, FALSE, FALSE, TRUE);
 		} else {
 			$this->where($field, $value);
 		}
@@ -642,7 +657,7 @@ class MY_Model extends CI_Model
 	public function orWhereJsonContains($field = NULL, $value = NULL)
 	{
 		if (is_array($value) && !empty($value)) {
-			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, TRUE,  FALSE, TRUE);
+			$this->where("JSON_CONTAINS($field, " . $this->db->escape(json_encode($value)) . ")", NULL, NULL, TRUE, FALSE, TRUE);
 		} else {
 			$this->where($field, NULL, $value, TRUE);
 		}
@@ -674,6 +689,7 @@ class MY_Model extends CI_Model
 		$this->_database->group_by($grouping_by);
 		return $this;
 	}
+
 	/**
 	 * public function delete($where)
 	 * Deletes data from table.
@@ -811,7 +827,6 @@ class MY_Model extends CI_Model
 		unset($this->_requested[$requested['request']]);
 	}
 
-
 	/**
 	 * public function get()
 	 * Retrieves one row from table.
@@ -824,7 +839,8 @@ class MY_Model extends CI_Model
 
 		if (isset($data) && $data !== FALSE) {
 			$this->_database->reset_query();
-			if (isset($this->_cache)) unset($this->_cache);
+			if (isset($this->_cache))
+				unset($this->_cache);
 			return $data;
 		} else {
 			$this->trigger('before_get');
@@ -854,7 +870,7 @@ class MY_Model extends CI_Model
 				$row = $query->row_array();
 
 				$row = $this->trigger('after_get', $row);
-				$row =  $this->_prep_after_read(array($row), FALSE);
+				$row = $this->_prep_after_read(array($row), FALSE);
 				$row = is_array($row) ? $row[0] : $row->{0};
 
 				if (!empty($row)) {
@@ -864,6 +880,10 @@ class MY_Model extends CI_Model
 
 					if ($this->hidden) {
 						$row = $this->removeHiddenDataRecursive($row, $this->hidden);
+					}
+
+					if (!empty($this->casts)) {
+						$row = $this->applyAttributeCasting($row);
 					}
 				}
 
@@ -887,12 +907,12 @@ class MY_Model extends CI_Model
 	 */
 	public function get_all($where = NULL)
 	{
-
 		$data = $this->_get_from_cache();
 
 		if (isset($data) && $data !== FALSE) {
 			$this->_database->reset_query();
-			if (isset($this->_cache)) unset($this->_cache);
+			if (isset($this->_cache))
+				unset($this->_cache);
 			return $data;
 		} else {
 			$this->trigger('before_get');
@@ -928,6 +948,10 @@ class MY_Model extends CI_Model
 
 					if ($this->hidden) {
 						$data = $this->removeHiddenDataRecursive($data, $this->hidden);
+					}
+
+					if (!empty($this->casts)) {
+						$data = $this->applyAttributeCasting($data);
 					}
 				}
 
@@ -999,19 +1023,20 @@ class MY_Model extends CI_Model
 
 
 		/*
-        if($separate_subqueries === FALSE)
-        {
-            $this->separate_subqueries = FALSE;
-            foreach($this->_requested as $request)
-            {
-                if($this->_relationships[$request]['relation'] == 'has_one') $this->_has_one($request);
-            }
-        }
-        else
-        {
-            $this->after_get[] = 'join_temporary_results';
-        }
-        */
+		if($separate_subqueries === FALSE)
+		{
+			$this->separate_subqueries = FALSE;
+			foreach($this->_requested as $request)
+			{
+				if($this->_relationships[$request]['relation'] == 'has_one') $this->_has_one($request);
+			}
+		}
+		else
+		{
+			$this->after_get[] = 'join_temporary_results';
+		}
+		*/
+
 		return $this;
 	}
 
@@ -1162,7 +1187,7 @@ class MY_Model extends CI_Model
 				$subs = array();
 
 				foreach ($sub_results as $result) {
-					$result_array = (array)$result;
+					$result_array = (array) $result;
 					$the_foreign_key = $result_array[$foreign_key];
 					if (isset($pivot_table)) {
 						$the_local_key = $result_array[$pivot_local_key];
@@ -1209,9 +1234,9 @@ class MY_Model extends CI_Model
 				$data = $this->_build_sorter($data, $field, $key, $value);
 			}
 		}
+
 		return $data;
 	}
-
 
 	/**
 	 * private function _has_one($request)
@@ -1368,6 +1393,7 @@ class MY_Model extends CI_Model
 		}
 		return $data;
 	}
+
 	/**
 	 * private function _reset_trashed()
 	 * Sets $_trashed to default 'without'
@@ -1675,8 +1701,8 @@ class MY_Model extends CI_Model
 	}
 
 	/*
-     * HELPER FUNCTIONS
-     */
+	 * HELPER FUNCTIONS
+	 */
 
 	public function paginate($rows_per_page, $total_rows = NULL, $page_number = 1)
 	{
@@ -1847,7 +1873,7 @@ class MY_Model extends CI_Model
 		usort($data, function ($a, $b) use ($field, $order_by, $sort_by) {
 			$array_a = isset($a[$field]) ? $this->object_to_array($a[$field]) : NULL;
 			$array_b = isset($b[$field]) ? $this->object_to_array($b[$field]) : NULL;
-			return strtoupper($sort_by) ==  "DESC" ?
+			return strtoupper($sort_by) == "DESC" ?
 				((isset($array_a[$order_by]) && isset($array_b[$order_by])) ? ($array_a[$order_by] < $array_b[$order_by]) : (!isset($array_a) ? 1 : -1))
 				: ((isset($array_a[$order_by]) && isset($array_b[$order_by])) ? ($array_a[$order_by] > $array_b[$order_by]) : (!isset($array_b) ? 1 : -1));
 		});
@@ -1892,7 +1918,7 @@ class MY_Model extends CI_Model
 	 */
 	protected function is_assoc(array $array)
 	{
-		return (bool)count(array_filter(array_keys($array), 'is_string'));
+		return (bool) count(array_filter(array_keys($array), 'is_string'));
 	}
 
 	/**
@@ -1904,8 +1930,8 @@ class MY_Model extends CI_Model
 	 */
 	private function _parse_model_dir($foreign_model)
 	{
-		$data['foreign_model']      = $foreign_model;
-		$data['model_dir']          = '';
+		$data['foreign_model'] = $foreign_model;
+		$data['model_dir'] = '';
 
 		$full_model = explode('/', $data['foreign_model']);
 		if ($full_model) {
@@ -1990,11 +2016,11 @@ class MY_Model extends CI_Model
 					if (hasData($conditionField) && hasData($conditionWhere)) {
 						// check if has with condition
 						if (hasData($conditionwWith)) {
-							$query->$withStatement($conditionField,  $conditionWhere, ['with' => $conditionwWith]);
+							$query->$withStatement($conditionField, $conditionWhere, ['with' => $conditionwWith]);
 						}
 						// if doesnt has with condition, only fields and where condition
 						else {
-							$query->$withStatement($conditionField,  $conditionWhere);
+							$query->$withStatement($conditionField, $conditionWhere);
 						}
 					}
 					// check if has "with" and alse has "fields" but no where
@@ -2057,7 +2083,7 @@ class MY_Model extends CI_Model
 							} elseif (strpos($pattern, '%a') !== false) {
 								$likeValue = str_replace('%a', '%' . $valueToSearch, $pattern);
 							} elseif (strpos($pattern, 'a%') !== false) {
-								$likeValue = str_replace('a%',  $valueToSearch . '%', $pattern);
+								$likeValue = str_replace('a%', $valueToSearch . '%', $pattern);
 							} else {
 								$likeValue = $pattern;
 							}
@@ -2131,6 +2157,17 @@ class MY_Model extends CI_Model
 		return $result;
 	}
 
+	/**
+	 * Recursively removes hidden keys from the given data array.
+	 *
+	 * This method takes an array ($data) and an array of hidden keys ($hidden).
+	 * It iterates through the array, removing keys listed in the $hidden array.
+	 * If the value of a key is an array, the method is called recursively.
+	 *
+	 * @param array $data The data array from which to remove hidden keys.
+	 * @param array $hidden An array of keys to be removed from the data array.
+	 * @return array The modified data array with hidden keys removed.
+	 */
 	public function removeHiddenDataRecursive($data, $hidden)
 	{
 		if ($data) {
@@ -2192,6 +2229,81 @@ class MY_Model extends CI_Model
 		return $resultQuery;
 	}
 
+	/**
+	 * Apply attribute casting to the given array of attributes.
+	 *
+	 * This method takes an array of attributes ($resultQuery) and applies casting
+	 * based on the defined casts in the model. It iterates through each attribute,
+	 * checks if it exists in the $resultQuery, and casts it to the specified type.
+	 *
+	 * @param array $resultQuery The array of attributes to be casted.
+	 * @return array The modified array with casted attributes.
+	 */
+	function applyAttributeCasting($resultQuery)
+	{
+		if ($resultQuery && !empty($this->casts)) {
+			foreach ($this->casts as $key => $castingType) {
+				if (isset($resultQuery[$key])) {
+					$value = $resultQuery[$key];
+
+					// Check if $value is not null or empty
+					if ($value !== null && $value !== '') {
+						switch ($castingType) {
+							case 'string':
+								$resultQuery[$key] = (string) $value;
+								break;
+
+							case 'integer':
+								$resultQuery[$key] = (int) $value;
+								break;
+
+							case 'float':
+								$resultQuery[$key] = (float) $value;
+								break;
+
+							case 'boolean':
+								$resultQuery[$key] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+								break;
+
+							case 'array':
+								$resultQuery[$key] = is_array($value) ? $value : json_decode($value, true);
+								break;
+
+							case 'date':
+								$timestamp = strtotime($value);
+								$resultQuery[$key] = $timestamp !== false ? date('Y-m-d', $timestamp) : null;
+								break;
+
+							case 'datetime':
+								$timestamp = strtotime($value);
+								$resultQuery[$key] = $timestamp !== false ? date('Y-m-d H:i:s', $timestamp) : null;
+								break;
+
+							case 'object':
+								$resultQuery[$key] = is_object($value) ? $value : json_decode($value);
+								break;
+
+							case 'json':
+								$resultQuery[$key] = json_encode($value);
+								break;
+
+							case strpos($castingType, 'decimal:') === 0:
+								$precision = (int) substr($castingType, 8);
+								$resultQuery[$key] = number_format((float) $value, $precision, '.', '');
+								break;
+
+							default:
+								// No casting, keep the original value
+								break;
+						}
+					}
+				}
+			}
+		}
+
+		return $resultQuery;
+	}
+
 	public function convertArrayToString($condition)
 	{
 		if (is_array($condition)) {
@@ -2232,7 +2344,7 @@ class MY_Model extends CI_Model
 							} elseif (strpos($pattern, '%a') !== false) {
 								$likeValue = str_replace('%a', '%' . $valueToSearch, $pattern);
 							} elseif (strpos($pattern, 'a%') !== false) {
-								$likeValue = str_replace('a%',  $valueToSearch . '%', $pattern);
+								$likeValue = str_replace('a%', $valueToSearch . '%', $pattern);
 							} else {
 								$likeValue = $pattern;
 							}
@@ -2256,19 +2368,15 @@ class MY_Model extends CI_Model
 		}
 	}
 
-	/*
-    public function add_creator($data)
-    {
-    	$data['created_by'] = $_SESSION['user_id'];
-    	return $data;
-    }
-    */
+	// public function add_creator($data)
+	// {
+	// 	$data['created_by'] = $_SESSION['user_id'];
+	// 	return $data;
+	// }
 
-	/*
-    public function add_updater($data)
-    {
-	    $data['updated_by'] = $_SESSION['user_id'];
-	    return $data;
-    }
-    */
+	// public function add_updater($data)
+	// {
+	// 	$data['updated_by'] = $_SESSION['user_id'];
+	// 	return $data;
+	// }
 }
