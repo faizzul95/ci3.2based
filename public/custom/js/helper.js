@@ -211,6 +211,7 @@ const isset = (variable) => {
  * Description: Trims leading and trailing whitespace from a given string if it's defined, otherwise returns original text.
  *
  * @param {*} text - The text to be potentially trimmed.
+ * @param {string} [mode='a'] - The mode of trimming ('a' for both, 'l' for left, 'r' for right).
  * @returns {string | *} - Returns the trimmed string or the original value if input is not a string.
  * 
  * @example
@@ -218,8 +219,19 @@ const isset = (variable) => {
  * const nullResult = trimData(null); // nullResult is null
  * const numberResult = trimData(6); // numberResult return as is
  */
-const trimData = (text) => {
-	return typeof text === 'string' ? text.trim() : text;
+const trimData = (text, mode = 'a') => {
+    if (typeof text !== 'string') return text;
+
+    switch (mode) {
+        case 'a':
+            return text.trim();
+        case 'l':
+            return text.trimStart ? text.trimStart() : text.trimLeft();
+        case 'r':
+            return text.trimEnd ? text.trimEnd() : text.trimRight();
+        default:
+            throw new Error('Invalid mode specified. Use "a" for both, "l" for left, "r" for right trimming.');
+    }
 };
 
 /**
@@ -272,19 +284,23 @@ const hasData = (data = null, arrKey = null, returnData = false, defaultValue = 
 /**
  * Function: replaceTextWithData
  * Replaces placeholders in a string with corresponding data values.
- * Placeholders are defined as %placeholder_name%.
+ * Placeholders are defined using the specified delimiter (default is '%').
  * If a data value for a placeholder is not found, the placeholder remains unchanged.
  *
  * @param {string} string - The input string containing placeholders.
  * @param {object} data - An object containing key-value pairs for replacement.
+ * @param {string} [delimiter='%'] - The delimiter used to define placeholders.
  * @returns {string} - The string with placeholders replaced by data values.
  */
-const replaceTextWithData = (string = '', data) => {
-	// Use regular expression to match %placeholder%
-	return string.replace(/%([^%]+)%/g, (match, key) => {
-		// If a data value exists for the key, replace with the value; otherwise, keep the original placeholder
-		return data[key] || match;
-	});
+const replaceTextWithData = (string = '', data, delimiter = '%') => {
+    // Construct regular expression pattern based on the delimiter
+    const pattern = new RegExp(`${delimiter}([^${delimiter}]+)${delimiter}`, 'g');
+	
+    // Use regular expression to match placeholders
+    return string.replace(pattern, (match, key) => {
+        // If a data value exists for the key, replace with the value; otherwise, keep the original placeholder
+        return data[key] || match;
+    });
 };
 
 /**

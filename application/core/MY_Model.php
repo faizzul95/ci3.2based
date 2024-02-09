@@ -951,7 +951,13 @@ class MY_Model extends CI_Model
 					}
 
 					if (!empty($this->casts)) {
-						$data = $this->applyAttributeCasting($data);
+						if ($this->is_multidimensional($data)) {
+							foreach ($data as $key => $dataApply) {
+								if (is_array($dataApply)) {
+									$data[$key] = $this->applyAttributeCasting($dataApply);
+								} 
+							}
+						}
 					}
 				}
 
