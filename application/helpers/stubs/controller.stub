@@ -36,34 +36,16 @@ class %CLASS_CONTROLLER_NAME% extends Controller
 
 	public function store()
 	{
-		$this->_rules();
-
-		if ($this->form_validation->run() === FALSE) {
-			validationErrorReturn();
-		} else {
-			jsonResponse(app(new %CLASS_NAME%CreateLogic)->logic($_POST));
-		}
+		jsonResponse(app(new %CLASS_NAME%CreateLogic)->logic($_POST));
 	}
 
 	public function update()
 	{
-		$this->_rules();
-
-		if ($this->form_validation->run() === FALSE) {
-			validationErrorReturn();
-		} else {
-			jsonResponse(app(new %CLASS_NAME%UpdateLogic)->logic($_POST));
-		}
+		jsonResponse(app(new %CLASS_NAME%UpdateLogic)->logic($_POST));
 	}
 
 	public function destroy($id)
 	{
 		jsonResponse(app(new %CLASS_NAME%DeleteLogic)->logic(['id' => xssClean($id)]));
-	}
-
-	public function _rules()
-	{
-		$this->form_validation->reset_validation(); // reset validation
-		$this->form_validation->set_rules('PK_COLUMN_ID', 'PK ID', 'trim|integer');
 	}
 }
