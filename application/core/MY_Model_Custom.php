@@ -606,14 +606,16 @@ class MY_Model_Custom extends CI_Model
 
     public function first()
     {
-        $result = $this->query->orderBy($this->primaryKey, 'ASC')->limit(1)->get()->row_array();
+        $this->orderBy($this->primaryKey, 'ASC');
+        $result = $this->query->limit(1)->get()->row_array();
         $result = $this->loadRelations([$result]);
         return $this->formatResult($result[0]);
     }
 
     public function last()
     {
-        $result = $this->query->orderBy($this->primaryKey, 'DESC')->limit(1)->get()->row_array();
+        $this->orderBy($this->primaryKey, 'DESC');
+        $result = $this->query->limit(1)->get()->row_array();
         $result = $this->loadRelations([$result]);
         return $this->formatResult($result[0]);
     }
@@ -879,7 +881,7 @@ class MY_Model_Custom extends CI_Model
         $data = array_merge($attributes, $values);
 
         // Check if a record exists with the given attributes
-        $existingRecord = $this->where($attributes)->first();
+        $existingRecord = get_instance()->db->from($this->table)->where($attributes)->get()->row_array();
 
         if ($existingRecord) {
             // If record exists, update it
@@ -932,8 +934,7 @@ class MY_Model_Custom extends CI_Model
             $data[$this->_updated_at_field] = date($this->timestamps_format);
         }
 
-        $this->db->where($this->primaryKey, $id);
-        $success = $this->db->update($this->table, $data);
+        $success = get_instance()->db->where($this->primaryKey, $id)->update($this->table, $data);
         $this->resetQuery();
 
         return [
@@ -950,12 +951,12 @@ class MY_Model_Custom extends CI_Model
      * @param int $id ID of the record to delete
      * @return array Response with status code, data, action, and primary key
      */
-    public function delete(int $id): array
+    public function delete($id)
     {
         $data = $this->find($id);
 
         if ($data) {
-            $success = $this->db->delete($this->table, [$this->primaryKey => $id]);
+            $success = get_instance()->db->delete($this->table, [$this->primaryKey => $id]);
             $code = $success ? 200 : 500;
         } else {
             $code = 404;
