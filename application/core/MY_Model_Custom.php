@@ -9,7 +9,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @Description  An extended model class for CodeIgniter 3 with advanced querying capabilities, relationship handling, and security features.
  * @author    Mohd Fahmy Izwan Zulkhafri <faizzul14@gmail.com>
  * @link      -
- * @version   0.0.2
+ * @version   0.0.3
  */
 
 class MY_Model_Custom extends CI_Model
@@ -19,6 +19,15 @@ class MY_Model_Custom extends CI_Model
 
     protected $db;
     protected $query;
+
+    /**
+     * @var null|array
+     * Specifies fields to be protected from mass-assignment.
+     * If set to null, it will be initialized as an array containing only the primary key.
+     * If set as an array, it will retain its value without modifications.
+     * Note: An empty array will not automatically include the primary key.
+     */
+    protected $protected = null;
 
     /**
      * @var null|array
@@ -80,42 +89,66 @@ class MY_Model_Custom extends CI_Model
     /**
      * Add a WHERE clause to the query
      *
-     * @param string|callable $column Column name or a callable
-     * @param mixed $value Value to compare (optional if $column is callable)
-     * @param string $operator Comparison operator (optional if $column is callable)
+     * @param string|array|Closure $column Column name, array of conditions, or Closure
+     * @param mixed $operator Operator or value
+     * @param mixed $value Value (if operator is provided)
      * @return $this
      */
-    public function where($column, $value = null, $operator = '=')
+    public function where($column, $operator = null, $value = null)
     {
-        if (is_callable($column)) {
-            $this->query->group_start();
-            call_user_func($column, $this);
-            $this->query->group_end();
-        } else {
-            $this->applyCondition('where', $column, $value, $operator);
+        // If it's a Closure, we'll handle it separately
+        if ($column instanceof Closure) {
+            return $this->whereNested($column);
         }
 
+        // If it's an array, we'll assume it's a key-value pair of conditions
+        if (is_array($column)) {
+            foreach ($column as $key => $val) {
+                $this->where($key, $val);
+            }
+            return $this;
+        }
+
+        // If only two parameters are given, we'll assume it's column and value
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        $this->applyCondition('where', $column, $value, $operator);
         return $this;
     }
 
     /**
      * Add an OR WHERE clause to the query
      *
-     * @param string|callable $column Column name or a callable
-     * @param mixed $value Value to compare (optional if $column is callable)
-     * @param string $operator Comparison operator (optional if $column is callable)
+     * @param string|array|Closure $column Column name, array of conditions, or Closure
+     * @param mixed $operator Operator or value
+     * @param mixed $value Value (if operator is provided)
      * @return $this
      */
-    public function orWhere($column, $value = null, $operator = '=')
+    public function orWhere($column, $operator = null, $value = null)
     {
-        if (is_callable($column)) {
-            $this->query->group_start();
-            call_user_func($column, $this);
-            $this->query->group_end();
-        } else {
-            $this->applyCondition('or_where', $column, $value, $operator);
+        // If it's a Closure, we'll handle it separately
+        if ($column instanceof Closure) {
+            return $this->whereNested($column);
         }
 
+        // If it's an array, we'll assume it's a key-value pair of conditions
+        if (is_array($column)) {
+            foreach ($column as $key => $val) {
+                $this->orWhere($key, $val);
+            }
+            return $this;
+        }
+
+        // If only two parameters are given, we'll assume it's column and value
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        $this->applyCondition('or_where', $column, $value, $operator);
         return $this;
     }
 
@@ -143,55 +176,193 @@ class MY_Model_Custom extends CI_Model
         return $this;
     }
 
-    public function whereDate($column, $value, $operator = '=')
+    public function whereExists(Closure $callback)
     {
+        $subQuery = $this->forSubQuery($callback);
+        $this->query->where("EXISTS ($subQuery)", NULL, FALSE);
+        return $this;
+    }
+
+    public function orWhereExists(Closure $callback)
+    {
+        $subQuery = $this->forSubQuery($callback);
+        $this->query->or_where("EXISTS ($subQuery)", NULL, FALSE);
+        return $this;
+    }
+
+    public function whereNotExists(Closure $callback)
+    {
+        $subQuery = $this->forSubQuery($callback);
+        $this->query->where("NOT EXISTS ($subQuery)", NULL, FALSE);
+        return $this;
+    }
+
+    public function orWhereNotExists(Closure $callback)
+    {
+        $subQuery = $this->forSubQuery($callback);
+        $this->query->or_where("NOT EXISTS ($subQuery)", NULL, FALSE);
+        return $this;
+    }
+
+    public function whereColumn($first, $operator = null, $second = null)
+    {
+        if ($second === null) {
+            $second = $operator;
+            $operator = '=';
+        }
+
+        $this->query->where("$first $operator $second", NULL, FALSE);
+        return $this;
+    }
+
+    public function orWhereColumn($first, $operator = null, $second = null)
+    {
+        if ($second === null) {
+            $second = $operator;
+            $operator = '=';
+        }
+
+        $this->query->or_where("$first $operator $second", NULL, FALSE);
+        return $this;
+    }
+
+    public function whereNot($column, $operator = null, $value = null)
+    {
+        $this->where($column, $operator, $value)->where($column . ' IS NOT', null);
+        return $this;
+    }
+
+    public function orWhereNot($column, $operator = null, $value = null)
+    {
+        $this->orWhere($column, $operator, $value)->orWhere($column . ' IS NOT', null);
+        return $this;
+    }
+
+    public function whereJsonContains($column, $value)
+    {
+        $this->query->where("JSON_CONTAINS($column, " . $this->sanitizeValue(json_encode($value)) . ")", NULL, FALSE);
+        return $this;
+    }
+
+    public function orWhereJsonContains($column, $value)
+    {
+        $this->query->or_where("JSON_CONTAINS($column, " . $this->sanitizeValue(json_encode($value)) . ")", NULL, FALSE);
+        return $this;
+    }
+
+    # WHERE TIME, DATE, DAY, MONTH, YEAR SECTION
+
+    public function whereTime($column, $operator = null, $value = null)
+    {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        $this->applyCondition('where', "TIME($column)", $value, $operator);
+        return $this;
+    }
+
+    public function orWhereTime($column, $operator = null, $value = null)
+    {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        $this->applyCondition('or_where', "TIME($column)", $value, $operator);
+        return $this;
+    }
+
+    public function whereDate($column, $operator = null, $value = null)
+    {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->applyCondition('where', "DATE($column)", $value, $operator);
         return $this;
     }
 
-    public function orWhereDate($column, $value, $operator = '=')
+    public function orWhereDate($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->applyCondition('or_where', "DATE($column)", $value, $operator);
         return $this;
     }
 
-    public function whereDay($column, $value, $operator = '=')
+    public function whereDay($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->validateDayMonth($value);
         $this->applyCondition('where', "DAY($column)", $value, $operator);
         return $this;
     }
 
-    public function orWhereDay($column, $value, $operator = '=')
+    public function orWhereDay($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->validateDayMonth($value);
         $this->applyCondition('or_where', "DAY($column)", $value, $operator);
         return $this;
     }
 
-    public function whereYear($column, $value, $operator = '=')
+    public function whereYear($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->validateYear($value);
         $this->applyCondition('where', "YEAR($column)", $value, $operator);
         return $this;
     }
 
-    public function orWhereYear($column, $value, $operator = '=')
+    public function orWhereYear($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->validateYear($value);
         $this->applyCondition('or_where', "YEAR($column)", $value, $operator);
         return $this;
     }
 
-    public function whereMonth($column, $value, $operator = '=')
+    public function whereMonth($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->validateDayMonth($value, true);
         $this->applyCondition('where', "MONTH($column)", $value, $operator);
         return $this;
     }
 
-    public function orWhereMonth($column, $value, $operator = '=')
+    public function orWhereMonth($column, $operator = null, $value = null)
     {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
         $this->validateDayMonth($value, true);
         $this->applyCondition('or_where', "MONTH($column)", $value, $operator);
         return $this;
@@ -380,12 +551,16 @@ class MY_Model_Custom extends CI_Model
 
     public function count()
     {
-        return $this->query->count_all_results();
+        $query = $this->query->count_all_results();
+        $this->resetQuery();
+        return $query;
     }
 
     public function toSql()
     {
-        return $this->query->get_compiled_select();
+        $query = $this->query->get_compiled_select();
+        $this->resetQuery();
+        return $query;
     }
 
     /**
@@ -431,14 +606,21 @@ class MY_Model_Custom extends CI_Model
 
     public function first()
     {
-        $result = $this->query->limit(1)->get()->row_array();
+        $result = $this->query->orderBy($this->primaryKey, 'ASC')->limit(1)->get()->row_array();
+        $result = $this->loadRelations([$result]);
+        return $this->formatResult($result[0]);
+    }
+
+    public function last()
+    {
+        $result = $this->query->orderBy($this->primaryKey, 'DESC')->limit(1)->get()->row_array();
         $result = $this->loadRelations([$result]);
         return $this->formatResult($result[0]);
     }
 
     public function find($id)
     {
-        return $this->where($this->primaryKey, $this->sanitizeValue($id))->first();
+        return $this->where($this->primaryKey, $id)->first();
     }
 
     /**
@@ -467,7 +649,7 @@ class MY_Model_Custom extends CI_Model
         $data = $this->get();
 
         // Calculate pagination details
-        $totalPages = ceil($total / $perPage);
+        $totalPages = (int) ceil($total / $perPage);
         $nextPage = ($page < $totalPages) ? $page + 1 : null;
         $previousPage = ($page > 1) ? $page - 1 : null;
 
@@ -500,6 +682,7 @@ class MY_Model_Custom extends CI_Model
             'num_tag_close' => '</li>',
             'attributes' => ['class' => 'page-link'],
         ];
+
         $this->pagination->initialize($config);
 
         return [
@@ -681,6 +864,130 @@ class MY_Model_Custom extends CI_Model
         }
     }
 
+    # CRUD functions
+
+    /**
+     * Insert a new record or update an existing one
+     *
+     * @param array $attributes The attributes to search for
+     * @param array $values The values to update or insert
+     * @return array Response with status code, data, action, and primary key
+     */
+    public function insertOrUpdate($attributes, $values = [])
+    {
+        // Merge $attributes and $values
+        $data = array_merge($attributes, $values);
+
+        // Check if a record exists with the given attributes
+        $existingRecord = $this->where($attributes)->first();
+
+        if ($existingRecord) {
+            // If record exists, update it
+            $id = $existingRecord[$this->primaryKey];
+            return $this->update($id, $data);
+        } else {
+            // If record doesn't exist, create it
+            return $this->create($data);
+        }
+    }
+
+    /**
+     * Create a new record
+     *
+     * @param array $data Data to insert
+     * @return array Response with status code, data, action, and primary key
+     */
+    public function create($data)
+    {
+        $data = $this->filterData($data);
+
+        if ($this->timestamps) {
+            $data[$this->_created_at_field] = date($this->timestamps_format);
+        }
+
+        $success = $this->db->insert($this->table, $data);
+        $insertId = $this->db->insert_id();
+        $this->resetQuery();
+
+        return [
+            'code' => $success ? 201 : 500,
+            $this->primaryKey => $insertId,
+            'data' => $data,
+            'action' => 'create',
+        ];
+    }
+
+    /**
+     * Update an existing record
+     *
+     * @param int $id ID of the record to update
+     * @param array $data Data to update
+     * @return array Response with status code, data, action, and primary key
+     */
+    public function update($id, $data)
+    {
+        $data = $this->filterData($data);
+
+        if ($this->timestamps) {
+            $data[$this->_updated_at_field] = date($this->timestamps_format);
+        }
+
+        $this->db->where($this->primaryKey, $id);
+        $success = $this->db->update($this->table, $data);
+        $this->resetQuery();
+
+        return [
+            'code' => $success ? 200 : 500,
+            $this->primaryKey => $id,
+            'data' => $data,
+            'action' => 'update',
+        ];
+    }
+
+    /**
+     * Delete a record
+     *
+     * @param int $id ID of the record to delete
+     * @return array Response with status code, data, action, and primary key
+     */
+    public function delete(int $id): array
+    {
+        $data = $this->find($id);
+
+        if ($data) {
+            $success = $this->db->delete($this->table, [$this->primaryKey => $id]);
+            $code = $success ? 200 : 500;
+        } else {
+            $code = 404;
+        }
+
+        return [
+            'code' => $code,
+            $this->primaryKey => $id,
+            'data' => $data,
+            'action' => 'delete',
+        ];
+    }
+
+    /**
+     * Filter data based on fillable and protected fields
+     *
+     * @param array $data Data to filter
+     * @return array Filtered data
+     */
+    protected function filterData($data)
+    {
+        if ($this->fillable !== null) {
+            $data = array_intersect_key($data, array_flip($this->fillable));
+        }
+
+        if ($this->protected !== null) {
+            $data = array_diff_key($data, array_flip($this->protected));
+        }
+
+        return $data;
+    }
+
     # HELPER SECTION
 
     protected function searchRelatedKeys($data, $keyToSearch)
@@ -706,6 +1013,21 @@ class MY_Model_Custom extends CI_Model
         $searchRecursive($data, $keys);
 
         return $result;
+    }
+
+    protected function whereNested(Closure $callback)
+    {
+        $this->query->group_start();
+        $callback($this);
+        $this->query->group_end();
+        return $this;
+    }
+
+    protected function forSubQuery(Closure $callback)
+    {
+        $query = $this->db->from($this->table);
+        $callback($query);
+        return $query->get_compiled_select();
     }
 
     /**
@@ -834,6 +1156,7 @@ class MY_Model_Custom extends CI_Model
 
     protected function resetQuery()
     {
+        $this->db = $this->load->database('default', TRUE);
         $this->query = $this->db->from($this->table);
         $this->primaryKey = 'id';
         $this->relations = [];
@@ -953,6 +1276,18 @@ class MY_Model_Custom extends CI_Model
 
         // Check if the first element is an array
         return is_array(reset($result));
+    }
+
+    public function showColumnHidden()
+    {
+        $this->hidden = null;
+        return $this;
+    }
+
+    public function setColumnHidden($hidden = null)
+    {
+        $this->hidden = $hidden;
+        return $this;
     }
 
     # APPEND DATA HELPER
