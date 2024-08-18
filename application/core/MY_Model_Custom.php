@@ -9,7 +9,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @Description  An extended model class for CodeIgniter 3 with advanced querying capabilities, relationship handling, and security features.
  * @author    Mohd Fahmy Izwan Zulkhafri <faizzul14@gmail.com>
  * @link      -
- * @version   0.0.1
+ * @version   0.0.2
  */
 
 class MY_Model_Custom extends CI_Model
@@ -17,12 +17,46 @@ class MY_Model_Custom extends CI_Model
     protected $table;
     protected $primaryKey = 'id';
 
+    protected $db;
     protected $query;
+
+    /**
+     * @var null|array
+     * Specifies additional attributes to be appended to the model's array and JSON representations.
+     * If set to null, it will be initialized as an empty array.
+     * If set as an array, it will retain its value without modifications.
+     */
+    protected $appends = null;
+
+    /**
+     * @var array|null
+     * Specifies fields to be hidden from array and JSON representation.
+     * If null, it will be initialized as an empty array when accessed.
+     * If set as an array, it will contain the names of fields to be hidden.
+     * Hidden fields are typically sensitive data like passwords or internal attributes.
+     */
+    protected $hidden = null;
+
+    /**
+     * @var null|array
+     * Sets fillable fields.
+     * If value is set as null, the $fillable property will be set as an array with all the table fields (except the primary key) as elements.
+     * If value is set as an array, there won't be any changes done to it (ie: no field of the table will be updated or inserted).
+     */
+    protected $fillable = null;
+
     protected $relations = [];
     protected $eagerLoad = [];
     protected $returnType = 'array';
-    protected $allowedOperators = ['=', '!=', '<', '>', '<=', '>=', '<>', 'LIKE', 'NOT LIKE'];
     protected $_secureOutput = false;
+    protected $allowedOperators = ['=', '!=', '<', '>', '<=', '>=', '<>', 'LIKE', 'NOT LIKE'];
+
+    protected $timestamps = true;
+    protected $timestamps_format = 'Y-m-d H:i:s';
+
+    protected $_created_at_field = 'created_at';
+    protected $_updated_at_field = 'updated_at';
+    protected $_deleted_at_field = 'deleted_at';
 
     public function __construct()
     {
@@ -46,20 +80,66 @@ class MY_Model_Custom extends CI_Model
     /**
      * Add a WHERE clause to the query
      *
-     * @param string $column Column name
-     * @param mixed $value Value to compare
-     * @param string $operator Comparison operator
+     * @param string|callable $column Column name or a callable
+     * @param mixed $value Value to compare (optional if $column is callable)
+     * @param string $operator Comparison operator (optional if $column is callable)
      * @return $this
      */
-    public function where($column, $value, $operator = '=')
+    public function where($column, $value = null, $operator = '=')
     {
-        $this->applyCondition('where', $column, $value, $operator);
+        if (is_callable($column)) {
+            $this->query->group_start();
+            call_user_func($column, $this);
+            $this->query->group_end();
+        } else {
+            $this->applyCondition('where', $column, $value, $operator);
+        }
+
         return $this;
     }
 
-    public function orWhere($column, $value, $operator = '=')
+    /**
+     * Add an OR WHERE clause to the query
+     *
+     * @param string|callable $column Column name or a callable
+     * @param mixed $value Value to compare (optional if $column is callable)
+     * @param string $operator Comparison operator (optional if $column is callable)
+     * @return $this
+     */
+    public function orWhere($column, $value = null, $operator = '=')
     {
-        $this->applyCondition('or_where', $column, $value, $operator);
+        if (is_callable($column)) {
+            $this->query->group_start();
+            call_user_func($column, $this);
+            $this->query->group_end();
+        } else {
+            $this->applyCondition('or_where', $column, $value, $operator);
+        }
+
+        return $this;
+    }
+
+    public function whereNull($column)
+    {
+        $this->query->where($column . ' IS NULL');
+        return $this;
+    }
+
+    public function orWhereNull($column)
+    {
+        $this->query->or_where($column . ' IS NULL');
+        return $this;
+    }
+
+    public function whereNotNull($column)
+    {
+        $this->query->where($column . ' IS NOT NULL');
+        return $this;
+    }
+
+    public function orWhereNotNull($column)
+    {
+        $this->query->or_where($column . ' IS NOT NULL');
         return $this;
     }
 
@@ -470,12 +550,6 @@ class MY_Model_Custom extends CI_Model
         return $this;
     }
 
-    public function belongsToMany($modelName, $pivotTable, $foreignKey, $relatedKey)
-    {
-        $this->relations[$modelName] = ['type' => 'belongsToMany', 'model' => $modelName, 'pivotTable' => $pivotTable, 'foreignKey' => $foreignKey, 'relatedKey' => $relatedKey];
-        return $this;
-    }
-
     # EAGER LOADING SECTION
 
     public function with($relations)
@@ -645,11 +719,30 @@ class MY_Model_Custom extends CI_Model
      */
     protected function applyCondition($method, $column, $value, $operator)
     {
-        if (!in_array(strtoupper($operator), $this->allowedOperators)) {
+        static $operatorCache = [];
+
+        $upperOperator = strtoupper($operator);
+
+        // Cache the result of in_array check
+        if (!isset($operatorCache[$upperOperator])) {
+            $operatorCache[$upperOperator] = in_array($upperOperator, $this->allowedOperators);
+        }
+
+        if (!$operatorCache[$upperOperator]) {
             throw new InvalidArgumentException("Invalid operator: $operator");
         }
 
-        $this->query->$method($column, $value, $operator);
+        switch ($upperOperator) {
+            case '=':
+                $this->query->$method($column, $value);
+                break;
+            case 'LIKE':
+            case 'NOT LIKE':
+                $this->query->$method("`$column` $upperOperator", $value);
+                break;
+            default:
+                $this->query->$method($column . $operator, $value);
+        }
     }
 
     protected function validateDayMonth($value, $month = false)
@@ -715,6 +808,15 @@ class MY_Model_Custom extends CI_Model
     protected function formatResult($result)
     {
         $resultFormat = null;
+
+        if (!empty($result) && $this->hidden) {
+            $result = $this->removeHiddenDataRecursive($result);
+        }
+
+        if (!empty($result) && $this->appends) {
+            $result = $this->appendData($result);
+        }
+
         switch ($this->returnType) {
             case 'object':
                 $resultFormat = json_decode(json_encode($this->_safeOutputSanitize($result)));
@@ -801,6 +903,120 @@ class MY_Model_Custom extends CI_Model
             default:
                 // Handle unexpected data types (consider throwing an exception)
                 throw new \InvalidArgumentException("Unsupported data type for sanitization: " . gettype($value));
+        }
+    }
+
+    /**
+     * Recursively removes hidden keys from the given data array.
+     *
+     * This method takes an array ($data) and an array of hidden keys ($hidden).
+     * It removes keys listed in the $hidden array from $data.
+     * If a value in $data is an array, the method is called recursively.
+     *
+     * @param array $data The data array from which to remove hidden keys.
+     * @return array The modified data array with hidden keys removed.
+     */
+    protected function removeHiddenDataRecursive($data)
+    {
+        // Flip the hidden array for faster key lookups
+        $hiddenFlipped = array_flip($this->hidden);
+
+        // Remove hidden keys
+        $data = array_diff_key($data, $hiddenFlipped);
+
+        // Recursively process nested arrays
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->removeHiddenDataRecursive($value, $this->hidden);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Check if the result is a multidimensional array
+     *
+     * @param array $result The result to check
+     * @return bool True if multidimensional, false otherwise
+     */
+    protected function isMultiCustomCheck($result)
+    {
+        if (!is_array($result)) {
+            return false;
+        }
+
+        // If it's an empty array, we'll consider it as non-multi
+        if (empty($result)) {
+            return false;
+        }
+
+        // Check if the first element is an array
+        return is_array(reset($result));
+    }
+
+    # APPEND DATA HELPER
+
+    public function setAppends($appends = null)
+    {
+        $this->appends = $appends;
+        return $this;
+    }
+
+    protected function appendData($resultQuery)
+    {
+        if (empty($resultQuery) || empty($this->appends) || empty($this->fillable)) {
+            return $resultQuery;
+        }
+
+        $isMulti = $this->isMultiCustomCheck($resultQuery);
+        $appendMethods = $this->getAppendMethods();
+
+        if ($isMulti) {
+            foreach ($resultQuery as &$item) {
+                $this->appendToSingle($item, $appendMethods);
+            }
+        } else {
+            $this->appendToSingle($resultQuery, $appendMethods);
+        }
+
+        return $resultQuery;
+    }
+
+    private function getAppendMethods()
+    {
+        $methods = [];
+        foreach ($this->appends as $append) {
+            $methodName = 'get' . str_replace(' ', '', ucwords(str_replace('_', ' ', $append))) . 'Attribute';
+            if (method_exists($this, $methodName)) {
+                $methods[$append] = $methodName;
+            }
+        }
+        return $methods;
+    }
+
+    private function appendToSingle(&$item, $appendMethods)
+    {
+        $this->setAttributes($item);
+
+        foreach ($appendMethods as $append => $method) {
+            $item[$append] = $this->$method();
+        }
+
+        $this->unsetAttributes();
+    }
+
+    private function setAttributes($data)
+    {
+        foreach ($this->fillable as $attribute) {
+            $this->$attribute = $data[$attribute] ?? null;
+        }
+    }
+
+    private function unsetAttributes()
+    {
+        foreach ($this->fillable as $attribute) {
+            unset($this->$attribute);
         }
     }
 }
