@@ -558,7 +558,58 @@ class MY_Model_Custom extends CI_Model
 
     public function toSql()
     {
-        $query = $this->query->get_compiled_select();
+        $query = $this->query->get_compiled_select('', false);
+        $this->resetQuery();
+        return $query;
+    }
+
+    public function toSqlPatch($id = null, $data = [])
+    {
+        if (!empty($data)) {
+
+            $data = $this->filterData($data);
+
+            if ($this->timestamps) {
+                $data[$this->_updated_at_field] = date($this->timestamps_format);
+            }
+
+            $this->query->set($data);
+        }
+
+        if ($id !== null) {
+            $this->query->where($this->primaryKey, $id);
+        }
+
+        $query = $this->query->get_compiled_update($this->table, false);
+        $this->resetQuery();
+        return $query;
+    }
+
+    public function toSqlCreate($data = [])
+    {
+        if (!empty($data)) {
+
+            $data = $this->filterData($data);
+
+            if ($this->timestamps) {
+                $data[$this->_created_at_field] = date($this->timestamps_format);
+            }
+
+            $this->query->set($data);
+        }
+
+        $query = $this->query->get_compiled_insert($this->table, false);
+        $this->resetQuery();
+        return $query;
+    }
+
+    public function toSqlDestroy($id = null)
+    {
+        if ($id !== null) {
+            $this->query->where($this->primaryKey, $id);
+        }
+
+        $query = $this->query->get_compiled_delete($this->table, false);
         $this->resetQuery();
         return $query;
     }
@@ -886,7 +937,7 @@ class MY_Model_Custom extends CI_Model
         if ($existingRecord) {
             // If record exists, update it
             $id = $existingRecord[$this->primaryKey];
-            return $this->update($id, $data);
+            return $this->patch($id, $data);
         } else {
             // If record doesn't exist, create it
             return $this->create($data);
@@ -926,7 +977,7 @@ class MY_Model_Custom extends CI_Model
      * @param array $data Data to update
      * @return array Response with status code, data, action, and primary key
      */
-    public function update($id, $data)
+    public function patch($id, $data)
     {
         $data = $this->filterData($data);
 
@@ -951,7 +1002,7 @@ class MY_Model_Custom extends CI_Model
      * @param int $id ID of the record to delete
      * @return array Response with status code, data, action, and primary key
      */
-    public function delete($id)
+    public function destroy($id)
     {
         $data = $this->find($id);
 
