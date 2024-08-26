@@ -9,7 +9,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @Description  An extended model class for CodeIgniter 3 with advanced querying capabilities, relationship handling, and security features.
  * @author    Mohd Fahmy Izwan Zulkhafri <faizzul14@gmail.com>
  * @link      -
- * @version   0.0.3
+ * @version   0.0.5
  */
 
 class MY_Model_Custom extends CI_Model
@@ -19,6 +19,7 @@ class MY_Model_Custom extends CI_Model
 
     protected $db;
     protected $query;
+    protected $connection = 'default';
 
     /**
      * @var null|array
@@ -67,11 +68,25 @@ class MY_Model_Custom extends CI_Model
     protected $_updated_at_field = 'updated_at';
     protected $_deleted_at_field = 'deleted_at';
 
+    protected $parallelMaxWorker = 3;
+    protected $parallelStatus = true;
+
     public function __construct()
     {
         parent::__construct();
-        $this->db = $this->load->database('default', TRUE);
-        $this->query = $this->db->from($this->table);
+        $this->db = $this->load->database($this->connection, TRUE);
+    }
+
+    /**
+     * Set the table name
+     *
+     * @param string $table Table name to be set
+     * @return $this
+     */
+    public function table($table)
+    {
+        $this->table = trim($table);
+        return $this;
     }
 
     /**
@@ -82,7 +97,7 @@ class MY_Model_Custom extends CI_Model
      */
     public function select($columns = '*')
     {
-        $this->query->select($columns);
+        $this->db->select($columns);
         return $this;
     }
 
@@ -154,53 +169,53 @@ class MY_Model_Custom extends CI_Model
 
     public function whereNull($column)
     {
-        $this->query->where($column . ' IS NULL');
+        $this->db->where($column . ' IS NULL');
         return $this;
     }
 
     public function orWhereNull($column)
     {
-        $this->query->or_where($column . ' IS NULL');
+        $this->db->or_where($column . ' IS NULL');
         return $this;
     }
 
     public function whereNotNull($column)
     {
-        $this->query->where($column . ' IS NOT NULL');
+        $this->db->where($column . ' IS NOT NULL');
         return $this;
     }
 
     public function orWhereNotNull($column)
     {
-        $this->query->or_where($column . ' IS NOT NULL');
+        $this->db->or_where($column . ' IS NOT NULL');
         return $this;
     }
 
     public function whereExists(Closure $callback)
     {
         $subQuery = $this->forSubQuery($callback);
-        $this->query->where("EXISTS ($subQuery)", NULL, FALSE);
+        $this->db->where("EXISTS ($subQuery)", NULL, FALSE);
         return $this;
     }
 
     public function orWhereExists(Closure $callback)
     {
         $subQuery = $this->forSubQuery($callback);
-        $this->query->or_where("EXISTS ($subQuery)", NULL, FALSE);
+        $this->db->or_where("EXISTS ($subQuery)", NULL, FALSE);
         return $this;
     }
 
     public function whereNotExists(Closure $callback)
     {
         $subQuery = $this->forSubQuery($callback);
-        $this->query->where("NOT EXISTS ($subQuery)", NULL, FALSE);
+        $this->db->where("NOT EXISTS ($subQuery)", NULL, FALSE);
         return $this;
     }
 
     public function orWhereNotExists(Closure $callback)
     {
         $subQuery = $this->forSubQuery($callback);
-        $this->query->or_where("NOT EXISTS ($subQuery)", NULL, FALSE);
+        $this->db->or_where("NOT EXISTS ($subQuery)", NULL, FALSE);
         return $this;
     }
 
@@ -211,7 +226,7 @@ class MY_Model_Custom extends CI_Model
             $operator = '=';
         }
 
-        $this->query->where("$first $operator $second", NULL, FALSE);
+        $this->db->where("$first $operator $second", NULL, FALSE);
         return $this;
     }
 
@@ -222,7 +237,7 @@ class MY_Model_Custom extends CI_Model
             $operator = '=';
         }
 
-        $this->query->or_where("$first $operator $second", NULL, FALSE);
+        $this->db->or_where("$first $operator $second", NULL, FALSE);
         return $this;
     }
 
@@ -240,13 +255,13 @@ class MY_Model_Custom extends CI_Model
 
     public function whereJsonContains($column, $value)
     {
-        $this->query->where("JSON_CONTAINS($column, " . $this->sanitizeValue(json_encode($value)) . ")", NULL, FALSE);
+        $this->db->where("JSON_CONTAINS($column, " . $this->sanitizeValue(json_encode($value)) . ")", NULL, FALSE);
         return $this;
     }
 
     public function orWhereJsonContains($column, $value)
     {
-        $this->query->or_where("JSON_CONTAINS($column, " . $this->sanitizeValue(json_encode($value)) . ")", NULL, FALSE);
+        $this->db->or_where("JSON_CONTAINS($column, " . $this->sanitizeValue(json_encode($value)) . ")", NULL, FALSE);
         return $this;
     }
 
@@ -370,49 +385,49 @@ class MY_Model_Custom extends CI_Model
 
     public function whereIn($column, $values)
     {
-        $this->query->where_in($column, $values);
+        $this->db->where_in($column, $values);
         return $this;
     }
 
     public function whereNotIn($column, $values)
     {
-        $this->query->where_not_in($column, $values);
+        $this->db->where_not_in($column, $values);
         return $this;
     }
 
     public function orWhereIn($column, $values)
     {
-        $this->query->or_where_in($column, $values);
+        $this->db->or_where_in($column, $values);
         return $this;
     }
 
     public function orWhereNotIn($column, $values)
     {
-        $this->query->or_where_not_in($column, $values);
+        $this->db->or_where_not_in($column, $values);
         return $this;
     }
 
     public function whereBetween($column, $start, $end)
     {
-        $this->query->where("$column BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
+        $this->db->where("$column BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
         return $this;
     }
 
     public function whereNotBetween($column, $start, $end)
     {
-        $this->query->where("$column NOT BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
+        $this->db->where("$column NOT BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
         return $this;
     }
 
     public function orWhereBetween($column, $start, $end)
     {
-        $this->query->or_where("$column BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
+        $this->db->or_where("$column BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
         return $this;
     }
 
     public function orWhereNotBetween($column, $start, $end)
     {
-        $this->query->or_where("$column NOT BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
+        $this->db->or_where("$column NOT BETWEEN {$this->sanitizeValue($start)} AND {$this->sanitizeValue($end)}");
         return $this;
     }
 
@@ -426,81 +441,81 @@ class MY_Model_Custom extends CI_Model
     public function rawQuery($query, $binding = [])
     {
         $query = $this->db->compile_binds($query, $binding);
-        $this->query = $this->db->query($query);
+        $this->db = $this->db->query($query);
         return $this;
     }
 
     public function join($table, $condition, $type = 'inner')
     {
-        $this->query->join($table, $condition, $type);
+        $this->db->join($table, $condition, $type);
         return $this;
     }
 
     public function rightJoin($table, $condition)
     {
-        $this->query->join($table, $condition, 'right');
+        $this->db->join($table, $condition, 'right');
         return $this;
     }
 
     public function leftJoin($table, $condition)
     {
-        $this->query->join($table, $condition, 'left');
+        $this->db->join($table, $condition, 'left');
         return $this;
     }
 
     public function innerJoin($table, $condition)
     {
-        $this->query->join($table, $condition, 'inner');
+        $this->db->join($table, $condition, 'inner');
         return $this;
     }
 
     public function outerJoin($table, $condition)
     {
-        $this->query->join($table, $condition, 'outer');
+        $this->db->join($table, $condition, 'outer');
         return $this;
     }
 
     public function limit($limit)
     {
         $limit = $this->validateInteger($limit, 'Limit');
-        $this->query->limit($limit);
+        $this->db->limit($limit);
         return $this;
     }
 
     public function offset($offset)
     {
         $offset = $this->validateInteger($offset, 'Offset', false);
-        $this->query->offset($offset);
+        $this->db->offset($offset);
         return $this;
     }
 
     public function orderBy($column, $direction = 'ASC')
     {
-        $this->query->order_by($column, $direction);
+        $this->db->order_by($column, $direction);
         return $this;
     }
 
     public function groupBy($column)
     {
-        $this->query->group_by($column);
+        $this->db->group_by($column);
         return $this;
     }
 
     public function groupByRaw($expression)
     {
-        $this->query->group_by($expression, FALSE);
+        $this->db->group_by($expression, FALSE);
         return $this;
     }
 
     public function having($column, $value, $operator = '=')
     {
-        $this->query->having("$column $operator", $value);
+        $this->db->having("$column $operator", $value);
         return $this;
     }
 
     public function havingRaw($condition)
     {
-        $this->query->having($condition, NULL, FALSE);
+        $this->db->having($condition, NULL, FALSE);
         return $this;
     }
 
@@ -508,25 +523,29 @@ class MY_Model_Custom extends CI_Model
     {
         $offset = 0;
 
-        // Set the temporary data to holds the original value
-        $_tempTable = $this->table;
-        $_tempQuery = $this->query;
-        $_tempPK = $this->primaryKey;
-        $_tempRelation = $this->relations;
-        $_tempEagerLoad = $this->eagerLoad;
-        $_tempReturnType = $this->returnType;
+        // Store the original query state
+        $originalState = [
+            'table' => $this->table,
+            'db' => clone $this->db,
+            'primaryKey' => $this->primaryKey,
+            'relations' => $this->relations,
+            'eagerLoad' => $this->eagerLoad,
+            'returnType' => $this->returnType
+        ];
 
         while (true) {
+            // Restore the original query state
+            $this->table = $originalState['table'];
+            $this->db = clone $originalState['db'];
+            $this->primaryKey = $originalState['primaryKey'];
+            $this->relations = $originalState['relations'];
+            $this->eagerLoad = $originalState['eagerLoad'];
+            $this->returnType = $originalState['returnType'];
 
-            // Set back to original value for next details
-            $this->table = $_tempTable;
-            $this->query = $_tempQuery;
-            $this->primaryKey = $_tempPK;
-            $this->relations = $_tempRelation;
-            $this->eagerLoad = $_tempEagerLoad;
-            $this->returnType = $_tempReturnType;
-
+            // Apply limit and offset
             $this->limit($size)->offset($offset);
+
+            // Get results 
             $results = $this->get();
 
             if (empty($results)) {
@@ -538,10 +557,10 @@ class MY_Model_Custom extends CI_Model
             }
 
             $offset += $size;
-        }
 
-        // Unset the variables to free memory
-        unset($_tempTable, $_tempQuery, $_tempPK, $_tempRelation, $_tempEagerLoad, $_tempReturnType);
+            // Clear the results to free memory
+            unset($results);
+        }
 
         // Reset internal properties for next query
         $this->resetQuery();
@@ -551,14 +570,14 @@ class MY_Model_Custom extends CI_Model
 
     public function count()
     {
-        $query = $this->query->count_all_results();
+        $query = $this->db->count_all_results();
         $this->resetQuery();
         return $query;
     }
 
     public function toSql()
     {
-        $query = $this->query->get_compiled_select('', false);
+        $query = $this->db->get_compiled_select('', false);
         $this->resetQuery();
         return $query;
     }
@@ -573,14 +592,14 @@ class MY_Model_Custom extends CI_Model
                 $data[$this->_updated_at_field] = date($this->timestamps_format);
             }
 
-            $this->query->set($data);
+            $this->db->set($data);
         }
 
         if ($id !== null) {
-            $this->query->where($this->primaryKey, $id);
+            $this->db->where($this->primaryKey, $id);
         }
 
-        $query = $this->query->get_compiled_update($this->table, false);
+        $query = $this->db->get_compiled_update($this->table, false);
         $this->resetQuery();
         return $query;
     }
@@ -595,10 +614,10 @@ class MY_Model_Custom extends CI_Model
                 $data[$this->_created_at_field] = date($this->timestamps_format);
             }
 
-            $this->query->set($data);
+            $this->db->set($data);
         }
 
-        $query = $this->query->get_compiled_insert($this->table, false);
+        $query = $this->db->get_compiled_insert($this->table, false);
         $this->resetQuery();
         return $query;
     }
@@ -606,10 +625,10 @@ class MY_Model_Custom extends CI_Model
     public function toSqlDestroy($id = null)
     {
         if ($id !== null) {
-            $this->query->where($this->primaryKey, $id);
+            $this->db->where($this->primaryKey, $id);
         }
 
-        $query = $this->query->get_compiled_delete($this->table, false);
+        $query = $this->db->get_compiled_delete($this->table, false);
         $this->resetQuery();
         return $query;
     }
@@ -628,9 +647,10 @@ class MY_Model_Custom extends CI_Model
             // Increase memory limit for this operation
             ini_set('memory_limit', '1G');
 
-            $result = $this->query->get()->result_array();
+            $result = $this->db->get($this->table)->result_array();
             $result = $this->loadRelations($result);
             $formattedResult = $this->formatResult($result);
+            $this->resetQuery();
 
             // Restore the original memory limit
             ini_set('memory_limit', $originalMemoryLimit);
@@ -650,24 +670,27 @@ class MY_Model_Custom extends CI_Model
      */
     public function fetch()
     {
-        $result = $this->query->get()->row_array();
+        $result = $this->db->get($this->table)->row_array();
         $result = $this->loadRelations([$result]);
+        $this->resetQuery();
         return $this->formatResult($result[0]);
     }
 
     public function first()
     {
         $this->orderBy($this->primaryKey, 'ASC');
-        $result = $this->query->limit(1)->get()->row_array();
+        $result = $this->db->limit(1)->get($this->table)->row_array();
         $result = $this->loadRelations([$result]);
+        $this->resetQuery();
         return $this->formatResult($result[0]);
     }
 
     public function last()
     {
         $this->orderBy($this->primaryKey, 'DESC');
-        $result = $this->query->limit(1)->get()->row_array();
+        $result = $this->db->limit(1)->get($this->table)->row_array();
         $result = $this->loadRelations([$result]);
+        $this->resetQuery();
         return $this->formatResult($result[0]);
     }
 
@@ -693,8 +716,8 @@ class MY_Model_Custom extends CI_Model
         $this->paginateFilter($searchValue);
 
         // Count total rows
-        $countQuery = clone $this->query;
-        $total = (int) $countQuery->select('COUNT(*) as count')->get()->row()->count;
+        $countQuery = clone $this->db;
+        $total = (int) $countQuery->select('COUNT(*) as count')->get($this->table)->row()->count;
         unset($countQuery);
 
         // Fetch only the required page of results
@@ -759,11 +782,11 @@ class MY_Model_Custom extends CI_Model
         }
 
         $columns = $this->db->list_fields($this->table);
-        $this->query->group_start();
+        $this->db->group_start();
         foreach ($columns as $column) {
-            $this->query->or_like($column, $searchValue);
+            $this->db->or_like($column, $searchValue);
         }
-        $this->query->group_end();
+        $this->db->group_end();
     }
 
     # RELATION SECTION
@@ -787,6 +810,18 @@ class MY_Model_Custom extends CI_Model
     }
 
     # EAGER LOADING SECTION
+
+    public function setParallelWorkers($workers)
+    {
+        $this->parallelMaxWorker = max(1, min(10, (int)$workers));
+        return $this;
+    }
+
+    public function setParallelStatus($status)
+    {
+        $this->parallelStatus = (bool)$status;
+        return $this;
+    }
 
     public function with($relations)
     {
@@ -851,15 +886,15 @@ class MY_Model_Custom extends CI_Model
                         case 'hasMany':
                         case 'hasOne':
                             $localKey = $rels['localKey'];
-                            $parentIds = array_unique(count($relations) > 1 ? $this->searchRelatedKeys($results, $relations[0] . '.' . $localKey) : array_column($results, $localKey));
-                            $relatedData = $this->chunkedWhereIn($relationInstance, $foreignKey, $parentIds);
+                            $parentIds = array_unique(array_filter(count($relations) > 1 ? $this->searchRelatedKeys($results, $relations[0] . '.' . $localKey) : array_column($results, $localKey)));
+                            $relatedData = $this->whereInWithPossibleParallel($relationInstance, $foreignKey, $parentIds);
                             $this->matchRelations($results, $relatedData, $currentRelation, $localKey, $foreignKey, $relationType, count($relations) > 1 ? $relations[0] : null);
                             break;
 
                         case 'belongsTo':
                             $ownerKey = $rels['ownerKey'];
-                            $foreignIds = array_unique(count($relations) > 1 ? $this->searchRelatedKeys($results, $relations[0] . '.' . $foreignKey) : array_column($results, $foreignKey));
-                            $relatedData = $this->chunkedWhereIn($relationInstance, $ownerKey, $foreignIds);
+                            $foreignIds = array_unique(array_filter(count($relations) > 1 ? $this->searchRelatedKeys($results, $relations[0] . '.' . $foreignKey) : array_column($results, $foreignKey)));
+                            $relatedData = $this->whereInWithPossibleParallel($relationInstance, $ownerKey, $foreignIds);
                             $this->matchRelations($results, $relatedData, $currentRelation, $foreignKey, $ownerKey, $relationType, count($relations) > 1 ? $relations[0] : null);
                             break;
                     }
@@ -870,12 +905,50 @@ class MY_Model_Custom extends CI_Model
         }
     }
 
-    protected function chunkedWhereIn($model, $column, $values, $chunkSize = 1000)
+    protected function whereInWithPossibleParallel($model, $column, $values, $chunkSize = 1000)
     {
+        if (count($values) < 1000 || !$this->parallelStatus) {
+            // Use regular approach for less than 1000 values or if parallel processing is disabled
+            return $this->regularWhereIn($model, $column, $values, $chunkSize);
+        } else {
+            // Use parallel approach for 2000 or more values
+            return $this->parallelWhereIn($model, $column, $values, $chunkSize, $this->parallelMaxWorker);
+        }
+    }
+
+    protected function regularWhereIn($model, $column, $values, $chunkSize = 1000)
+    {
+        $chunks = array_chunk($values, $chunkSize);
         $result = [];
 
-        foreach (array_chunk($values, $chunkSize) as $chunk) {
+        foreach ($chunks as $chunk) {
             $result = array_merge($result, $model->whereIn($column, $chunk)->get());
+        }
+
+        return $result;
+    }
+
+    protected function parallelWhereIn($model, $column, $values, $chunkSize = 1000, $maxWorkers = 3)
+    {
+        $chunks = array_chunk($values, $chunkSize);
+        $totalChunks = count($chunks);
+        $result = [];
+
+        for ($i = 0; $i < $totalChunks; $i += $maxWorkers) {
+            $workers = [];
+            for ($j = 0; $j < $maxWorkers && ($i + $j) < $totalChunks; $j++) {
+                $workers[] = new ParallelWorker(function () use ($model, $column, $chunks, $i, $j) {
+                    return $model->whereIn($column, $chunks[$i + $j])->get();
+                });
+            }
+
+            foreach ($workers as $worker) {
+                $worker->start();
+            }
+
+            foreach ($workers as $worker) {
+                $result = array_merge($result, $worker->getResult());
+            }
         }
 
         return $result;
@@ -952,22 +1025,38 @@ class MY_Model_Custom extends CI_Model
      */
     public function create($data)
     {
-        $data = $this->filterData($data);
+        try {
+            $data = $this->filterData($data);
 
-        if ($this->timestamps) {
-            $data[$this->_created_at_field] = date($this->timestamps_format);
+            if ($this->timestamps) {
+                $data[$this->_created_at_field] = date($this->timestamps_format);
+            }
+
+            $this->db->trans_start();
+            $success = $this->db->insert($this->table, $data);
+            $insertId = $this->db->insert_id();
+            $this->db->trans_complete();
+
+            if (!$success || $this->db->trans_status() === FALSE) {
+                throw new Exception('Failed to insert record');
+            }
+
+            $this->resetQuery();
+
+            return [
+                'code' => 201,
+                $this->primaryKey => $insertId,
+                'data' => $data,
+                'action' => 'create',
+            ];
+        } catch (Exception $e) {
+            log_message('error', 'Create Error: ' . $e->getMessage());
+            return [
+                'code' => 500,
+                'error' => $e->getMessage(),
+                'action' => 'create',
+            ];
         }
-
-        $success = $this->db->insert($this->table, $data);
-        $insertId = $this->db->insert_id();
-        $this->resetQuery();
-
-        return [
-            'code' => $success ? 201 : 500,
-            $this->primaryKey => $insertId,
-            'data' => $data,
-            'action' => 'create',
-        ];
     }
 
     /**
@@ -979,21 +1068,37 @@ class MY_Model_Custom extends CI_Model
      */
     public function patch($id, $data)
     {
-        $data = $this->filterData($data);
+        try {
+            $data = $this->filterData($data);
 
-        if ($this->timestamps) {
-            $data[$this->_updated_at_field] = date($this->timestamps_format);
+            if ($this->timestamps) {
+                $data[$this->_updated_at_field] = date($this->timestamps_format);
+            }
+
+            $this->db->trans_start();
+            $success = $this->db->where($this->primaryKey, $id)->update($this->table, $data);
+            $this->db->trans_complete();
+
+            if (!$success || $this->db->trans_status() === FALSE) {
+                throw new Exception('Failed to update record');
+            }
+
+            $this->resetQuery();
+
+            return [
+                'code' => 200,
+                $this->primaryKey => $id,
+                'data' => $data,
+                'action' => 'update',
+            ];
+        } catch (Exception $e) {
+            log_message('error', 'Update Error: ' . $e->getMessage());
+            return [
+                'code' => 500,
+                'error' => $e->getMessage(),
+                'action' => 'update',
+            ];
         }
-
-        $success = get_instance()->db->where($this->primaryKey, $id)->update($this->table, $data);
-        $this->resetQuery();
-
-        return [
-            'code' => $success ? 200 : 500,
-            $this->primaryKey => $id,
-            'data' => $data,
-            'action' => 'update',
-        ];
     }
 
     /**
@@ -1004,21 +1109,35 @@ class MY_Model_Custom extends CI_Model
      */
     public function destroy($id)
     {
-        $data = $this->find($id);
+        try {
+            $data = $this->find($id);
 
-        if ($data) {
-            $success = get_instance()->db->delete($this->table, [$this->primaryKey => $id]);
-            $code = $success ? 200 : 500;
-        } else {
-            $code = 404;
+            if (!$data) {
+                throw new Exception('Record not found');
+            }
+
+            $this->db->trans_start();
+            $success = $this->db->delete($this->table, [$this->primaryKey => $id]);
+            $this->db->trans_complete();
+
+            if (!$success || $this->db->trans_status() === FALSE) {
+                throw new Exception('Failed to delete record');
+            }
+
+            return [
+                'code' => 200,
+                $this->primaryKey => $id,
+                'data' => $data,
+                'action' => 'delete',
+            ];
+        } catch (Exception $e) {
+            log_message('error', 'Delete Error: ' . $e->getMessage());
+            return [
+                'code' => 500,
+                'error' => $e->getMessage(),
+                'action' => 'delete',
+            ];
         }
-
-        return [
-            'code' => $code,
-            $this->primaryKey => $id,
-            'data' => $data,
-            'action' => 'delete',
-        ];
     }
 
     /**
@@ -1069,9 +1188,9 @@ class MY_Model_Custom extends CI_Model
 
     protected function whereNested(Closure $callback)
     {
-        $this->query->group_start();
+        $this->db->group_start();
         $callback($this);
-        $this->query->group_end();
+        $this->db->group_end();
         return $this;
     }
 
@@ -1108,14 +1227,14 @@ class MY_Model_Custom extends CI_Model
 
         switch ($upperOperator) {
             case '=':
-                $this->query->$method($column, $value);
+                $this->db->$method($column, $value);
                 break;
             case 'LIKE':
             case 'NOT LIKE':
-                $this->query->$method("`$column` $upperOperator", $value);
+                $this->db->$method("`$column` $upperOperator", $value);
                 break;
             default:
-                $this->query->$method($column . $operator, $value);
+                $this->db->$method($column . $operator, $value);
         }
     }
 
@@ -1208,8 +1327,7 @@ class MY_Model_Custom extends CI_Model
 
     protected function resetQuery()
     {
-        $this->db = $this->load->database('default', TRUE);
-        $this->query = $this->db->from($this->table);
+        $this->db = $this->load->database($this->connection, TRUE);
         $this->primaryKey = 'id';
         $this->relations = [];
         $this->eagerLoad = [];
@@ -1269,8 +1387,9 @@ class MY_Model_Custom extends CI_Model
             case 'string':
                 return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');  // Apply XSS protection and trim
             case 'integer':
+                return filter_var($value, FILTER_SANITIZE_NUMBER_INT);
             case 'double':
-                return $value;
+                return filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
             case 'boolean':
                 return (bool) $value;
             case 'array':
@@ -1405,5 +1524,85 @@ class MY_Model_Custom extends CI_Model
         foreach ($this->fillable as $attribute) {
             unset($this->$attribute);
         }
+    }
+}
+
+
+class ParallelWorker
+{
+    private $pid;
+    private $callback;
+    private $tmpFile;
+    private $isWindows;
+
+    public function __construct(callable $callback)
+    {
+        $this->callback = $callback;
+        $this->tmpFile = tempnam(sys_get_temp_dir(), 'worker_');
+        $this->isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    }
+
+    public function start()
+    {
+        if ($this->isWindows) {
+            $this->windowsStart();
+        } else {
+            $this->linuxStart();
+        }
+    }
+
+    private function windowsStart()
+    {
+        $result = call_user_func($this->callback);
+        file_put_contents($this->tmpFile, serialize($result));
+    }
+
+    private function linuxStart()
+    {
+        if (!function_exists('pcntl_fork')) {
+            // Fallback to non-forking method if pcntl is not available
+            $this->windowsStart();
+            return;
+        }
+
+        $pid = pcntl_fork();
+        if ($pid == -1) {
+            throw new RuntimeException('Could not fork process');
+        } elseif ($pid) {
+            $this->pid = $pid;
+        } else {
+            $result = call_user_func($this->callback);
+            file_put_contents($this->tmpFile, serialize($result));
+            exit(0);
+        }
+    }
+
+    public function getResult()
+    {
+        if ($this->isWindows) {
+            return $this->windowsGetResult();
+        } else {
+            return $this->linuxGetResult();
+        }
+    }
+
+    private function windowsGetResult()
+    {
+        $result = unserialize(file_get_contents($this->tmpFile));
+        unlink($this->tmpFile);
+        return $result;
+    }
+
+    private function linuxGetResult()
+    {
+        if (!function_exists('pcntl_waitpid')) {
+            // Fallback to non-forking method if pcntl is not available
+            return $this->windowsGetResult();
+        }
+
+        pcntl_waitpid($this->pid, $status);
+        $result = unserialize(file_get_contents($this->tmpFile));
+        unlink($this->tmpFile);
+        return $result;
     }
 }
