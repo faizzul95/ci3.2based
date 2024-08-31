@@ -9,7 +9,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @Description  An extended model class for CodeIgniter 3 with advanced querying capabilities, relationship handling, and security features.
  * @author    Mohd Fahmy Izwan Zulkhafri <faizzul14@gmail.com>
  * @link      -
- * @version   0.0.5
+ * @version   0.0.6
  */
 
 class MY_Model_Custom extends CI_Model
@@ -70,10 +70,11 @@ class MY_Model_Custom extends CI_Model
 
     protected $parallelMaxWorker = 3;
     protected $parallelStatus = true;
+    protected $parallelTimeout = 3600;
+    protected $parallelTempDir = '';
 
     public function __construct()
     {
-        parent::__construct();
         $this->db = $this->load->database($this->connection, TRUE);
     }
 
@@ -704,10 +705,10 @@ class MY_Model_Custom extends CI_Model
      *
      * @param int $perPage Items per page
      * @param int|null $page Current page
-     * @param int $draw Draw count for DataTables
+     * @param int $configDt Configuration for DataTables
      * @return array Paginated results
      */
-    public function paginate($perPage = 10, $page = null, $searchValue = '', $draw = 1)
+    public function paginate($perPage = 10, $page = null, $searchValue = '', $configDt = [])
     {
         $page = $page ?: ($this->input->get('page') ? $this->input->get('page') : 1);
         $offset = ($page - 1) * $perPage;
@@ -762,7 +763,7 @@ class MY_Model_Custom extends CI_Model
         $this->pagination->initialize($config);
 
         return [
-            'draw' => $draw,
+            'draw' => $configDt['draw'] ?? 1,
             'recordsTotal' => $total,
             'recordsFiltered' => $total,
             'data' => $data,
@@ -820,6 +821,18 @@ class MY_Model_Custom extends CI_Model
     public function setParallelStatus($status)
     {
         $this->parallelStatus = (bool)$status;
+        return $this;
+    }
+
+    public function setParallelTimeout($timeout)
+    {
+        $this->parallelTimeout = (int)$timeout;
+        return $this;
+    }
+
+    public function setParallelTempDir($dir)
+    {
+        $this->parallelTempDir = $dir;
         return $this;
     }
 
@@ -939,7 +952,7 @@ class MY_Model_Custom extends CI_Model
             for ($j = 0; $j < $maxWorkers && ($i + $j) < $totalChunks; $j++) {
                 $workers[] = new ParallelWorker(function () use ($model, $column, $chunks, $i, $j) {
                     return $model->whereIn($column, $chunks[$i + $j])->get();
-                });
+                }, $this->parallelTempDir, $this->parallelTimeout);
             }
 
             foreach ($workers as $worker) {
@@ -947,7 +960,14 @@ class MY_Model_Custom extends CI_Model
             }
 
             foreach ($workers as $worker) {
-                $result = array_merge($result, $worker->getResult());
+                try {
+                    $workerResult = $worker->getResult();
+                    if ($workerResult !== false) {
+                        $result = array_merge($result, $workerResult);
+                    }
+                } catch (Exception $e) {
+                    log_message('error', 'Parallel processing error: ' . $e->getMessage());
+                }
             }
         }
 
@@ -982,7 +1002,12 @@ class MY_Model_Custom extends CI_Model
                                 $nestedResult[$relation] = $type === 'hasOne' ? null : [];
                             }
                         } else {
-                            $result[$parentRelation][$relation] = $type === 'hasOne' ? $relatedDataMap[1][0] : $relatedDataMap[1];
+                            $key = $result[$parentRelation][$localKey] ?? null;
+                            if (!empty($key) && isset($relatedDataMap[$key])) {
+                                $result[$parentRelation][$relation] = $type === 'hasOne' ? $relatedDataMap[$key][0] : $relatedDataMap[$key];
+                            } else {
+                                $result[$parentRelation][$relation] = null;
+                            }
                         }
                     }
                 }
@@ -999,7 +1024,7 @@ class MY_Model_Custom extends CI_Model
      * @param array $values The values to update or insert
      * @return array Response with status code, data, action, and primary key
      */
-    public function insertOrUpdate($attributes, $values = [])
+    public function insertOrUpdate($attributes = [], $values = [])
     {
         // Merge $attributes and $values
         $data = array_merge($attributes, $values);
@@ -1534,16 +1559,45 @@ class ParallelWorker
     private $callback;
     private $tmpFile;
     private $isWindows;
+    private $timeout;
+    private $startTime;
 
-    public function __construct(callable $callback)
+    public function __construct(callable $callback, $tempDir = NULL, $timeout = 3600)
     {
         $this->callback = $callback;
-        $this->tmpFile = tempnam(sys_get_temp_dir(), 'worker_');
+        $this->timeout = $timeout;
         $this->isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+        $this->createTempFile($tempDir);
+    }
+
+    private function createTempFile($dir = NULL)
+    {
+        $folder = FCPATH . "application" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "ParallelWorker";
+        $tempDir = empty($dir) ? $folder : $folder . DIRECTORY_SEPARATOR . $dir;
+
+        // Check if the directory exists and is writable
+        if (!is_dir($tempDir) || !is_writable($tempDir)) {
+            // Attempt to create the directory if it doesn't exist
+            if (!mkdir($tempDir, 0644, true)) {
+                throw new RuntimeException("Failed to create temporary directory: $tempDir");
+            }
+        }
+
+        // Create the temporary file
+        $this->tmpFile = tempnam($tempDir, 'worker_');
+        if ($this->tmpFile === false) {
+            throw new RuntimeException("Failed to create temporary file in: $tempDir");
+        }
+
+        // Ensure the file is readable and writable
+        if (!chmod($this->tmpFile, 0644)) {
+            throw new RuntimeException("Failed to set permissions on temporary file: $this->tmpFile");
+        }
     }
 
     public function start()
     {
+        $this->startTime = time();
         if ($this->isWindows) {
             $this->windowsStart();
         } else {
@@ -1553,14 +1607,13 @@ class ParallelWorker
 
     private function windowsStart()
     {
-        $result = call_user_func($this->callback);
-        file_put_contents($this->tmpFile, serialize($result));
+        $result = $this->executeCallback();
+        $this->writeResult($result);
     }
 
     private function linuxStart()
     {
         if (!function_exists('pcntl_fork')) {
-            // Fallback to non-forking method if pcntl is not available
             $this->windowsStart();
             return;
         }
@@ -1571,9 +1624,26 @@ class ParallelWorker
         } elseif ($pid) {
             $this->pid = $pid;
         } else {
-            $result = call_user_func($this->callback);
-            file_put_contents($this->tmpFile, serialize($result));
+            $result = $this->executeCallback();
+            $this->writeResult($result);
             exit(0);
+        }
+    }
+
+    private function executeCallback()
+    {
+        try {
+            return call_user_func($this->callback);
+        } catch (Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    private function writeResult($result)
+    {
+        $serialized = serialize($result);
+        if (file_put_contents($this->tmpFile, $serialized) === false) {
+            throw new RuntimeException("Failed to write to temporary file: $this->tmpFile");
         }
     }
 
@@ -1588,21 +1658,75 @@ class ParallelWorker
 
     private function windowsGetResult()
     {
-        $result = unserialize(file_get_contents($this->tmpFile));
-        unlink($this->tmpFile);
-        return $result;
+        $this->waitForCompletion();
+        return $this->readAndCleanup();
     }
 
     private function linuxGetResult()
     {
         if (!function_exists('pcntl_waitpid')) {
-            // Fallback to non-forking method if pcntl is not available
             return $this->windowsGetResult();
         }
 
-        pcntl_waitpid($this->pid, $status);
-        $result = unserialize(file_get_contents($this->tmpFile));
-        unlink($this->tmpFile);
+        $status = 0;
+        while (true) {
+            $res = pcntl_waitpid($this->pid, $status, WNOHANG);
+            if ($res == -1 || $res > 0) {
+                break;
+            }
+            if ($this->hasTimedOut()) {
+                posix_kill($this->pid, SIGKILL);
+                throw new RuntimeException("Process timed out after {$this->timeout} seconds");
+            }
+            usleep(100000); // Sleep for 100ms to prevent CPU hogging
+        }
+
+        return $this->readAndCleanup();
+    }
+
+    private function waitForCompletion()
+    {
+        while (!file_exists($this->tmpFile) || filesize($this->tmpFile) == 0) {
+            if ($this->hasTimedOut()) {
+                throw new RuntimeException("Process timed out after {$this->timeout} seconds");
+            }
+            usleep(100000); // Sleep for 100ms to prevent CPU hogging
+        }
+    }
+
+    private function hasTimedOut()
+    {
+        return (time() - $this->startTime) > $this->timeout;
+    }
+
+    private function readAndCleanup()
+    {
+        if (!file_exists($this->tmpFile)) {
+            throw new RuntimeException("Temporary file not found: $this->tmpFile");
+        }
+
+        $content = file_get_contents($this->tmpFile);
+        if ($content === false) {
+            throw new RuntimeException("Failed to read from temporary file: $this->tmpFile");
+        }
+
+        $result = unserialize($content);
+
+        if (!unlink($this->tmpFile)) {
+            error_log("Failed to delete temporary file: $this->tmpFile");
+        }
+
+        if (isset($result['error'])) {
+            throw new RuntimeException("Worker process error: " . $result['error']);
+        }
+
         return $result;
+    }
+
+    public function __destruct()
+    {
+        if (file_exists($this->tmpFile)) {
+            unlink($this->tmpFile);
+        }
     }
 }
