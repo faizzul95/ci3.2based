@@ -9,7 +9,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @Description  An extended model class for CodeIgniter 3 with advanced querying capabilities, relationship handling, and security features.
  * @author    Mohd Fahmy Izwan Zulkhafri <faizzul14@gmail.com>
  * @link      -
- * @version   0.0.6
+ * @version   0.0.6.1
  */
 
 class MY_Model_Custom extends CI_Model
@@ -69,9 +69,12 @@ class MY_Model_Custom extends CI_Model
     protected $_deleted_at_field = 'deleted_at';
 
     protected $parallelMaxWorker = 3;
-    protected $parallelStatus = true;
+    protected $parallelStatus = false;
     protected $parallelTimeout = 3600;
     protected $parallelTempDir = '';
+
+    protected $_paginateColumn = [];
+    protected $_paginateSearchValue = '';
 
     public function __construct()
     {
@@ -492,7 +495,7 @@ class MY_Model_Custom extends CI_Model
 
     public function orderBy($column, $direction = 'ASC')
     {
-        $this->db->order_by($column, $direction);
+        $this->db->order_by($column, strtoupper($direction));
         return $this;
     }
 
@@ -700,26 +703,41 @@ class MY_Model_Custom extends CI_Model
         return $this->where($this->primaryKey, $id)->first();
     }
 
+    # PAGINATION SECTION
+
+    public function setPaginateFilterColumn($column = [])
+    {
+        $this->_paginateColumn = is_array($column) ? $column : [];
+        return $this;
+    }
+
     /**
      * Paginate the query results
      *
      * @param int $perPage Items per page
      * @param int|null $page Current page
-     * @param int $configDt Configuration for DataTables
      * @return array Paginated results
      */
-    public function paginate($perPage = 10, $page = null, $searchValue = '', $configDt = [])
+    public function paginate($perPage = 10, $page = null, $searchValue = '')
     {
         $page = $page ?: ($this->input->get('page') ? $this->input->get('page') : 1);
         $offset = ($page - 1) * $perPage;
 
-        // Apply filter
-        $this->paginateFilter($searchValue);
+        $this->_paginateSearchValue = trim($searchValue);
+        $columns = $this->db->list_fields($this->table);
 
-        // Count total rows
-        $countQuery = clone $this->db;
-        $total = (int) $countQuery->select('COUNT(*) as count')->get($this->table)->row()->count;
-        unset($countQuery);
+        // Count total rows before filter
+        $countTempTotal = clone $this->db;
+        $totalRecords = (int) $countTempTotal->count_all_results($this->table);
+        unset($countTempTotal);
+
+        // Apply filter
+        $this->_paginateFilter($columns);
+
+        // Count total rows after filter
+        $countTempQuery = clone $this->db;
+        $total = (int) $countTempQuery->count_all_results($this->table);
+        unset($countTempQuery);
 
         // Fetch only the required page of results
         $this->limit($perPage)->offset($offset);
@@ -763,8 +781,7 @@ class MY_Model_Custom extends CI_Model
         $this->pagination->initialize($config);
 
         return [
-            'draw' => $configDt['draw'] ?? 1,
-            'recordsTotal' => $total,
+            'recordsTotal' => $totalRecords,
             'recordsFiltered' => $total,
             'data' => $data,
             'current_page' => $page,
@@ -776,16 +793,60 @@ class MY_Model_Custom extends CI_Model
         ];
     }
 
-    protected function paginateFilter($searchValue)
+    public function paginate_ajax($dataPost)
     {
+        $this->_paginateSearchValue = trim($dataPost['search']['value']);
+        $columns = empty($this->_paginateColumn) ? $this->db->list_fields($this->table) : $this->_paginateColumn;
+
+        // Count total rows before filter
+        $countTempTotal = clone $this->db;
+        $totalRecords = (int) $countTempTotal->count_all_results($this->table);
+        unset($countTempTotal);
+
+        // Apply filter
+        $this->_paginateFilter($columns);
+
+        // Count total rows after filter
+        $countTempQuery = clone $this->db;
+        $total = (int) $countTempQuery->count_all_results($this->table);
+        unset($countTempQuery);
+
+        // Fetch only the required page of results
+        $this->limit($dataPost['length'])->offset($dataPost['start']);
+
+        // Apply Order data if exists
+        $orderBy = $dataPost['order'];
+        if (!empty($orderBy)) {
+            $this->orderBy($columns[$orderBy[0]['column']], $orderBy[0]['dir']);
+        }
+
+        return [
+            'draw' => $dataPost['draw'],
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $total,
+            'data' => $this->get(),
+        ];
+    }
+
+    private function _paginateFilter($columns)
+    {
+        $searchValue = $this->_paginateSearchValue;
+
         if (empty($searchValue)) {
             return;
         }
 
-        $columns = $this->db->list_fields($this->table);
+        $i = 0;
         $this->db->group_start();
         foreach ($columns as $column) {
-            $this->db->or_like($column, $searchValue);
+            if (!empty($column)) {
+                if ($i === 0) {
+                    $this->db->like($column, $searchValue);
+                } else {
+                    $this->db->or_like($column, $searchValue);
+                }
+            }
+            $i++;
         }
         $this->db->group_end();
     }
@@ -1076,6 +1137,7 @@ class MY_Model_Custom extends CI_Model
             ];
         } catch (Exception $e) {
             log_message('error', 'Create Error: ' . $e->getMessage());
+            $this->db->trans_rollback(); // Rollback the transaction
             return [
                 'code' => 500,
                 'error' => $e->getMessage(),
@@ -1087,11 +1149,11 @@ class MY_Model_Custom extends CI_Model
     /**
      * Update an existing record
      *
-     * @param int $id ID of the record to update
      * @param array $data Data to update
+     * @param mixed $id ID of the record to update
      * @return array Response with status code, data, action, and primary key
      */
-    public function patch($id, $data)
+    public function patch($data, $id = NULL)
     {
         try {
             $data = $this->filterData($data);
@@ -1118,6 +1180,7 @@ class MY_Model_Custom extends CI_Model
             ];
         } catch (Exception $e) {
             log_message('error', 'Update Error: ' . $e->getMessage());
+            $this->db->trans_rollback(); // Rollback the transaction
             return [
                 'code' => 500,
                 'error' => $e->getMessage(),
@@ -1129,10 +1192,10 @@ class MY_Model_Custom extends CI_Model
     /**
      * Delete a record
      *
-     * @param int $id ID of the record to delete
+     * @param mixed $id ID of the record to delete
      * @return array Response with status code, data, action, and primary key
      */
-    public function destroy($id)
+    public function destroy($id = NULL)
     {
         try {
             $data = $this->find($id);
@@ -1157,6 +1220,7 @@ class MY_Model_Custom extends CI_Model
             ];
         } catch (Exception $e) {
             log_message('error', 'Delete Error: ' . $e->getMessage());
+            $this->db->trans_rollback(); // Rollback the transaction
             return [
                 'code' => 500,
                 'error' => $e->getMessage(),
@@ -1256,7 +1320,7 @@ class MY_Model_Custom extends CI_Model
                 break;
             case 'LIKE':
             case 'NOT LIKE':
-                $this->db->$method("`$column` $upperOperator", $value);
+                $this->db->$method("$column $upperOperator", $value);
                 break;
             default:
                 $this->db->$method($column . $operator, $value);
@@ -1357,6 +1421,7 @@ class MY_Model_Custom extends CI_Model
         $this->relations = [];
         $this->eagerLoad = [];
         $this->returnType = 'array';
+        $this->_paginateColumn = [];
     }
 
     # SECURITY HELPER
@@ -1572,7 +1637,7 @@ class ParallelWorker
 
     private function createTempFile($dir = NULL)
     {
-        $folder = FCPATH . "application" . DIRECTORY_SEPARATOR . "cache" . DIRECTORY_SEPARATOR . "ParallelWorker";
+        $folder = FCPATH . "application" . DIRECTORY_SEPARATOR . "logs" . DIRECTORY_SEPARATOR . "ParallelWorker";
         $tempDir = empty($dir) ? $folder : $folder . DIRECTORY_SEPARATOR . $dir;
 
         // Check if the directory exists and is writable
