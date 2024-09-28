@@ -596,7 +596,7 @@ class <ClassName> extends CI_Controller
         return $this->any_model->select('id, column1, column2')
                 ->whereYear('created_at', '>=', '2024')
                 ->orderBy('id', 'DESC')
-                ->with(['post', 'post.comment', 'post.like']) // USE ARRAY 
+                ->with(['related1', 'related1.function1', 'related1.function2']) // USE ARRAY 
                 ->fetch(); // can used get(), fetch(), paginate(), first(), last().
     }
 
