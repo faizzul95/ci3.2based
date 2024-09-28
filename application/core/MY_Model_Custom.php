@@ -9,7 +9,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * @Description  An extended model class for CodeIgniter 3 with advanced querying capabilities, relationship handling, and security features.
  * @author    Mohd Fahmy Izwan Zulkhafri <faizzul14@gmail.com>
  * @link      -
- * @version   0.0.6.1
+ * @version   0.0.7.0
  */
 
 class MY_Model_Custom extends CI_Model
@@ -59,6 +59,7 @@ class MY_Model_Custom extends CI_Model
     protected $eagerLoad = [];
     protected $returnType = 'array';
     protected $_secureOutput = false;
+    protected $_secureOutputException = [];
     protected $allowedOperators = ['=', '!=', '<', '>', '<=', '>=', '<>', 'LIKE', 'NOT LIKE'];
 
     protected $timestamps = true;
@@ -75,6 +76,14 @@ class MY_Model_Custom extends CI_Model
 
     protected $_paginateColumn = [];
     protected $_paginateSearchValue = '';
+
+    protected $_validation = []; // will be used for both insert & update
+    protected $_validationCustomize = []; // will be used to customize/add-on validation for insert & update
+    protected $_insertValidation = []; // will be used for insert only
+    protected $_updateValidation = []; // will be used for update only
+    protected $_overrideValidation = []; // to override the validation for update & insert
+    protected $_ignoreValidation = false; // will ignore the validation
+    protected $_validationError = []; // used to store the validation error message
 
     public function __construct()
     {
@@ -101,7 +110,7 @@ class MY_Model_Custom extends CI_Model
      */
     public function select($columns = '*')
     {
-        $this->db->select($columns);
+        $this->db->select(trim($columns));
         return $this;
     }
 
@@ -683,19 +692,15 @@ class MY_Model_Custom extends CI_Model
     public function first()
     {
         $this->orderBy($this->primaryKey, 'ASC');
-        $result = $this->db->limit(1)->get($this->table)->row_array();
-        $result = $this->loadRelations([$result]);
-        $this->resetQuery();
-        return $this->formatResult($result[0]);
+        $this->limit(1);
+        return $this->fetch();
     }
 
     public function last()
     {
         $this->orderBy($this->primaryKey, 'DESC');
-        $result = $this->db->limit(1)->get($this->table)->row_array();
-        $result = $this->loadRelations([$result]);
-        $this->resetQuery();
-        return $this->formatResult($result[0]);
+        $this->limit(1);
+        return $this->fetch();
     }
 
     public function find($id)
@@ -915,7 +920,7 @@ class MY_Model_Custom extends CI_Model
         return $this;
     }
 
-    protected function loadRelations($results)
+    private function loadRelations($results)
     {
         if (empty($this->eagerLoad) || empty($results)) {
             return $results;
@@ -929,7 +934,7 @@ class MY_Model_Custom extends CI_Model
         return $results;
     }
 
-    protected function loadNestedRelation($currentInstance, &$results, $relations, $constraints = null)
+    private function loadNestedRelation($currentInstance, &$results, $relations, $constraints = null)
     {
         if (count($relations) == 1) {
             $currentRelation = $relations[0];
@@ -979,7 +984,7 @@ class MY_Model_Custom extends CI_Model
         }
     }
 
-    protected function whereInWithPossibleParallel($model, $column, $values, $chunkSize = 1000)
+    private function whereInWithPossibleParallel($model, $column, $values, $chunkSize = 1000)
     {
         if (count($values) < 1000 || !$this->parallelStatus) {
             // Use regular approach for less than 1000 values or if parallel processing is disabled
@@ -990,7 +995,7 @@ class MY_Model_Custom extends CI_Model
         }
     }
 
-    protected function regularWhereIn($model, $column, $values, $chunkSize = 1000)
+    private function regularWhereIn($model, $column, $values, $chunkSize = 1000)
     {
         $chunks = array_chunk($values, $chunkSize);
         $result = [];
@@ -1002,7 +1007,7 @@ class MY_Model_Custom extends CI_Model
         return $result;
     }
 
-    protected function parallelWhereIn($model, $column, $values, $chunkSize = 1000, $maxWorkers = 3)
+    private function parallelWhereIn($model, $column, $values, $chunkSize = 1000, $maxWorkers = 3)
     {
         $chunks = array_chunk($values, $chunkSize);
         $totalChunks = count($chunks);
@@ -1035,7 +1040,7 @@ class MY_Model_Custom extends CI_Model
         return $result;
     }
 
-    protected function matchRelations(&$results, $relatedData, $relation, $localKey, $foreignKey, $type, $parentRelation = null)
+    private function matchRelations(&$results, $relatedData, $relation, $localKey, $foreignKey, $type, $parentRelation = null)
     {
         $relatedDataMap = [];
         foreach ($relatedData as $item) {
@@ -1079,6 +1084,53 @@ class MY_Model_Custom extends CI_Model
     # CRUD functions
 
     /**
+     * Ignore validation rules temporarily
+     *
+     * @return $this
+     */
+    public function ignoreValidation()
+    {
+        $this->_ignoreValidation = true;
+        return $this;
+    }
+
+    /**
+     * Set override validation rules
+     *
+     * @param array $validation This will override all the validation set in the model.
+     * @return $this
+     */
+    public function setValidationRules($validation)
+    {
+        if (!is_array($validation)) {
+            throw new Exception('Validation rules must be an array.');
+        }
+
+        $this->_overrideValidation = $validation;
+        return $this;
+    }
+
+    /**
+     * Set custom validation rules
+     *
+     * @param array $validation This will set the custom validation or the addition rules.
+     * @return $this
+     */
+    public function setCustomValidationRules($validation)
+    {
+        if (!is_array($validation)) {
+            throw new Exception('Additional validation rules must be an array.');
+        }
+
+        if (empty($this->_validation) && empty($this->_insertValidation) && empty($this->_updateValidation)) {
+            throw new Exception('No validation rules found. Please set the validation in model first.');
+        }
+
+        $this->_validationCustomize = $validation;
+        return $this;
+    }
+
+    /**
      * Insert a new record or update an existing one
      *
      * @param array $attributes The attributes to search for
@@ -1096,7 +1148,7 @@ class MY_Model_Custom extends CI_Model
         if ($existingRecord) {
             // If record exists, update it
             $id = $existingRecord[$this->primaryKey];
-            return $this->patch($id, $data);
+            return $this->patch($data, $id);
         } else {
             // If record doesn't exist, create it
             return $this->create($data);
@@ -1111,38 +1163,42 @@ class MY_Model_Custom extends CI_Model
      */
     public function create($data)
     {
-        try {
-            $data = $this->filterData($data);
+        $data = $this->filterData($data);
+        $validationRules = !empty($this->_insertValidation) ? $this->_insertValidation : $this->_validation;
+        if ($this->_runValidation($data, $validationRules, 'create')) {
+            try {
 
-            if ($this->timestamps) {
-                $data[$this->_created_at_field] = date($this->timestamps_format);
+                if ($this->timestamps) {
+                    $data[$this->_created_at_field] = date($this->timestamps_format);
+                }
+
+                $success = $this->db->insert($this->table, $data);
+                $insertId = $this->db->insert_id();
+
+                if (!$success) {
+                    throw new Exception('Failed to insert record');
+                }
+
+                $this->resetQuery();
+
+                return [
+                    'code' => 201,
+                    $this->primaryKey => $insertId,
+                    'data' => $data,
+                    'message' => 'Inserted successfully',
+                    'action' => 'create',
+                ];
+            } catch (Exception $e) {
+                log_message('error', 'Create Error: ' . $e->getMessage());
+                return [
+                    'code' => 500,
+                    'error' => $e->getMessage(),
+                    'message' => 'Failed to insert new data',
+                    'action' => 'create',
+                ];
             }
-
-            $this->db->trans_start();
-            $success = $this->db->insert($this->table, $data);
-            $insertId = $this->db->insert_id();
-            $this->db->trans_complete();
-
-            if (!$success || $this->db->trans_status() === FALSE) {
-                throw new Exception('Failed to insert record');
-            }
-
-            $this->resetQuery();
-
-            return [
-                'code' => 201,
-                $this->primaryKey => $insertId,
-                'data' => $data,
-                'action' => 'create',
-            ];
-        } catch (Exception $e) {
-            log_message('error', 'Create Error: ' . $e->getMessage());
-            $this->db->trans_rollback(); // Rollback the transaction
-            return [
-                'code' => 500,
-                'error' => $e->getMessage(),
-                'action' => 'create',
-            ];
+        } else {
+            return $this->_validationError;
         }
     }
 
@@ -1155,37 +1211,42 @@ class MY_Model_Custom extends CI_Model
      */
     public function patch($data, $id = NULL)
     {
-        try {
-            $data = $this->filterData($data);
+        $data = $this->filterData($data);
+        $validationRules = !empty($this->_updateValidation) ? $this->_updateValidation : $this->_validation;
 
-            if ($this->timestamps) {
-                $data[$this->_updated_at_field] = date($this->timestamps_format);
+        if ($this->_runValidation($data, $validationRules, 'update')) {
+            try {
+
+                if ($this->timestamps) {
+                    $data[$this->_updated_at_field] = date($this->timestamps_format);
+                }
+
+                $success = $this->db->where($this->primaryKey, $id)->update($this->table, $data);
+
+                if (!$success) {
+                    throw new Exception('Failed to update record');
+                }
+
+                $this->resetQuery();
+
+                return [
+                    'code' => 200,
+                    $this->primaryKey => $id,
+                    'data' => $data,
+                    'message' => 'Updated successfully',
+                    'action' => 'update',
+                ];
+            } catch (Exception $e) {
+                log_message('error', 'Update Error: ' . $e->getMessage());
+                return [
+                    'code' => 500,
+                    'error' => $e->getMessage(),
+                    'message' => 'Failed to update data',
+                    'action' => 'update',
+                ];
             }
-
-            $this->db->trans_start();
-            $success = $this->db->where($this->primaryKey, $id)->update($this->table, $data);
-            $this->db->trans_complete();
-
-            if (!$success || $this->db->trans_status() === FALSE) {
-                throw new Exception('Failed to update record');
-            }
-
-            $this->resetQuery();
-
-            return [
-                'code' => 200,
-                $this->primaryKey => $id,
-                'data' => $data,
-                'action' => 'update',
-            ];
-        } catch (Exception $e) {
-            log_message('error', 'Update Error: ' . $e->getMessage());
-            $this->db->trans_rollback(); // Rollback the transaction
-            return [
-                'code' => 500,
-                'error' => $e->getMessage(),
-                'action' => 'update',
-            ];
+        } else {
+            return $this->_validationError;
         }
     }
 
@@ -1216,6 +1277,7 @@ class MY_Model_Custom extends CI_Model
                 'code' => 200,
                 $this->primaryKey => $id,
                 'data' => $data,
+                'message' => 'Removed successfully',
                 'action' => 'delete',
             ];
         } catch (Exception $e) {
@@ -1224,6 +1286,7 @@ class MY_Model_Custom extends CI_Model
             return [
                 'code' => 500,
                 'error' => $e->getMessage(),
+                'message' => 'Failed to removed data',
                 'action' => 'delete',
             ];
         }
@@ -1235,22 +1298,95 @@ class MY_Model_Custom extends CI_Model
      * @param array $data Data to filter
      * @return array Filtered data
      */
-    protected function filterData($data)
+    private function filterData($data)
     {
-        if ($this->fillable !== null) {
-            $data = array_intersect_key($data, array_flip($this->fillable));
-        }
+        if (!empty($data) && is_array($data)) {
+            if ($this->fillable !== null) {
+                $data = array_intersect_key($data, array_flip($this->fillable));
+            }
 
-        if ($this->protected !== null) {
-            $data = array_diff_key($data, array_flip($this->protected));
+            if ($this->protected !== null) {
+                $data = array_diff_key($data, array_flip($this->protected));
+            }
         }
 
         return $data;
     }
 
+    /**
+     * Runs validation on the provided data using the specified validation rules.
+     *
+     * @param array $data The data to validate.
+     * @param array $validationRules The validation rules to apply.
+     * @param string $action The action being performed (e.g., "create", "update").
+     * @return bool True if validation passes, false otherwise.
+     */
+    private function _runValidation($data, $validationRules, $action)
+    {
+        // Reset old validation error
+        $this->_validationError = [];
+
+        if (!$this->_ignoreValidation) {
+            // Merge validation rules and override if any
+            $validation = !empty($this->_overrideValidation) ? $this->_overrideValidation : array_merge($validationRules, $this->_validationCustomize);
+
+            if (!empty($validation)) {
+                // Filter out validation rules that don't have corresponding keys in $data
+                $filteredValidation = array_filter($validation, function ($rule, $key) use ($data) {
+                    return array_key_exists($key, $data);
+                }, ARRAY_FILTER_USE_BOTH);
+
+                if (!empty($filteredValidation)) {
+                    // Load the form validation library
+                    $this->load->library('form_validation');
+
+                    // Reset validation to clear previous rules and data
+                    $this->form_validation->reset_validation();
+
+                    // Set the data to be validated
+                    $this->form_validation->set_data($data);
+
+                    // Set the filtered validation rules
+                    $this->form_validation->set_rules($filteredValidation);
+
+                    // Run validation and return errors if any
+                    if (!$this->form_validation->run()) {
+                        // Collect validation error messages and format as an unordered list without <p> tags
+                        $errors = validation_errors();
+                        
+                        // Remove <p> tags from errors
+                        $errors = strip_tags($errors); // Remove all HTML tags
+                        $errorsArray = explode("\n", trim($errors));
+    
+                        // Build the unordered list
+                        $errorsList = "<ul>";
+                        foreach ($errorsArray as $error) {
+                            if (!empty($error)) {
+                                $errorsList .= "<li>" . htmlspecialchars(trim($error)) . "</li>";
+                            }
+                        }
+                        $errorsList .= "</ul>";
+    
+                        log_message('error', ucfirst($action) . ' Validation Error: ' . $errorsList);
+                        $this->_validationError = [
+                            'code' => 422,
+                            'data' => $data,
+                            'message' => ucfirst($action) . ' operation failed: ' . $errorsList,
+                            'action' => $action,
+                            'error' => $errorsList // Save the formatted error list
+                        ];
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
     # HELPER SECTION
 
-    protected function searchRelatedKeys($data, $keyToSearch)
+    private function searchRelatedKeys($data, $keyToSearch)
     {
         $result = [];
 
@@ -1275,7 +1411,7 @@ class MY_Model_Custom extends CI_Model
         return $result;
     }
 
-    protected function whereNested(Closure $callback)
+    private function whereNested(Closure $callback)
     {
         $this->db->group_start();
         $callback($this);
@@ -1283,7 +1419,7 @@ class MY_Model_Custom extends CI_Model
         return $this;
     }
 
-    protected function forSubQuery(Closure $callback)
+    private function forSubQuery(Closure $callback)
     {
         $query = $this->db->from($this->table);
         $callback($query);
@@ -1299,7 +1435,7 @@ class MY_Model_Custom extends CI_Model
      * @param string $operator Comparison operator
      * @throws InvalidArgumentException
      */
-    protected function applyCondition($method, $column, $value, $operator)
+    private function applyCondition($method, $column, $value, $operator)
     {
         static $operatorCache = [];
 
@@ -1327,7 +1463,7 @@ class MY_Model_Custom extends CI_Model
         }
     }
 
-    protected function validateDayMonth($value, $month = false)
+    private function validateDayMonth($value, $month = false)
     {
         $max = $month ? 12 : 31;
         if (!is_numeric($value) || $value < 1 || $value > $max) {
@@ -1387,7 +1523,7 @@ class MY_Model_Custom extends CI_Model
         return $this;
     }
 
-    protected function formatResult($result)
+    private function formatResult($result)
     {
         $resultFormat = null;
 
@@ -1414,7 +1550,7 @@ class MY_Model_Custom extends CI_Model
         return $resultFormat;
     }
 
-    protected function resetQuery()
+    private function resetQuery()
     {
         $this->db = $this->load->database($this->connection, TRUE);
         $this->primaryKey = 'id';
@@ -1427,14 +1563,27 @@ class MY_Model_Custom extends CI_Model
     # SECURITY HELPER
 
     /**
-     * Enable or disable safe output
+     * Enable safe output against XSS injection
      *
-     * @param bool $enable Whether to enable safe output
      * @return $this
      */
-    public function safeOutput($enable = true)
+    public function safeOutput()
     {
-        $this->_secureOutput = $enable;
+        $this->_secureOutput = true;
+        $this->_secureOutputException = [];
+        return $this;
+    }
+
+    /**
+     * Enable safe output against XSS injection with exception key
+     *
+     * @param array $exception The key array that will be except from sanitize
+     * @return $this
+     */
+    public function safeOutputWithException($exception = [])
+    {
+        $this->_secureOutput = true;
+        $this->_secureOutputException = $exception;
         return $this;
     }
 
@@ -1444,7 +1593,7 @@ class MY_Model_Custom extends CI_Model
      * @param mixed $data Data to sanitize
      * @return mixed
      */
-    protected function _safeOutputSanitize($data)
+    private function _safeOutputSanitize($data)
     {
         if (!$this->_secureOutput) {
             return $data;
@@ -1465,30 +1614,51 @@ class MY_Model_Custom extends CI_Model
      * @return mixed
      * @throws InvalidArgumentException
      */
-    protected function sanitize($value = null)
+    private function sanitize($value = null)
     {
         // Check if $value is not null or empty
         if (!isset($value) || is_null($value)) {
             return $value;
         }
 
+        // If $value is an array, sanitize its values while checking each key against the exception list
+        if (is_array($value)) {
+            if (!empty($this->_secureOutputException)) {
+                foreach ($value as $key => $item) {
+                    // Check if the key exists in the exception list
+                    if (in_array($key, $this->_secureOutputException)) {
+                        continue; // Skip sanitization for this key
+                    }
+
+                    // Recursively sanitize the value for this key
+                    $value[$key] = $this->sanitize($item);
+                }
+
+                return $value;
+            } else {
+                return array_map([$this, 'sanitize'], $value);
+            }
+        }
+
         // Sanitize input based on data type
         switch (gettype($value)) {
             case 'string':
-                return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');  // Apply XSS protection and trim
+                if (isset($this->_secureOutputException) && in_array($value, $this->_secureOutputException)) {
+                    return $value; // Skip sanitization if the string is in the exception list
+                }
+                return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8'); // Apply XSS protection and trim
             case 'integer':
                 return filter_var($value, FILTER_SANITIZE_NUMBER_INT);
             case 'double':
                 return filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
             case 'boolean':
                 return (bool) $value;
-            case 'array':
-                return array_map([$this, 'sanitize'], $value);
             default:
                 // Handle unexpected data types (consider throwing an exception)
                 throw new \InvalidArgumentException("Unsupported data type for sanitization: " . gettype($value));
         }
     }
+
 
     /**
      * Recursively removes hidden keys from the given data array.
@@ -1524,7 +1694,7 @@ class MY_Model_Custom extends CI_Model
      * @param array $result The result to check
      * @return bool True if multidimensional, false otherwise
      */
-    protected function isMultiCustomCheck($result)
+    private function isMultiCustomCheck($result)
     {
         if (!is_array($result)) {
             return false;
@@ -1559,7 +1729,7 @@ class MY_Model_Custom extends CI_Model
         return $this;
     }
 
-    protected function appendData($resultQuery)
+    private function appendData($resultQuery)
     {
         if (empty($resultQuery) || empty($this->appends) || empty($this->fillable)) {
             return $resultQuery;
