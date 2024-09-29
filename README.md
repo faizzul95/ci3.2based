@@ -196,9 +196,7 @@ Example :
 
 # EXTENDED
 
-## Path: `application/core`
-
-### MY_Model_Custom
+### Path : `application/core/MY_Model_Custom`
 
 #### Description
 `MY_Model_Custom` is an extended model class for CodeIgniter 3 that introduces advanced query capabilities, improved relationship handling, fixes the N+1 query issue, and adds security layers for interacting with databases. 
@@ -276,16 +274,16 @@ class <ClassName>_model extends MY_Model
 | `rawQuery()`    | Execute raw SQL queries directly. Useful for complex queries not supported by active record.                                                      |
 | `table()`       | Specifies the database table for the query.                                                                                                       |
 | `select()`      | Defines the columns to retrieve in a query. Similar to CodeIgniter’s `select()`.                                                                  |
-| `where()`       | Adds a basic WHERE clause to the query. Similar to Laravel's `where()`.                                                                            |
+| `where()`       | Adds a basic WHERE clause to the query. Similar to Laravel's `where()`.                                                                           |
 | `orWhere()`     | Adds an OR WHERE clause. Similar to Laravel's `orWhere()`.                                                                                        |
 | `whereNull()`   | Adds a WHERE clause to check for `NULL` values. Similar to Laravel's `whereNull()`.                                                               |
 | `orWhereNull()` | Adds an OR WHERE clause to check for `NULL` values. Similar to Laravel's `orWhereNull()`.                                                         |
 | `whereNotNull()`| Adds a WHERE clause to check for non-NULL values. Similar to Laravel's `whereNotNull()`.                                                          |
-| `orWhereNotNull()`| Adds an OR WHERE clause to check for non-NULL values. Similar to Laravel's `orWhereNotNull()`.                                                   |
+| `orWhereNotNull()`| Adds an OR WHERE clause to check for non-NULL values. Similar to Laravel's `orWhereNotNull()`.                                                  |
 | `whereExists()` | Adds a WHERE EXISTS clause. Similar to Laravel's `whereExists()`.                                                                                 |
 | `orWhereExists()`| Adds an OR WHERE EXISTS clause. Similar to Laravel's `orWhereExists()`.                                                                          |
-| `whereNotExists()`| Adds a WHERE NOT EXISTS clause. Similar to Laravel's `whereNotExists()`.                                                                         |
-| `orWhereNotExists()`| Adds an OR WHERE NOT EXISTS clause. Similar to Laravel's `orWhereNotExists()`.                                                                 |
+| `whereNotExists()`| Adds a WHERE NOT EXISTS clause. Similar to Laravel's `whereNotExists()`.                                                                        |
+| `orWhereNotExists()`| Adds an OR WHERE NOT EXISTS clause. Similar to Laravel's `orWhereNotExists()`.                                                                |
 | `whereNot()`    | Adds a WHERE NOT clause for negating conditions. Similar to Laravel's `whereNot()`.                                                               |
 | `orWhereNot()`  | Adds an OR WHERE NOT clause for negating conditions. Similar to Laravel's `orWhereNot()`.                                                         |
 | `whereTime()`   | Adds a WHERE clause for a time comparison. Similar to Laravel's `whereTime()`.                                                                    |
@@ -303,14 +301,14 @@ class <ClassName>_model extends MY_Model
 | `whereNotIn()`  | Adds a WHERE NOT IN clause. Similar to Laravel's `whereNotIn()`.                                                                                  |
 | `orWhereNotIn()`| Adds an OR WHERE NOT IN clause. Similar to Laravel's `orWhereNotIn()`.                                                                            |
 | `whereBetween()`| Adds a WHERE BETWEEN clause. Similar to Laravel's `whereBetween()`.                                                                               |
-| `orWhereBetween()`| Adds an OR WHERE BETWEEN clause. Similar to Laravel's `orWhereBetween()`.                                                                        |
-| `whereNotBetween()`| Adds a WHERE NOT BETWEEN clause. Similar to Laravel's `whereNotBetween()`.                                                                      |
-| `orWhereNotBetween()`| Adds an OR WHERE NOT BETWEEN clause. Similar to Laravel's `orWhereNotBetween()`.                                                              |
-| `join()`        | Adds an INNER JOIN to the query. Similar to CodeIgniter’s `join()`.                                                                                |
-| `rightJoin()`   | Adds a RIGHT JOIN to the query. Similar to Laravel's `rightJoin()`.                                                                                |
+| `orWhereBetween()`| Adds an OR WHERE BETWEEN clause. Similar to Laravel's `orWhereBetween()`.                                                                       |
+| `whereNotBetween()`| Adds a WHERE NOT BETWEEN clause. Similar to Laravel's `whereNotBetween()`.                                                                     |
+| `orWhereNotBetween()`| Adds an OR WHERE NOT BETWEEN clause. Similar to Laravel's `orWhereNotBetween()`.                                                             |
+| `join()`        | Adds an INNER JOIN to the query. Similar to CodeIgniter’s `join()`.                                                                               |
+| `rightJoin()`   | Adds a RIGHT JOIN to the query. Similar to Laravel's `rightJoin()`.                                                                               |
 | `leftJoin()`    | Adds a LEFT JOIN to the query. Similar to Laravel's `leftJoin()`.                                                                                 |
 | `innerJoin()`   | Adds an INNER JOIN to the query. Same as `join()`.                                                                                                |
-| `outerJoin()`   | Adds an OUTER JOIN to the query. Similar to Laravel's `outerJoin()`.                                                                               |
+| `outerJoin()`   | Adds an OUTER JOIN to the query. Similar to Laravel's `outerJoin()`.                                                                              |
 | `limit()`       | Limits the number of records returned. Similar to CodeIgniter's `limit()`.                                                                        |
 | `offset()`      | Skips a number of records before starting to return records. Similar to CodeIgniter's `offset()`.                                                 |
 | `orderBy()`     | Adds an ORDER BY clause. Similar to Laravel's `orderBy()`.                                                                                        |
@@ -319,16 +317,16 @@ class <ClassName>_model extends MY_Model
 | `having()`      | Adds a HAVING clause. Similar to Laravel's `having()`.                                                                                            |
 | `havingRaw()`   | Adds a raw HAVING clause. Similar to Laravel's `havingRaw()`.                                                                                     |
 | `chunk()`       | Process data in chunks to handle large datasets efficiently. Similar to Laravel's `chunk()`.                                                      |
-| `get()`         | Retrieves all data from the database based on the specified criteria.                                                                              |
-| `fetch()`       | Retrieves a single record from the database based on the specified criteria.                                                                       |
-| `first()`       | Retrieves the first record based on the query.                                                                                                     |
-| `last()`        | Retrieves the last record based on the query.                                                                                                      |
-| `count()`       | Counts the number of records matching the specified criteria.                                                                                      |
-| `find()`        | Finds a record by its primary key (ID).                                                                                                            |
-| `toSql()`       | Returns the SQL query string (without eager loading query).                                                                                        |
-| `toSqlPatch()`  | Returns the SQL query string for updating data.                                                                                                    |
-| `toSqlCreate()` | Returns the SQL query string for inserting data.                                                                                                   |
-| `toSqlDestroy()`| Returns the SQL query string for deleting data.                                                                                                    |
+| `get()`         | Retrieves all data from the database based on the specified criteria.                                                                             |
+| `fetch()`       | Retrieves a single record from the database based on the specified criteria.                                                                      |
+| `first()`       | Retrieves the first record based on the query.                                                                                                    |
+| `last()`        | Retrieves the last record based on the query.                                                                                                     |
+| `count()`       | Counts the number of records matching the specified criteria.                                                                                     |
+| `find()`        | Finds a record by its primary key (ID).                                                                                                           |
+| `toSql()`       | Returns the SQL query string (without eager loading query).                                                                                       |
+| `toSqlPatch()`  | Returns the SQL query string for updating data.                                                                                                   |
+| `toSqlCreate()` | Returns the SQL query string for inserting data.                                                                                                  |
+| `toSqlDestroy()`| Returns the SQL query string for deleting data.                                                                                                   |
 
 <hr>
 
@@ -339,6 +337,279 @@ class <ClassName>_model extends MY_Model
 | `setPaginateFilterColumn()` | Sets the filter conditions for pagination. If not set, all columns from the main table are queried.                                           |
 | `paginate()`             | Custom pagination method that works without the datatable library. Allows paginating results based on the specified criteria.                    |
 | `paginate_ajax()`        | Pagination method specifically designed to work with AJAX requests and integrate with datatables.                                                |
+
+<details> 
+<summary> Example Usage of setPaginateFilterColumn($key) </summary>
+  
+#### Description
+<b>Parameters:</b><br>
+`$key` (array): An array containing the list of column to be used when making the filter conditions in query (only support main table, eager load are not supported). <br>
+<br>
+
+```php
+<?php
+
+# MODEL
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class Any_model extends MY_Model
+{
+    public $table = 'anyTable';
+    public $primaryKey = 'id'; 
+    
+    public $fillable = [
+        'column1',
+        'column2',
+        'column3',
+        'column4'
+    ];
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+}
+
+# CONTROLLER
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class <ClassName> extends CI_Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('any_model');
+    }
+
+    public function exampleSetPaginateFilter()
+    {
+        $paginateData = $this->any_model->whereYear('created_at', '>=', 2024)
+            ->setPaginateFilterColumn(
+                [
+                    null, // used for count the number
+                    'column1',
+                    'column2'
+                ]
+            )
+            ->paginate_ajax($_POST);
+
+        if (isset($paginateData['data']) && !empty($paginateData['data'])) {
+            $i = $_POST['start'] + 1;
+            foreach ($paginateData['data'] as $key => $data) {
+
+                $actionArr = [
+                    '<a href="javascript:void(0);" onclick="deleteConfirm(' .  $data['id'] . ')"  data-id="' .  $data['id'] . '"> Delete </a>',
+                    '<a href="javascript:void(0);" onclick="updateRecord(' .  $data['id'] . ')" data-id="' .  $data['id'] . '"> Edit </a>',
+                ];
+
+                // Replace the data with formatted data
+                $paginateData['data'][$key] = [
+                    $i++,
+                    $member['column1'],
+                    $member['column2']
+                    '<div class="text-center">' . implode('|', $actionArr) . '</div>'
+                ];
+            }
+        }
+
+        echo json_encode($paginateData);
+    }
+}
+```
+</details>
+
+<details> 
+<summary> Example Usage of paginate($pageSize, $currentPage, $searchValue) </summary>
+  
+#### Description
+<b>Parameters:</b><br>
+`$pageSize` (string): The size of the data want to display, default is 10. [OPTIONAL]<br>
+`$currentPage` (string): The current page. Will taking from the url `?page=` if this value is not provide or null [OPTIONAL]<br>
+`$searchValue` (string): The search value to filter the records [OPTIONAL]<br>
+<br>
+
+```php
+<?php
+
+# MODEL
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class Any_model extends MY_Model
+{
+    public $table = 'anyTable';
+    public $primaryKey = 'id'; 
+    
+    public $fillable = [
+        'column1',
+        'column2',
+        'column3',
+        'column4'
+    ];
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+}
+
+# CONTROLLER
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class <ClassName> extends CI_Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('any_model');
+    }
+
+    public function examplePaginate()
+    {
+        $search = $this->input->post('search', TRUE);
+        $paginateData = $this->any_model->whereYear('created_at', '>=', 2024)->paginate(30, 19, $search);
+
+        if (isset($paginateData['data']) && !empty($paginateData['data'])) {
+            $i = 1; // Need to change this part
+            foreach ($paginateData['data'] as $key => $data) {
+
+                $actionArr = [
+                    '<a href="javascript:void(0);" onclick="deleteConfirm(' .  $data['id'] . ')"  data-id="' .  $data['id'] . '"> Delete </a>',
+                    '<a href="javascript:void(0);" onclick="updateRecord(' .  $data['id'] . ')" data-id="' .  $data['id'] . '"> Edit </a>',
+                ];
+
+                // Replace the data with formatted data
+                $paginateData['data'][$key] = [
+                    $i++,
+                    $member['column1'],
+                    $member['column2']
+                    '<div class="text-center">' . implode('|', $actionArr) . '</div>'
+                ];
+            }
+        }
+
+        echo json_encode($paginateData);
+    }
+}
+```
+</details>
+
+<details> 
+<summary> Example Usage of paginate_ajax($dataPost) </summary>
+  
+#### Description
+<b>Parameters:</b><br>
+`$dataPost` (array): An array $_POST from the request ajax datatable. <br>
+<br>
+
+```php
+<?php
+
+# MODEL
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class Any_model extends MY_Model
+{
+    public $table = 'anyTable';
+    public $primaryKey = 'id'; 
+    
+    public $fillable = [
+        'column1',
+        'column2',
+        'column3',
+        'column4'
+    ];
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+}
+
+# CONTROLLER
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class <ClassName> extends CI_Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('any_model');
+    }
+
+    public function examplePaginateAjaxWithoutFilterColumn()
+    {
+        $paginateData = $this->any_model->whereYear('created_at', '>=', 2024)->paginate_ajax($_POST);
+
+        if (isset($paginateData['data']) && !empty($paginateData['data'])) {
+            $i = $_POST['start'] + 1;
+            foreach ($paginateData['data'] as $key => $data) {
+
+                $actionArr = [
+                    '<a href="javascript:void(0);" onclick="deleteConfirm(' .  $data['id'] . ')"  data-id="' .  $data['id'] . '"> Delete </a>',
+                    '<a href="javascript:void(0);" onclick="updateRecord(' .  $data['id'] . ')" data-id="' .  $data['id'] . '"> Edit </a>',
+                ];
+
+                // Replace the data with formatted data
+                $paginateData['data'][$key] = [
+                    $i++,
+                    $member['column1'],
+                    $member['column2']
+                    '<div class="text-center">' . implode('|', $actionArr) . '</div>'
+                ];
+            }
+        }
+
+        echo json_encode($paginateData);
+    }
+
+    public function examplePaginateAjaxWithFilterColumn()
+    {
+        $paginateData = $this->any_model->whereYear('created_at', '>=', 2024)
+            ->setPaginateFilterColumn(
+                [
+                    null, // used for count the number
+                    'column1',
+                    'column2'
+                ]
+            )
+            ->paginate_ajax($_POST);
+
+        if (isset($paginateData['data']) && !empty($paginateData['data'])) {
+            $i = $_POST['start'] + 1;
+            foreach ($paginateData['data'] as $key => $data) {
+
+                $actionArr = [
+                    '<a href="javascript:void(0);" onclick="deleteConfirm(' .  $data['id'] . ')"  data-id="' .  $data['id'] . '"> Delete </a>',
+                    '<a href="javascript:void(0);" onclick="updateRecord(' .  $data['id'] . ')" data-id="' .  $data['id'] . '"> Edit </a>',
+                ];
+
+                // Replace the data with formatted data
+                $paginateData['data'][$key] = [
+                    $i++,
+                    $member['column1'],
+                    $member['column2']
+                    '<div class="text-center">' . implode('|', $actionArr) . '</div>'
+                ];
+            }
+        }
+
+        echo json_encode($paginateData);
+    }
+}
+```
+</details>
 
 <hr>
 
@@ -391,7 +662,7 @@ class Any_model extends MY_Model
     public function relatedModelWithoutLocalKey()
     {
          return $this->hasMany('Related_model', 'foreign_id');
-         // Remark : will use $primaryKey value as the localKey
+         // Explanation : will use $primaryKey value as the localKey
     }
 }
 ```
@@ -438,7 +709,7 @@ class Any_model extends MY_Model
     public function relatedModelWithoutLocalKey()
     {
          return $this->hasOne('Related_model', 'foreign_id');
-         // Remark : will use $primaryKey value as the localKey
+         // Explanation : will use $primaryKey value as the localKey
     }
 }
 ```
@@ -485,7 +756,7 @@ class Any_model extends MY_Model
     public function relatedModelWithoutOwnerKey()
     {
          return $this->belongsTo('Related_model', 'foreign_id');
-         // Remark : will use $primaryKey value as the ownerKey
+         // Explanation : will use $primaryKey value as the ownerKey
     }
 }
 ```
@@ -1258,7 +1529,7 @@ class Any_model extends MY_Model
         'column4'
     ];
 
-    protected $hidden = ['column3']; // removed the column3 from showing in the result
+    protected $hidden = ['column3']; // Removed the column3 from showing in the result
 
     public function __construct()
     {
@@ -1282,15 +1553,24 @@ class <ClassName> extends CI_Controller
     public function exampleReturnWitColumnHiddenInModel()
     {
         return $this->any_model->where('column', 'value')->fetch();
-        // Result : ['column1', 'column2', 'column4'];
-        // Remark : column3 is not showing in the result because its already set hidden in the model.
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column4' => 'value4', 
+        // ];
+        // Explanation : column3 is not showing in the result because its already set hidden in the model.
     }
 
     public function exampleReturnWithoutColumnHidden()
     {
         return $this->any_model->where('column', 'value')->showColumnHidden()->fetch();
-        // Result : ['column1', 'column2', 'column3', 'column4'];
-        // Remark : Will show all the column. 
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column3' => 'value3', 
+        //     'column4' => 'value4' 
+        // ];
+        // Explanation : Will show all the column. 
     }
 }
 ```
@@ -1348,23 +1628,147 @@ class <ClassName> extends CI_Controller
     public function exampleReturnWithoutColumnHidden()
     {
         return $this->any_model->where('column', 'value')->fetch();
-        // Result : ['column1', 'column2', 'column4'];
-        // Remark : column3 is not showing in the result because its already set hidden in the model.
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column4' => 'value4'
+        // ];
+        // Explanation : column3 is not showing in the result because its already set hidden in the model.
     }
 
     public function exampleReturnWithColumnHidden()
     {
         return $this->any_model->where('column', 'value')->setColumnHidden(['column1'])->fetch();
-        // Result : ['column2', 'column3', 'column4'];
-        // Remark : will override the $hidden in model. 
+        // Result : [ 
+        //     'column2' => 'value2', 
+        //     'column3' => 'value3', 
+        //     'column4' => 'value4'
+        // ];
+        // Explanation : will override the $hidden in model. 
     }
 
     public function exampleReturnWithColumnHiddenSetToEmpty()
     {
         return $this->any_model->where('column', 'value')->setColumnHidden([])->fetch();
-        // Result : ['column1', 'column2', 'column3', 'column4'];
-        // Remark : will override the $hidden in model. Showing all the data since no column hidden are being set. Use `showColumnHidden()` instead.
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column3' => 'value3', 
+        //     'column4' => 'value4'
+        // ];
+        // Explanation : will override the $hidden in model. Showing all the data since no column hidden are being set. Use `showColumnHidden()` instead.
     }
 }
 ```
 </details> 
+
+<details> 
+<summary> Example Usage of setAppends($key) </summary>
+  
+#### Description
+<b>Parameters:</b><br>
+`$key` (array): An array containing the functions to be called in the model. The key will be used to append as the new key in the result data. <br>
+
+<b>Explanation:</b><br>
+- Need to create the function with prefix `get` and the suffix `Attribute` in the model. If the key has underscore ('_'), it will be removed and the first later of next text will become uppercase.
+<br><br>
+Example : <br>
+1) `new_data` will become `public function getNewDataAttribute()`<br>
+2) `testdata` will become `public function getTestdataAttribute()`<br>
+3) `appendNewdata` will become `public function getAppendNewdataAttribute()`<br>
+4) `appendNew_data` will become `public function getAppendNewDataAttribute()`
+<br>
+
+```php
+<?php
+
+# MODEL
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class Any_model extends MY_Model
+{
+    public $table = 'anyTable';
+    public $primaryKey = 'id'; 
+    
+    public $fillable = [
+        'column1',
+        'column2',
+        'column3',
+        'column4'
+    ];
+
+    protected $appends = ['new_data']; // If set in the model like this. all the query to this model will be append the new key
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function getNewDataAppendAttribute() 
+    {
+        return empty($this->column1) ? 'Will use this value a' : 'Will use this value b';
+    }
+
+    public function getOtherAppendExampleAttribute() 
+    {
+        return 'Will show this others value';
+    }
+}
+
+# CONTROLLER
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class <ClassName> extends CI_Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
+        $this->load->model('any_model');
+    }
+
+    public function exampleWithoutAppends()
+    {
+        return $this->any_model->where('column1', 'value')->fetch();
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column3' => 'value3', 
+        //     'column4' => 'value4', 
+        //     'new_data' => 'Will use this value b'
+        // ];
+        // Explanation : new_data key is a new data key result from the configuration using `$appends` property in the model.
+    }
+
+    public function exampleUsingSingleAppends()
+    {
+        return $this->any_model->where('column1', 'value')->setAppends(['other_append_example'])->fetch();
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column3' => 'value3', 
+        //     'column4' => 'value4', 
+        //     'other_append_example' => 'Will show this others value'
+        // ];
+        // Explanation : other_append_example key is a new data key result. It will override the `$appends` property in the model.
+    }
+
+    public function exampleUsingBothAppends()
+    {
+        return $this->any_model->where('column1', 'value')->setAppends(['new_data', 'other_append_example'])->fetch();
+        // Result : [
+        //     'column1' => 'value', 
+        //     'column2' => 'value2', 
+        //     'column3' => 'value3', 
+        //     'column4' => 'value4', 
+        //     'new_data' => 'Will use this value b',
+        //     'other_append_example' => 'Will show this others value'
+        // ];
+        // Explanation : new_data & other_append_example key is a new data key result. It will override the `$appends` property in the model.
+    }
+}
+```
+</details>
